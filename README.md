@@ -57,9 +57,37 @@ Claims in this repo are meant to be checkable. The ones that matter:
 | Reconciliation works | inject lost callbacks via `provider-sim`; they appear as differences | done |
 | Instant payout degrades, never fails | push float past 85%; everyone drops to batch | done |
 | Money survives a crash | `kill -9` the Postgres primary mid-payment | done |
-| Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | not yet |
+| Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | done |
 
 None of these require a single real rupiah.
+
+### The load test
+
+```sh
+./scripts/load-test.sh
+```
+
+Brings up PostgreSQL and Redis, migrates, seeds one merchant, starts the API, runs k6 against
+the real `POST /v1/payments` endpoint, then audits the books.
+
+Measured on an M-series laptop, PostgreSQL 15, `synchronous_commit=on`, 50 virtual users:
+
+```
+http_reqs .......... 251,982   6,294/s
+http_req_duration .. med=4.26ms  p(95)=8.51ms  p(99)=16.7ms  max=351ms
+http_req_failed .... 0.00%   0 out of 251,982
+
+ payments | ledger_transactions | ledger_entries | idempotency_keys | global_sum
+   251982 |              251982 |         755946 |           251982 |          0
+```
+
+Three numbers matter more than the rate. `payments` equals `ledger_transactions` exactly, so
+no request produced a payment without a ledger transaction or the other way round.
+`ledger_entries` is exactly three times that, so every payment posted its full debit, credit
+and fee. And `global_sum` is zero after a quarter of a million concurrent writes.
+
+This is a single-node laptop figure, not a capacity claim for production. Run it yourself; the
+script takes about a minute end to end.
 
 ### The crash test
 
@@ -94,8 +122,12 @@ PASS: every acknowledged commit survived, nothing partial, nothing invented
 ```
 
 The 800 rejected writes are the in-flight ones that met a dead database. Those are supposed
-to fail, and none of them left a trace. This is a durability test, not a throughput test — the
-journal is fsynced on every acknowledgement, which caps the write rate by design.
+to fail, and none of them left a trace.
+
+Do not read 886 as a throughput figure. The driver fsyncs its journal under a single mutex on
+every acknowledgement, so every commit is serialised behind one disk flush. That is the
+opposite of what the load test does, and the gap between the two numbers — roughly 180/s here
+against 6,294/s there — is entirely that serialisation, not the database.
 
 ## Repository layout
 
