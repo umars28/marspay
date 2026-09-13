@@ -378,3 +378,83 @@ func (s *Store) Search(ctx context.Context, query string) ([]Hit, error) {
 	}
 	return out, rows.Err()
 }
+
+type AccountView struct {
+	AccountID string  `json:"account_id"`
+	OwnerType string  `json:"owner_type"`
+	OwnerID   string  `json:"owner_id,omitempty"`
+	Kind      string  `json:"account_type"`
+	Balance   int64   `json:"balance"`
+	Entries   []Entry `json:"entries"`
+}
+
+func (s *Store) Account(ctx context.Context, accountID string, limit int) (*AccountView, error) {
+	view := &AccountView{AccountID: accountID, Entries: []Entry{}}
+
+	err := s.pool.QueryRow(ctx,
+		`SELECT a.owner_type, COALESCE(a.owner_id, ''), a.account_type,
+		        COALESCE((SELECT SUM(amount_minor) FROM ledger_entries WHERE account_id = a.id), 0)
+		 FROM accounts a WHERE a.id = $1`, accountID).
+		Scan(&view.OwnerType, &view.OwnerID, &view.Kind, &view.Balance)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.pool.Query(ctx,
+		`SELECT e.id, e.account_id, a.owner_type, e.amount_minor, e.created_at
+		 FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+		 WHERE e.account_id = $1
+		 ORDER BY e.created_at DESC
+		 LIMIT $2`, accountID, clamp(limit))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var e Entry
+		if err := rows.Scan(&e.ID, &e.AccountID, &e.OwnerType, &e.Amount, &e.CreatedAt); err != nil {
+			return nil, err
+		}
+		view.Entries = append(view.Entries, e)
+	}
+	return view, rows.Err()
+}
+
+type Hour struct {
+	Hour   int   `json:"hour"`
+	Count  int64 `json:"count"`
+	Volume int64 `json:"volume"`
+}
+
+func (s *Store) Hourly(ctx context.Context, merchantID string) ([]Hour, error) {
+	rows, err := s.pool.Query(ctx,
+		`WITH hours AS (SELECT generate_series(0, 23) AS hour)
+		 SELECT h.hour,
+		        count(p.id),
+		        COALESCE(SUM(p.amount_minor), 0)
+		 FROM hours h
+		 LEFT JOIN payments p
+		   ON EXTRACT(HOUR FROM p.created_at) = h.hour
+		  AND p.created_at >= now() - interval '24 hours'
+		  AND ($1 = '' OR p.merchant_id = $1)
+		 GROUP BY h.hour
+		 ORDER BY h.hour`, merchantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []Hour{}
+	for rows.Next() {
+		var h Hour
+		if err := rows.Scan(&h.Hour, &h.Count, &h.Volume); err != nil {
+			return nil, err
+		}
+		out = append(out, h)
+	}
+	return out, rows.Err()
+}

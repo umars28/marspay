@@ -36,7 +36,7 @@ type Refund struct {
 	CreatedAt           time.Time `json:"created_at"`
 }
 
-func (s *Service) CreateRefund(ctx context.Context, req RefundRequest) (*Refund, error) {
+func (s *Service) CreateRefund(ctx context.Context, callerMerchantID string, req RefundRequest) (*Refund, error) {
 	if req.PaymentID == "" {
 		return nil, httpx.Errorf(http.StatusUnprocessableEntity, httpx.TypeInvalidRequest,
 			"Field payment_id is required.")
@@ -59,6 +59,10 @@ func (s *Service) CreateRefund(ctx context.Context, req RefundRequest) (*Refund,
 	}
 	if err != nil {
 		return nil, fmt.Errorf("txn: load payment: %w", err)
+	}
+	if callerMerchantID != "" && callerMerchantID != merchantID {
+		return nil, httpx.Errorf(http.StatusNotFound, httpx.TypeNotFound,
+			"Payment %s was not found.", req.PaymentID)
 	}
 	if status != "succeeded" {
 		return nil, httpx.Errorf(http.StatusConflict, httpx.TypeConflict,

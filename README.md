@@ -6,8 +6,8 @@ that differs — **get paid within seconds instead of the next business day**.
 
 The money is simulated. The system is not.
 
-> **Status: feature complete.** 61 endpoints across consumer, merchant, operations and risk
-> surfaces, backed by 291 tests across 15 packages including integration tests against real
+> **Status: feature complete.** 64 endpoints across consumer, merchant, operations and risk
+> surfaces, backed by 295 tests across 15 packages including integration tests against real
 > PostgreSQL, Redis and a Kafka broker. Both credential types are real: merchant API keys, and
 > consumer sessions from phone, one-time code and PIN, bound to a device. Everything below
 > states plainly what is proven and what is not.
@@ -464,14 +464,15 @@ same way. What is live in each:
 
 | Role | Live | Still sample |
 |---|---|---|
-| Consumer | balance, history, points, profile, devices, pay, transfer, top up, withdraw | bills, promos, split bill, inbox |
-| Merchant | payments, payouts, holdback and its rate, settlements, API keys, outlets, staff, webhook deliveries | payment links, the hourly volume chart |
-| Admin / Ops | search, float and exposure, payout engine and rail health, reconciliation, audit log, the ledger behind any payment | Kafka consumer lag, scheduled jobs |
-| Risk | alerts, rule catalogue with trip counts, disputes, blocks, merchant score | KYC queue |
+| Consumer | balance, history, profile, devices, pay, transfer, top up, withdraw, bills, offers, points, money requests, inbox | split bill |
+| Merchant | payments, payouts, holdback, settlements, API keys, outlets, staff, webhook deliveries, hourly volume, refunds | payment links |
+| Admin / Ops | search, float, payout engine, reconciliation, audit, the ledger behind a payment, any account | Kafka consumer lag, scheduled jobs |
+| Risk | alerts, rules, disputes and their resolution, blocks and unblocking, KYC queue and review, merchant score | — |
 
-What is still sample data is what has no endpoint behind it. Kafka lag needs a consumer that
-does not exist yet; payment links and the KYC queue have tables but no read route. Nothing
-shown as live is invented, and nothing invented is shown as live.
+What is still sample data is what has no endpoint behind it, and there are three of those left.
+Kafka lag and the jobs board need consumers that do not exist yet. Payment links need a table
+nobody has written. Split bill posts through the money-request path rather than its own screen.
+Nothing shown as live is invented, and nothing invented is shown as live.
 
 ```sh
 ./scripts/check-ui.sh

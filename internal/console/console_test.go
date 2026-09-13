@@ -360,3 +360,48 @@ func TestAlertsNameTheirSubjectAndRule(t *testing.T) {
 		t.Errorf("severity filter returned %d rows, want 0", len(filtered.Data))
 	}
 }
+
+func TestAnAccountViewShowsItsBalanceAndEntries(t *testing.T) {
+	store, _, ctx := seed(t)
+
+	view, err := store.Account(ctx, "acc_console_payable", 10)
+	if err != nil {
+		t.Fatalf("account: %v", err)
+	}
+	if view.Balance != 3177600 {
+		t.Errorf("balance = %d, want 3177600", view.Balance)
+	}
+	if view.OwnerType != "merchant" || view.Kind != "merchant_payable" {
+		t.Errorf("owner = %q kind = %q", view.OwnerType, view.Kind)
+	}
+	if len(view.Entries) != 1 {
+		t.Errorf("entries = %d, want 1", len(view.Entries))
+	}
+
+	if _, err := store.Account(ctx, "acc_does_not_exist", 10); !errors.Is(err, ErrNotFound) {
+		t.Errorf("got %v, want ErrNotFound", err)
+	}
+}
+
+func TestHourlyVolumeAlwaysCoversTwentyFourHours(t *testing.T) {
+	store, _, ctx := seed(t)
+
+	hours, err := store.Hourly(ctx, merchantID)
+	if err != nil {
+		t.Fatalf("hourly: %v", err)
+	}
+	if len(hours) != 24 {
+		t.Fatalf("buckets = %d, want 24: a chart with gaps is a chart that lies", len(hours))
+	}
+
+	var total int64
+	for i, h := range hours {
+		if h.Hour != i {
+			t.Fatalf("bucket %d reports hour %d", i, h.Hour)
+		}
+		total += h.Volume
+	}
+	if total == 0 {
+		t.Error("every bucket is empty although a payment was seeded in the last 24 hours")
+	}
+}

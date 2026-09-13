@@ -151,6 +151,7 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /v1/settlements", c.Settlements)
 		mux.HandleFunc("GET /v1/webhook-endpoints", c.Endpoints)
 		mux.HandleFunc("GET /v1/webhook-deliveries", c.Deliveries)
+		mux.HandleFunc("GET /v1/volume", c.Hourly)
 
 		mux.HandleFunc("GET /internal/v1/search", c.Search)
 		mux.HandleFunc("GET /internal/v1/float", c.Float)
@@ -158,6 +159,7 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /internal/v1/payouts/engine", c.Engine)
 		mux.HandleFunc("GET /internal/v1/reconciliation", c.Reconciliation)
 		mux.HandleFunc("GET /internal/v1/payments/{id}/ledger", c.Ledger)
+		mux.HandleFunc("GET /internal/v1/accounts/{id}", c.Account)
 		mux.HandleFunc("GET /internal/v1/velocity/rules", c.Rules)
 		mux.HandleFunc("GET /internal/v1/velocity/alerts", c.Alerts)
 	}

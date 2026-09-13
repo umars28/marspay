@@ -252,3 +252,30 @@ func (h *Handler) Alerts(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.WriteJSON(w, http.StatusOK, page)
 }
+
+func (h *Handler) Account(w http.ResponseWriter, r *http.Request) {
+	if !operatorOf(w, r) {
+		return
+	}
+
+	view, err := h.store.Account(r.Context(), r.PathValue("id"), limitOf(r))
+	if err != nil {
+		fail(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, view)
+}
+
+func (h *Handler) Hourly(w http.ResponseWriter, r *http.Request) {
+	merchantID, ok := merchantOf(w, r)
+	if !ok {
+		return
+	}
+
+	hours, err := h.store.Hourly(r.Context(), merchantID)
+	if err != nil {
+		fail(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": hours})
+}

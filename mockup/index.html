@@ -590,7 +590,7 @@
           <div class="card">
             <header><h3>Volume per hour</h3><span class="hint">00:00 – 23:00 WIB</span></header>
             <div class="body">
-              <div class="bars">
+              <div class="bars" data-live="m-hourly">
                 <div style="height:8%"></div><div style="height:5%"></div><div style="height:4%"></div><div style="height:3%"></div>
                 <div style="height:6%"></div><div style="height:14%"></div><div style="height:32%"></div><div style="height:58%"></div>
                 <div style="height:74%"></div><div style="height:61%"></div><div style="height:49%"></div><div style="height:67%"></div>
@@ -750,7 +750,7 @@
       <section class="screen" data-screen="m-outlets">
         <div class="pagehead">
           <div><h2>Outlets &amp; Staff</h2><p>3 outlets · 8 staff · each with its own static QRIS code</p></div>
-          <div class="actions"><button class="btn"><svg><use href="#i-plus"/></svg>Add staff</button><button class="btn primary"><svg><use href="#i-plus"/></svg>Add outlet</button></div>
+          <div class="actions"><button class="btn" id="staff-add"><svg><use href="#i-plus"/></svg>Add staff</button><button class="btn primary" id="outlet-add"><svg><use href="#i-plus"/></svg>Add outlet</button></div>
         </div>
         <div class="card">
           <header><h3>Outlet</h3></header>
@@ -845,7 +845,7 @@
       <section class="screen" data-screen="m-keys">
         <div class="pagehead">
           <div><h2>API Key</h2><p>Live keys are shown once, at creation</p></div>
-          <div class="actions"><button class="btn primary"><svg><use href="#i-plus"/></svg>Create key</button></div>
+          <div class="actions"><button class="btn primary" id="key-create"><svg><use href="#i-plus"/></svg>Create key</button></div>
         </div>
         <div class="card">
           <div class="tablewrap"><table>
@@ -962,7 +962,7 @@
       <section class="screen" data-screen="a-float">
         <div class="pagehead">
           <div><h2>Float &amp; Liquidity</h2><p>The direct consequence of Instant Payout: we pay merchants before the funds have actually been collected</p></div>
-          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Refresh</button><button class="btn danger">Emergency stop</button></div>
+          <div class="actions"><button class="btn" id="float-refresh"><svg><use href="#i-refresh"/></svg>Refresh</button><button class="btn danger">Emergency stop</button></div>
         </div>
         <div class="keyband">
           <div class="txt">
@@ -1146,13 +1146,13 @@
 
       <section class="screen" data-screen="a-accounts">
         <div class="pagehead">
-          <div><h2>usr_44182 · Umar Sabirin</h2><p>Registered 12 Jan 2026 · Verified tier</p></div>
+          <div><h2 data-live="a-account-title">usr_44182 · Umar Sabirin</h2><p data-live="a-account-sub">Registered 12 Jan 2026 · Verified tier</p></div>
           <div class="actions"><button class="btn">Change limits</button><button class="btn danger"><svg><use href="#i-ban"/></svg>Freeze account</button></div>
         </div>
         <div class="grid g-main">
           <div class="grid" style="gap:var(--s4)">
             <div class="card"><header><h3>Balance summary</h3></header><div class="body">
-              <div class="grid g3">
+              <div class="grid g3" data-live="a-account-balance">
                 <div><div class="small muted">Available</div><div class="num strong" style="font-size:18px">Rp 2,480,500</div></div>
                 <div><div class="small muted">On hold</div><div class="num strong" style="font-size:18px">Rp 150,000</div></div>
                 <div><div class="small muted">From the ledger</div><div class="num strong" style="font-size:18px">Rp 2,630,500</div></div>

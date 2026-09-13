@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/umars28/marspay/internal/httpx"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -324,5 +326,33 @@ func TestReadingWithoutATokenIsUnauthorized(t *testing.T) {
 		if rec.Code != http.StatusUnauthorized {
 			t.Errorf("%s status = %d, want 401", path, rec.Code)
 		}
+	}
+}
+
+func TestARefundIsScopedToTheMerchantThatTookThePayment(t *testing.T) {
+	f, ctx := newFixture(t)
+	_ = ctx
+
+	paid := decodePayment(t, f.post(t, id.ULID(), f.validBody(3_200_000)))
+
+	svc := txn.NewService(f.pool, f.ledger, f.wallet)
+	_, err := svc.CreateRefund(t.Context(), "merch_somebody_else", txn.RefundRequest{
+		PaymentID: paid.ID,
+		Reason:    "trying to refund a payment that is not mine",
+	})
+	if err == nil {
+		t.Fatal("a merchant refunded another merchant's payment")
+	}
+
+	var apiErr *httpx.APIError
+	if !errors.As(err, &apiErr) || apiErr.Status != http.StatusNotFound {
+		t.Errorf("got %v, want a 404 that does not confirm the payment exists", err)
+	}
+
+	if _, err := svc.CreateRefund(t.Context(), "", txn.RefundRequest{
+		PaymentID: paid.ID,
+		Reason:    "an operator refunds on behalf of support",
+	}); err != nil {
+		t.Errorf("an operator could not refund: %v", err)
 	}
 }

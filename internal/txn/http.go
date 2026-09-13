@@ -154,7 +154,10 @@ func (h *Handler) ProviderCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateRefund(w http.ResponseWriter, r *http.Request) {
-	if _, ok := caller(w, r); !ok {
+	merchantID := auth.MerchantID(r.Context())
+	if merchantID == "" && !auth.IsOperator(r.Context()) {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusForbidden, httpx.TypeForbidden,
+			"A refund is issued by the merchant that took the payment, or by an operator."))
 		return
 	}
 
@@ -164,7 +167,7 @@ func (h *Handler) CreateRefund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.service.CreateRefund(r.Context(), req)
+	result, err := h.service.CreateRefund(r.Context(), merchantID, req)
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return

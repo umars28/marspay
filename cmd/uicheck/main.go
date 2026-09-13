@@ -254,6 +254,22 @@ func checkMerchant() {
 
 	code, out, _ = call("GET", "/v1/webhook-deliveries", apiKey, nil)
 	check("GET  /v1/webhook-deliveries", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/volume", apiKey, nil)
+	check("GET  /v1/volume", code, 200, out, "data")
+
+	code, out, _ = call("POST", "/v1/api-keys", apiKey, map[string]any{
+		"name": "uicheck", "mode": "test", "scopes": []string{"read"}})
+	check("POST /v1/api-keys", code, 201, out, "prefix", "secret")
+
+	code, out, _ = call("POST", "/v1/outlets", apiKey, map[string]any{"name": "uicheck outlet"})
+	check("POST /v1/outlets", code, 201, out, "id", "name")
+
+	if lastPaymentID != "" {
+		code, out, _ = call("POST", "/v1/refunds", apiKey, map[string]any{
+			"payment_id": lastPaymentID, "reason": "uicheck exercising the refund path"})
+		check("POST /v1/refunds", code, 201, out, "id", "status")
+	}
 }
 
 func checkOperator() {
@@ -295,6 +311,9 @@ func checkOperator() {
 
 	code, out, _ = call("GET", "/internal/v1/search?q="+merchant, token, nil)
 	check("GET  /internal/v1/search", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/accounts/acc_usr_demo_user_wallet", token, nil)
+	check("GET  /internal/v1/accounts/{id}", code, 200, out, "balance", "entries")
 
 	checkOpsActions(token)
 

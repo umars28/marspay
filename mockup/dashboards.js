@@ -52,7 +52,7 @@
     'm-outlets-rows', 'm-outlets-rows1', 'm-webhooks-rows',
     'm-instant-stat0', 'm-instant-stat1', 'm-instant-stat2', 'm-instant-latency',
     'm-instant-headline', 'm-holdback-headline', 'm-holdback-rate', 'm-holdback-meter',
-    'm-payout-stream',
+    'm-payout-stream', 'm-hourly',
   ];
 
   async function loadMerchant() {
@@ -90,7 +90,9 @@
           cell(MP.plain(p.net), 'r num'),
           cell(badge(p.status)),
           cell(esc(p.ledger_transaction_id ? 'posted' : '—')),
-          cell(''),
+          cell(p.status === 'succeeded'
+            ? '<button class="btn sm" data-refund="' + esc(p.id) + '">Refund</button>'
+            : ''),
         ]);
       });
       set('m-tx-rows', wide.length ? wide.join('') : noRows(10, 'No payments yet'));
@@ -198,6 +200,17 @@
       set('m-outlets-rows1', staffRows.length ? staffRows.join('') : noRows(6, 'No staff'));
     }
 
+    var hourly = await MP.request('GET', '/v1/volume', { role: 'merchant' });
+    if (hourly.ok) {
+      var buckets = hourly.data.data || [];
+      var peak = buckets.reduce(function (a, h) { return Math.max(a, h.volume); }, 0);
+      set('m-hourly', buckets.map(function (h) {
+        var height = peak > 0 ? Math.max(2, h.volume / peak * 100) : 2;
+        return '<div style="height:' + height.toFixed(0) + '%" title="' + h.hour + ':00 · ' +
+          MP.rupiah(h.volume) + '"></div>';
+      }).join(''));
+    }
+
     var deliveries = await MP.request('GET', '/v1/webhook-deliveries?limit=25', { role: 'merchant' });
     if (deliveries.ok) {
       var list = deliveries.data.data.map(function (d) {
@@ -227,6 +240,7 @@
     'r-dispute-stat0', 'r-dispute-stat1', 'r-dispute-stat2', 'r-dispute-stat3',
     'r-merchant-stat0', 'r-merchant-stat1', 'r-merchant-stat2', 'r-merchant-stat3',
     'r-kyc-queue', 'r-kyc-stat0', 'r-kyc-stat1', 'r-kyc-stat2', 'r-kyc-stat3',
+    'a-account-title', 'a-account-sub', 'a-account-balance', 'a-accounts-rows',
   ];
 
   function reasonFrom(id) {
@@ -504,6 +518,9 @@
         (h.kind === 'payment'
           ? '<button class="btn sm" data-ledger="' + esc(h.id) + '">Ledger</button>'
           : '') +
+        (h.kind === 'user'
+          ? '<button class="btn sm" data-account="acc_' + esc(h.id) + '_user_wallet">Wallet</button>'
+          : '') +
         '</div></div>';
     });
     set('a-search-results', items.length ? items.join('') :
@@ -562,7 +579,101 @@
     await loadOps();
   }
 
+  async function openAccount(accountID) {
+    var result = await MP.request('GET',
+      '/internal/v1/accounts/' + encodeURIComponent(accountID), { role: 'operator' });
+    if (!result.ok) return;
+
+    var a = result.data;
+    set('a-account-title', esc(a.account_id));
+    set('a-account-sub', esc(a.owner_type + (a.owner_id ? ' ' + a.owner_id : '') +
+      ' · ' + a.account_type));
+    set('a-account-balance',
+      '<div><div class="small muted">Ledger balance</div>' +
+      '<div class="num strong" style="font-size:18px">' + MP.rupiah(a.balance) + '</div></div>' +
+      '<div><div class="small muted">Entries shown</div>' +
+      '<div class="num strong" style="font-size:18px">' + a.entries.length + '</div></div>' +
+      '<div><div class="small muted">Owner</div>' +
+      '<div class="num strong" style="font-size:18px">' + esc(a.owner_type) + '</div></div>');
+
+    set('a-accounts-rows', a.entries.length
+      ? a.entries.map(function (e) {
+        return row([
+          cell('<span class="mono">' + esc(short(e.id)) + '</span>'),
+          cell(esc(a.account_type)),
+          cell(esc(MP.clock(e.created_at))),
+          cell(MP.plain(e.amount), 'r num'),
+          cell(badge(e.amount < 0 ? 'pending' : 'succeeded')),
+        ]);
+      }).join('')
+      : noRows(5, 'No entries on this account'));
+
+    var admin = document.querySelector('#role-admin');
+    if (admin) {
+      admin.querySelectorAll('.screen').forEach(function (s) {
+        s.classList.toggle('active', s.dataset.screen === 'a-accounts');
+      });
+    }
+  }
+
   document.addEventListener('click', function (e) {
+    var refund = e.target.closest('[data-refund]');
+    if (refund && MPLive.isLive('merchant')) {
+      e.preventDefault();
+      e.stopPropagation();
+      refund.disabled = true;
+      MP.request('POST', '/v1/refunds', {
+        role: 'merchant',
+        body: { payment_id: refund.dataset.refund, reason: 'refunded from the dashboard' },
+      }).then(function (result) {
+        refund.disabled = false;
+        if (!result.ok) {
+          refund.textContent = 'Refused';
+          refund.title = MPLive.failure(result);
+          return;
+        }
+        loadMerchant();
+      });
+      return;
+    }
+
+    var create = e.target.closest('#key-create');
+    if (create && MPLive.isLive('merchant')) {
+      e.preventDefault();
+      create.disabled = true;
+      MP.request('POST', '/v1/api-keys', {
+        role: 'merchant',
+        body: { name: 'dashboard ' + new Date().toISOString().slice(0, 10), mode: 'test',
+          scopes: ['read'] },
+      }).then(function (result) {
+        create.disabled = false;
+        if (result.ok) loadMerchant();
+      });
+      return;
+    }
+
+    var outlet = e.target.closest('#outlet-add');
+    if (outlet && MPLive.isLive('merchant')) {
+      e.preventDefault();
+      outlet.disabled = true;
+      MP.request('POST', '/v1/outlets', {
+        role: 'merchant',
+        body: { name: 'Outlet ' + Math.floor(Math.random() * 900 + 100) },
+      }).then(function (result) {
+        outlet.disabled = false;
+        if (result.ok) loadMerchant();
+      });
+      return;
+    }
+
+    var account = e.target.closest('[data-account]');
+    if (account && MPLive.isLive('operator')) {
+      e.preventDefault();
+      e.stopPropagation();
+      openAccount(account.dataset.account);
+      return;
+    }
+
     var kyc = e.target.closest('[data-kyc]');
     if (kyc && MPLive.isLive('operator')) {
       e.preventDefault();
