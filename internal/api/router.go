@@ -174,6 +174,7 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /internal/v1/payments/{id}/ledger", c.Ledger)
 		mux.HandleFunc("GET /internal/v1/accounts/{id}", c.Account)
 		mux.HandleFunc("GET /internal/v1/queues", c.Queues)
+		mux.HandleFunc("GET /internal/v1/transitions", c.Transitions)
 		mux.HandleFunc("GET /internal/v1/velocity/rules", c.Rules)
 		mux.HandleFunc("GET /internal/v1/velocity/alerts", c.Alerts)
 	}

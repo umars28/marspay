@@ -203,7 +203,27 @@ the exact entries that moved, and it makes the API auditable from the outside.
 | `GET` `POST` `DELETE` | `/v1/api-keys` | the secret is returned exactly once |
 | `GET` `PUT` | `/v1/webhook-endpoints` | URL, subscribed events, signing secret |
 | `GET` | `/v1/webhook-deliveries` | attempt log, response codes, DLQ |
+| `GET` | `/v1/volume` | payments per hour for the last 24 hours, always 24 buckets |
+| `GET` `POST` | `/v1/charges` · `POST /v1/charges/{id}/cancel` | payment links with an amount and an expiry |
 | `POST` | `/v1/webhook-deliveries/{id}/retry` | manual replay |
+
+### A payment link is paid by id, not by amount
+
+```http
+POST /v1/charges          {"description": "Table 4", "amount": 4800000, "expires_in": "2h"}
+  201 {"id": "chg_01J…", "reference": "ref_01J…", "status": "open", "expires_at": "…"}
+
+GET  /v1/charges/chg_01J…                      the payer reads what they are about to pay
+
+POST /v1/payments         {"charge_id": "chg_01J…"}
+  201 a normal payment; the amount came from the link, not from the client
+```
+
+The payer never sends an amount. `POST /v1/payments` with a `charge_id` resolves the merchant,
+outlet and amount from the link, which is what stops a client paying one rupiah against a
+million-rupiah invoice. The link is marked paid inside the same transaction as the ledger
+posting and behind a row lock, so concurrent attempts produce exactly one payment and the rest
+get `409`.
 
 ### Payout status reflects the differentiator
 
@@ -296,6 +316,10 @@ is enforced at the API layer rather than merely prompted for in the UI.
 | `/merchants/{id}/score` | risk score with per-factor components |
 | `/accounts/{id}/block` · `/unblock` | reason required |
 | `/audit` | append-only, readable by everyone, writable by no one |
+| `/queues` | outbox depth, webhook retries, money in flight, and the scheduled work that is due |
+| `/transitions` | every recorded status change, by operation or by kind |
+| `/velocity/rules` · `/velocity/alerts` | the rule catalogue with its trip counts, and what tripped |
+| `/accounts/{id}` | the ledger behind any account, with its balance |
 | `/saturation` | connection pool counters and goroutine count, for load work |
 
 `/saturation` is the only one that returns no business data. It exposes what the pgx pool and

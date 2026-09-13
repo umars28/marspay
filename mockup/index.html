@@ -254,6 +254,10 @@
           <div class="qrbox"><div class="frame"></div><div class="cap">Point at the merchant QRIS code</div></div>
           <div class="note ok"><svg><use href="#i-check"/></svg><div>Detected: <strong data-live="pay-merchant-name">Kopi Tuku Senopati</strong> · <span data-live="pay-merchant-id">NMID ID2023xxxx0912</span></div></div>
           <label class="field mt4"><span class="lbl">Merchant</span><input class="input" id="pay-merchant" value="merch_demo" spellcheck="false"></label>
+          <label class="field mt4"><span class="lbl">Or a payment link</span>
+            <input class="input mono" id="pay-charge" placeholder="chg_… from the merchant" spellcheck="false">
+            <span class="help">With a link, the amount comes from the link and the field above is ignored.</span>
+          </label>
           <label class="field mt4"><span class="lbl">Amount</span><input class="input num" id="pay-amount" value="32,000" inputmode="numeric"></label>
           <div class="note" data-live="pay-result" hidden></div>
           <button class="btn brand block mt4" id="pay-submit" data-goto="txdetail">Pay now</button>

@@ -176,6 +176,51 @@ SHA-256 digests, and the tokens they came from carry 256 bits from `crypto/rand`
 code that survives a cache flush with its attempt counter reset is a code that can be brute
 forced. The counter and the secret belong in the same place.
 
+### Payment links
+
+```sql
+CREATE TABLE charges (
+  ...
+  status      TEXT NOT NULL CHECK (status IN ('open','paid','expired','cancelled')),
+  payment_id  TEXT REFERENCES payments(id),
+  expires_at  TIMESTAMPTZ NOT NULL,
+  UNIQUE (merchant_id, reference),
+  CHECK ((status = 'paid') = (payment_id IS NOT NULL))
+);
+```
+
+The last `CHECK` is the one worth reading. A link is paid if and only if it points at a
+payment: the database will not accept a link marked paid with nothing behind it, nor a link
+carrying a payment id while still claiming to be open. Application code cannot drift from that
+because it is not application code.
+
+Expiry is **derived on read**, never written by a reader. A `GET` on an expired link reports
+`expired: true` while the row still says `open`, because a read that rewrites rows turns every
+dashboard refresh into a write and makes the history depend on who looked at it. The status
+column only changes when somebody acts.
+
+### Every status change is recorded
+
+```sql
+CREATE TABLE operation_state_transitions (
+  operation_kind TEXT NOT NULL,
+  operation_id   TEXT NOT NULL,
+  from_status    TEXT,
+  to_status      TEXT NOT NULL,
+  actor          TEXT NOT NULL,
+  reason         TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+A status column tells you where an operation is. It cannot tell you how it got there, who
+decided, or why — and those are the three questions support actually asks. Each transition is
+written in the **same transaction** as the status change it describes, so a trail can never
+exist for a change that rolled back, and a change can never happen without its trail.
+
+`actor` is not nullable on purpose. Every state change in this system has somebody or something
+responsible for it: a provider callback, an operator, the payer, or `system`.
+
 ## 3. Operations
 
 Each product flow gets its own table rather than one polymorphic `transactions` table,

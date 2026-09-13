@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
+	"github.com/umars28/marspay/internal/state"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -254,12 +255,26 @@ func (d *Disputes) Resolve(ctx context.Context, disputeID string, req ResolveReq
 func (d *Disputes) close(ctx context.Context, v Dispute, req ResolveRequest,
 	actor string, covered, loss money.Minor, txID string) (*Dispute, error) {
 
-	_, err := d.pool.Exec(ctx,
+	tx, err := d.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("compliance: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if _, err := tx.Exec(ctx,
 		`UPDATE disputes
 		 SET status = $1, covered_minor = $2, loss_minor = $3, resolved_at = now()
 		 WHERE id = $4`,
-		req.Outcome, int64(covered), int64(loss), v.ID)
-	if err != nil {
+		req.Outcome, int64(covered), int64(loss), v.ID); err != nil {
+		return nil, fmt.Errorf("compliance: close dispute: %w", err)
+	}
+
+	if err := state.RecordTx(ctx, tx, state.KindDispute, v.ID,
+		v.Status, req.Outcome, actor, req.Reason); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("compliance: close dispute: %w", err)
 	}
 

@@ -13,6 +13,7 @@ import (
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/rail"
 	"github.com/umars28/marspay/internal/risk"
+	"github.com/umars28/marspay/internal/state"
 )
 
 const HoldbackWindow = 24 * time.Hour
@@ -225,6 +226,11 @@ func (s *Service) persist(ctx context.Context, p *Payout, posting *ledger.Postin
 		ledgerTxID, settledAt, p.LatencyMs)
 	if err != nil {
 		return fmt.Errorf("payout: insert: %w", err)
+	}
+
+	if err := state.RecordTx(ctx, tx, state.KindPayout, p.ID,
+		"", p.Status, state.ActorSystem, p.DegradeReason); err != nil {
+		return err
 	}
 
 	if posting != nil && p.HoldbackMinor > 0 {

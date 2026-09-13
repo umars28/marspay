@@ -12,6 +12,7 @@ import (
 
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/id"
+	"github.com/umars28/marspay/internal/state"
 )
 
 const (
@@ -178,11 +179,27 @@ func (c *Charges) List(ctx context.Context, merchantID, status string, limit int
 }
 
 func (c *Charges) Cancel(ctx context.Context, merchantID, chargeID string) (*Charge, error) {
-	tag, err := c.pool.Exec(ctx,
+	tx, err := c.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	tag, err := tx.Exec(ctx,
 		`UPDATE charges SET status = 'cancelled', cancelled_at = now()
 		 WHERE id = $1 AND merchant_id = $2 AND status = 'open'`, chargeID, merchantID)
 	if err != nil {
 		return nil, err
+	}
+	if tag.RowsAffected() == 1 {
+		if err := state.RecordTx(ctx, tx, state.KindCharge, chargeID,
+			"open", "cancelled", merchantID, "cancelled by the merchant"); err != nil {
+			return nil, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return nil, err
+		}
+		return c.Get(ctx, merchantID, chargeID)
 	}
 	if tag.RowsAffected() == 0 {
 		existing, err := c.Get(ctx, merchantID, chargeID)
@@ -220,10 +237,13 @@ func (c *Charges) MarkPaid(ctx context.Context, tx pgx.Tx, chargeID, paymentID, 
 			"This payment link expired at %s.", expiresAt.Format(time.RFC3339))
 	}
 
-	_, err = tx.Exec(ctx,
+	if _, err := tx.Exec(ctx,
 		`UPDATE charges SET status = 'paid', payment_id = $2, paid_by = $3, paid_at = now()
-		 WHERE id = $1`, chargeID, paymentID, payerID)
-	return err
+		 WHERE id = $1`, chargeID, paymentID, payerID); err != nil {
+		return err
+	}
+	return state.RecordTx(ctx, tx, state.KindCharge, chargeID,
+		"open", "paid", payerID, paymentID)
 }
 
 func (c *Charges) Lookup(ctx context.Context, chargeID string) (string, string, int64, error) {

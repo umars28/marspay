@@ -53,6 +53,8 @@
     'm-instant-stat0', 'm-instant-stat1', 'm-instant-stat2', 'm-instant-latency',
     'm-instant-headline', 'm-holdback-headline', 'm-holdback-rate', 'm-holdback-meter',
     'm-payout-stream', 'm-hourly', 'm-charges-rows',
+    'm-settlement-stat0', 'm-settlement-stat1',
+    'm-webhooks-stat0', 'm-webhooks-stat1', 'm-webhooks-stat2', 'm-webhooks-stat3',
   ];
 
   async function loadMerchant() {
@@ -150,6 +152,11 @@
       });
       set('m-settlement-rows', batches.length ? batches.join('') :
         noRows(7, 'No settlement batches; every payout went instant'));
+
+      set('m-settlement-stat0', String(settlements.data.data.length));
+      set('m-settlement-stat1', MP.rupiah(settlements.data.data.reduce(function (a, b) {
+        return a + b.net;
+      }, 0)));
     }
 
     var keys = await MP.request('GET', '/v1/api-keys', { role: 'merchant' });
@@ -248,6 +255,25 @@
       });
       set('m-webhooks-rows', list.length ? list.join('') :
         noRows(8, 'No deliveries; nothing has been sent to this endpoint yet'));
+
+      var all = deliveries.data.data;
+      var delivered = all.filter(function (d) { return d.status === 'delivered'; });
+      var latencies = all.map(function (d) { return d.latency_ms; })
+        .filter(function (v) { return v !== null && v !== undefined; })
+        .sort(function (a, b) { return a - b; });
+
+      set('m-webhooks-stat0', all.length
+        ? (delivered.length / all.length * 100).toFixed(1) + '%'
+        : '—');
+      set('m-webhooks-stat1', String(all.filter(function (d) {
+        return d.status === 'pending' || d.status === 'retrying';
+      }).length));
+      set('m-webhooks-stat2', String(all.filter(function (d) {
+        return d.status === 'dead_letter';
+      }).length));
+      set('m-webhooks-stat3', latencies.length
+        ? ms(latencies[Math.floor(latencies.length * 0.95)])
+        : '—');
     }
   }
 

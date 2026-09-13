@@ -627,3 +627,39 @@ func outcomeFor(pending int64) string {
 	}
 	return "work is due"
 }
+
+func (s *Store) Transitions(ctx context.Context, kind, operationID string, limit int) ([]Transition, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, operation_kind, operation_id, COALESCE(from_status, ''), to_status,
+		        actor, COALESCE(reason, ''), created_at
+		 FROM operation_state_transitions
+		 WHERE ($1 = '' OR operation_kind = $1) AND ($2 = '' OR operation_id = $2)
+		 ORDER BY created_at DESC, id DESC
+		 LIMIT $3`, kind, operationID, clamp(limit))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []Transition{}
+	for rows.Next() {
+		var t Transition
+		if err := rows.Scan(&t.ID, &t.Kind, &t.Operation, &t.From, &t.To,
+			&t.Actor, &t.Reason, &t.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+type Transition struct {
+	ID        int64     `json:"id"`
+	Kind      string    `json:"operation_kind"`
+	Operation string    `json:"operation_id"`
+	From      string    `json:"from_status,omitempty"`
+	To        string    `json:"to_status"`
+	Actor     string    `json:"actor"`
+	Reason    string    `json:"reason,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}

@@ -99,6 +99,7 @@
       if (balance.data.cache_agreed === false) {
         set('tier', 'Cache disagrees with the ledger');
       }
+      set('transfer-help', 'Sending from a balance of ' + MP.rupiah(balance.data.available));
     }
 
     var me = await MP.request('GET', '/v1/me', { role: 'user' });
@@ -356,7 +357,7 @@
         'me-max-balance', 'me-max-month', 'me-used', 'devices',
         'bills-list', 'bill-codes', 'bill-inquiry', 'promo-list', 'points-total',
         'points-meta', 'points-history', 'requests-incoming', 'inbox-list',
-        'split-parts'].forEach(restore);
+        'split-parts', 'transfer-help', 'pay-merchant-name', 'pay-merchant-id'].forEach(restore);
       $('#cons-note').textContent = 'Signed out. Showing sample data again.';
       $('#cons-note').className = 'cbnote';
       $('#cons-signout').hidden = true;
@@ -445,23 +446,50 @@
   function wireConsumerActions() {
     submit($('#pay-submit'), async function () {
       clearNote('pay-result');
-      var result = await MP.request('POST', '/v1/payments', {
-        role: 'user',
-        body: {
+      var charge = $('#pay-charge').value.trim();
+
+      var body = charge
+        ? { charge_id: charge }
+        : {
           merchant_id: $('#pay-merchant').value.trim(),
           method: 'qris',
           amount: MP.toMinor($('#pay-amount').value),
           currency: 'IDR',
-        },
-      });
+        };
 
+      var result = await MP.request('POST', '/v1/payments', { role: 'user', body: body });
       if (!result.ok) {
         note('pay-result', 'warn', failure(result));
         return;
       }
+
       note('pay-result', 'ok', 'Paid ' + MP.rupiah(result.data.amount) + ' · fee ' +
         MP.rupiah(result.data.fee) + ' · ledger ' + result.data.ledger_transaction_id);
+      set('pay-merchant-name', MP.escape(result.data.merchant && result.data.merchant.name));
+      set('pay-merchant-id', MP.escape(result.data.merchant && result.data.merchant.id));
+      $('#pay-charge').value = '';
       await loadConsumer();
+    });
+
+    $('#pay-charge').addEventListener('change', async function (e) {
+      var charge = e.target.value.trim();
+      if (!charge || !live.user) return;
+
+      var result = await MP.request('GET', '/v1/charges/' + encodeURIComponent(charge),
+        { role: 'user' });
+      if (!result.ok) {
+        note('pay-result', 'warn', failure(result));
+        return;
+      }
+
+      set('pay-merchant-name', MP.escape(result.data.description));
+      set('pay-merchant-id', MP.escape(result.data.reference));
+      $('#pay-amount').value = MP.plain(result.data.amount);
+      note('pay-result', result.data.expired ? 'warn' : 'info',
+        result.data.expired
+          ? 'This link has expired.'
+          : 'Link for ' + MP.rupiah(result.data.amount) + ', expires ' +
+            MP.clock(result.data.expires_at) + '.');
     });
 
     submit($('#transfer-submit'), async function () {

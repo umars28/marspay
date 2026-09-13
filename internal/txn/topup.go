@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
+	"github.com/umars28/marspay/internal/state"
 	"github.com/umars28/marspay/internal/velocity"
 )
 
@@ -209,12 +210,15 @@ func (s *Service) ConfirmTopup(ctx context.Context, cb ProviderCallback) (*Topup
 	}
 
 	err = s.commit(ctx, posting, msg, func(ctx context.Context, tx pgx.Tx) error {
-		_, err := tx.Exec(ctx,
+		if _, err := tx.Exec(ctx,
 			`UPDATE topups SET status = 'succeeded', provider_ref = $1,
 			 ledger_transaction_id = $2, updated_at = now()
 			 WHERE id = $3 AND status = 'pending'`,
-			cb.ExternalRef, txID, cb.TopupID)
-		return err
+			cb.ExternalRef, txID, cb.TopupID); err != nil {
+			return err
+		}
+		return state.RecordTx(ctx, tx, state.KindTopup, cb.TopupID,
+			"pending", "succeeded", state.ActorProvider, cb.ExternalRef)
 	})
 	if err != nil {
 		return nil, err
@@ -243,11 +247,26 @@ func (s *Service) recordCallback(ctx context.Context, cb ProviderCallback) (bool
 }
 
 func (s *Service) failTopup(ctx context.Context, topupID, reason string) (*Topup, error) {
-	_, err := s.pool.Exec(ctx,
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	tag, err := tx.Exec(ctx,
 		`UPDATE topups SET status = 'failed', updated_at = now()
 		 WHERE id = $1 AND status = 'pending'`, topupID)
 	if err != nil {
 		return nil, fmt.Errorf("txn: fail topup: %w", err)
+	}
+	if tag.RowsAffected() == 1 {
+		if err := state.RecordTx(ctx, tx, state.KindTopup, topupID,
+			"pending", "failed", state.ActorProvider, reason); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
 	}
 	return s.loadTopup(ctx, topupID)
 }

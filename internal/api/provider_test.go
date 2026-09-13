@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/umars28/marspay/internal/state"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -301,5 +302,56 @@ func TestEveryProviderCallbackIsRecordedBeforeItIsProcessed(t *testing.T) {
 	}
 	if recorded != 1 {
 		t.Errorf("provider_callbacks rows = %d, want 1", recorded)
+	}
+}
+
+func TestEveryStatusChangeLeavesATrail(t *testing.T) {
+	f, ctx := newFixture(t)
+
+	created := decodeTopup(t, f.postTo(t, "/v1/topups", id.ULID(),
+		`{"source":"bank_va","provider_code":"BCA","amount":50000000,"currency":"IDR"}`, f.userID))
+
+	rec := f.callback(t, "BCA", `{"external_ref":"`+id.ULID()+
+		`","topup_id":"`+created.ID+`","amount":50000000,"outcome":"success"}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("callback status = %d, want 200 (body %s)", rec.Code, rec.Body.String())
+	}
+
+	history, err := state.NewRecorder(f.pool).History(ctx, state.KindTopup, created.ID)
+	if err != nil {
+		t.Fatalf("history: %v", err)
+	}
+	if len(history) != 1 {
+		t.Fatalf("transitions recorded = %d, want 1: the state machine threw away its history",
+			len(history))
+	}
+
+	got := history[0]
+	if got.From != "pending" || got.To != "succeeded" {
+		t.Errorf("recorded %q -> %q, want pending -> succeeded", got.From, got.To)
+	}
+	if got.Actor != state.ActorProvider {
+		t.Errorf("actor = %q, want the provider callback", got.Actor)
+	}
+}
+
+func TestAFailedCallbackIsAlsoRecorded(t *testing.T) {
+	f, ctx := newFixture(t)
+
+	created := decodeTopup(t, f.postTo(t, "/v1/topups", id.ULID(),
+		`{"source":"bank_va","provider_code":"BCA","amount":50000000,"currency":"IDR"}`, f.userID))
+
+	f.callback(t, "BCA", `{"external_ref":"`+id.ULID()+
+		`","topup_id":"`+created.ID+`","amount":50000000,"outcome":"failed"}`)
+
+	history, err := state.NewRecorder(f.pool).History(ctx, state.KindTopup, created.ID)
+	if err != nil {
+		t.Fatalf("history: %v", err)
+	}
+	if len(history) != 1 || history[0].To != "failed" {
+		t.Fatalf("history = %+v, want one transition to failed", history)
+	}
+	if history[0].Reason == "" {
+		t.Error("a failure with no recorded reason cannot be explained to the customer")
 	}
 }

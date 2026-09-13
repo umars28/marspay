@@ -292,3 +292,17 @@ func (h *Handler) Queues(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.WriteJSON(w, http.StatusOK, view)
 }
+
+func (h *Handler) Transitions(w http.ResponseWriter, r *http.Request) {
+	if !operatorOf(w, r) {
+		return
+	}
+
+	transitions, err := h.store.Transitions(r.Context(),
+		r.URL.Query().Get("kind"), r.URL.Query().Get("id"), limitOf(r))
+	if err != nil {
+		fail(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": transitions})
+}

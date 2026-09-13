@@ -14,6 +14,7 @@ import (
 
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/id"
+	"github.com/umars28/marspay/internal/state"
 )
 
 const (
@@ -191,6 +192,11 @@ func (k *KYC) Review(ctx context.Context, submissionID string, req ReviewRequest
 		req.Decision, actor, req.Reason, submissionID)
 	if err != nil {
 		return nil, fmt.Errorf("compliance: review submission: %w", err)
+	}
+
+	if err := state.RecordTx(ctx, tx, state.KindKYC, submissionID,
+		"pending", req.Decision, actor, req.Reason); err != nil {
+		return nil, err
 	}
 
 	if req.Decision == "approved" {

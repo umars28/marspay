@@ -487,3 +487,49 @@ func TestAnIdleSystemReportsEmptyQueuesRatherThanNothing(t *testing.T) {
 		}
 	}
 }
+
+func TestTransitionsAreReadableByOperationOrByKind(t *testing.T) {
+	store, pool, ctx := seed(t)
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO operation_state_transitions
+		   (operation_kind, operation_id, from_status, to_status, actor, reason)
+		 VALUES ('topup', 'tup_1', 'pending', 'succeeded', 'provider-callback', 'BCA-REF-1'),
+		        ('topup', 'tup_2', 'pending', 'failed', 'provider-callback', 'insufficient funds'),
+		        ('dispute', 'dsp_1', 'open', 'resolved_user', 'umar@marspay', 'merchant silent')`); err != nil {
+		t.Fatalf("seed transitions: %v", err)
+	}
+
+	one, err := store.Transitions(ctx, "", "tup_1", 10)
+	if err != nil {
+		t.Fatalf("by operation: %v", err)
+	}
+	if len(one) != 1 {
+		t.Fatalf("rows = %d, want 1", len(one))
+	}
+	if one[0].From != "pending" || one[0].To != "succeeded" {
+		t.Errorf("transition = %s -> %s", one[0].From, one[0].To)
+	}
+	if one[0].Actor != "provider-callback" {
+		t.Errorf("actor = %q: a state change without an actor is not auditable", one[0].Actor)
+	}
+
+	topups, err := store.Transitions(ctx, "topup", "", 10)
+	if err != nil {
+		t.Fatalf("by kind: %v", err)
+	}
+	if len(topups) != 2 {
+		t.Errorf("topup transitions = %d, want 2", len(topups))
+	}
+
+	all, err := store.Transitions(ctx, "", "", 10)
+	if err != nil {
+		t.Fatalf("all: %v", err)
+	}
+	if len(all) != 3 {
+		t.Errorf("all transitions = %d, want 3", len(all))
+	}
+	if !all[0].CreatedAt.After(time.Time{}) {
+		t.Error("a transition with no timestamp cannot be ordered")
+	}
+}

@@ -352,6 +352,13 @@ func checkOperator() {
 	code, out, _ = call("GET", "/internal/v1/queues", token, nil)
 	check("GET  /internal/v1/queues", code, 200, out, "queues", "jobs")
 
+	code, out, _ = call("GET", "/internal/v1/transitions?limit=20", token, nil)
+	check("GET  /internal/v1/transitions", code, 200, out, "data")
+	if list, ok := out["data"].([]any); !ok || len(list) == 0 {
+		fmt.Println("FAIL nothing recorded a state change, although a payout was settled")
+		failures++
+	}
+
 	checkOpsActions(token)
 
 	consumerToken := lastConsumerToken

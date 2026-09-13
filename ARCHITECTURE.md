@@ -82,6 +82,7 @@ This is the core design decision of the system, and the one most worth defending
 | Payment status | sequential per payment | a state machine, never a naive `UPDATE`; late and duplicate callbacks are normal |
 | Webhook delivery | at-least-once | exactly-once across a network boundary does not exist; receivers must be idempotent |
 | Merchant holdback rate | eventually consistent, 5 min | a slightly stale rate costs basis points, not correctness |
+| Payment link | strict serializable | a link is paid once or not at all; the row is locked before its status is read |
 
 The single invariant everything else protects:
 
