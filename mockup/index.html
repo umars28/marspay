@@ -65,8 +65,43 @@
     <button role="tab" aria-selected="false" data-role="risk">Risk / Compliance</button>
   </div>
   <div class="spacer"></div>
-  <span class="env">Mockup · dummy data</span>
+  <button class="env" id="connect-toggle" aria-expanded="false">
+    <span class="statusdot" id="connect-dot"></span>
+    <span id="connect-label">Sample data</span>
+  </button>
 </header>
+
+<div class="connectbar" id="connectbar" hidden>
+  <div class="cbrow">
+    <label for="api-base">API</label>
+    <input id="api-base" type="url" spellcheck="false" placeholder="http://127.0.0.1:8080">
+    <button class="btn sm" id="api-check">Check</button>
+    <span class="cbnote" id="api-note">Run ./scripts/demo.sh, then connect.</span>
+  </div>
+  <div class="cbrow">
+    <label>Consumer</label>
+    <input id="cons-phone" type="tel" spellcheck="false" placeholder="081200000001">
+    <input id="cons-pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+    <button class="btn sm primary" id="cons-signin">Sign in</button>
+    <button class="btn sm" id="cons-signout" hidden>Sign out</button>
+    <span class="cbnote" id="cons-note"></span>
+  </div>
+  <div class="cbrow">
+    <label>Operator</label>
+    <input id="ops-phone" type="tel" spellcheck="false" placeholder="081200000009">
+    <input id="ops-pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+    <button class="btn sm primary" id="ops-signin">Sign in</button>
+    <button class="btn sm" id="ops-signout" hidden>Sign out</button>
+    <span class="cbnote" id="ops-note"></span>
+  </div>
+  <div class="cbrow">
+    <label>Merchant</label>
+    <input id="merch-key" type="password" spellcheck="false" placeholder="mp_test_…">
+    <button class="btn sm primary" id="merch-save">Use key</button>
+    <button class="btn sm" id="merch-clear" hidden>Clear</button>
+    <span class="cbnote" id="merch-note">A real dashboard would hold a session, not a raw API key.</span>
+  </div>
+</div>
 
 <main>
 
@@ -79,11 +114,11 @@
         <section class="pscreen active" data-pscreen="home">
           <div class="balance">
             <div class="k">Available balance</div>
-            <div class="v">Rp 2,480,500</div>
+            <div class="v" data-live="balance">Rp 2,480,500</div>
             <div class="meta">
-              <span>On hold Rp 150,000</span>
+              <span data-live="held">On hold Rp 150,000</span>
               <span>·</span>
-              <span>Verified tier</span>
+              <span data-live="tier">Verified tier</span>
             </div>
           </div>
           <div class="quick">
@@ -95,8 +130,8 @@
 
           <button class="pointsbar" data-goto="points">
             <svg><use href="#i-star"/></svg>
-            <div><div class="t">MarsPoin</div><div class="s">2,400 points expire 30 Sep</div></div>
-            <div class="v">12,480</div>
+            <div><div class="t">MarsPoin</div><div class="s" data-live="points-note">2,400 points expire 30 Sep</div></div>
+            <div class="v" data-live="points">12,480</div>
           </button>
 
           <div class="sect"><h4>Pay bills</h4><a href="#" data-goto="bills">All</a></div>
@@ -124,7 +159,7 @@
           </div>
 
           <div class="sect"><h4>Recent transactions</h4><a href="#" data-goto="history">View all</a></div>
-          <div class="txlist">
+          <div class="txlist" data-live="recent">
             <div class="txrow" data-goto="txdetail">
               <div class="ic out"><svg><use href="#i-store"/></svg></div>
               <div><div class="t">Kopi Tuku Senopati</div><div class="s">QRIS · 09:12</div></div>
@@ -159,7 +194,7 @@
             <h3>Top Up</h3>
           </div>
           <label class="field mt4"><span class="lbl">Amount</span>
-            <input class="input num" value="500,000" inputmode="numeric">
+            <input class="input num" id="topup-amount" value="500,000" inputmode="numeric">
             <span class="help">Minimum Rp 10,000 · maximum Rp 20,000,000 per transaction</span>
           </label>
           <div class="sect"><h4>Funding source</h4></div>
@@ -169,7 +204,8 @@
             <div class="txrow"><div class="ic"><svg><use href="#i-store"/></svg></div><div><div class="t">Alfamart</div><div class="s">Cash · Rp 2,500 fee</div></div><div class="amt"></div></div>
           </div>
           <div class="note warn mt5"><svg><use href="#i-info"/></svg><div>Your balance increases once the <strong>confirmation webhook</strong> arrives from the bank, not when you press this button.</div></div>
-          <button class="btn brand block mt4" data-goto="home">Continue</button>
+          <div class="note" data-live="topup-result" hidden></div>
+          <button class="btn brand block mt4" id="topup-submit" data-goto="home">Continue</button>
         </section>
 
         <section class="pscreen" data-pscreen="transfer">
@@ -178,17 +214,18 @@
             <h3>Transfer</h3>
           </div>
           <label class="field mt4"><span class="lbl">Recipient</span>
-            <input class="input" value="0812-8841-2290" placeholder="Phone number or username">
-            <span class="help">Rani Wulandari · verified</span>
+            <input class="input" id="transfer-to" value="081200000002" placeholder="Phone number or username" spellcheck="false">
+            <span class="help" data-live="transfer-help">Rani Wulandari · verified</span>
           </label>
           <label class="field mt4"><span class="lbl">Amount</span>
-            <input class="input num" value="150,000" inputmode="numeric">
+            <input class="input num" id="transfer-amount" value="150,000" inputmode="numeric">
           </label>
           <label class="field mt4"><span class="lbl">Note (optional)</span>
             <input class="input" placeholder="Splitting lunch">
           </label>
           <div class="note info mt5"><svg><use href="#i-info"/></svg><div>First time paying this recipient. This transaction will pass through a <strong>velocity check</strong> before it goes through.</div></div>
-          <button class="btn brand block mt4" data-goto="pin">Continue to PIN</button>
+          <div class="note" data-live="transfer-result" hidden></div>
+          <button class="btn brand block mt4" id="transfer-submit" data-goto="pin">Continue to PIN</button>
         </section>
 
         <section class="pscreen" data-pscreen="pin">
@@ -214,9 +251,11 @@
             <h3>Pay</h3>
           </div>
           <div class="qrbox"><div class="frame"></div><div class="cap">Point at the merchant QRIS code</div></div>
-          <div class="note ok"><svg><use href="#i-check"/></svg><div>Detected: <strong>Kopi Tuku Senopati</strong> · NMID ID2023xxxx0912</div></div>
-          <label class="field mt4"><span class="lbl">Amount</span><input class="input num" value="32,000" inputmode="numeric"></label>
-          <button class="btn brand block mt4" data-goto="txdetail">Pay now</button>
+          <div class="note ok"><svg><use href="#i-check"/></svg><div>Detected: <strong data-live="pay-merchant-name">Kopi Tuku Senopati</strong> · <span data-live="pay-merchant-id">NMID ID2023xxxx0912</span></div></div>
+          <label class="field mt4"><span class="lbl">Merchant</span><input class="input" id="pay-merchant" value="merch_demo" spellcheck="false"></label>
+          <label class="field mt4"><span class="lbl">Amount</span><input class="input num" id="pay-amount" value="32,000" inputmode="numeric"></label>
+          <div class="note" data-live="pay-result" hidden></div>
+          <button class="btn brand block mt4" id="pay-submit" data-goto="txdetail">Pay now</button>
         </section>
 
         <section class="pscreen" data-pscreen="withdraw">
@@ -230,11 +269,12 @@
             <div class="txrow"><div class="ic"><svg><use href="#i-plus"/></svg></div><div><div class="t">Add an account</div><div class="s">The name must match your KYC</div></div><div class="amt"></div></div>
           </div>
           <label class="field mt4"><span class="lbl">Amount</span>
-            <input class="input num" value="1,000,000" inputmode="numeric">
+            <input class="input num" id="withdraw-amount" value="1,000,000" inputmode="numeric">
             <span class="help">Rp 2,500 fee · funds arrive within 1 business day</span>
           </label>
           <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Withdrawals are <strong>asynchronous and can fail</strong> at the bank. If one fails, the balance comes back through new ledger entries, never by deleting the old ones.</div></div>
-          <button class="btn brand block mt4" data-goto="home">Withdraw</button>
+          <div class="note" data-live="withdraw-result" hidden></div>
+          <button class="btn brand block mt4" id="withdraw-submit" data-goto="home">Withdraw</button>
         </section>
 
         <section class="pscreen" data-pscreen="history">
@@ -246,7 +286,7 @@
             <select class="input"><option>All types</option><option>Top up</option><option>Transfer</option><option>Payment</option><option>Withdrawal</option></select>
             <select class="input"><option>Last 30 days</option><option>90 days</option><option>This year</option></select>
           </div>
-          <div class="txlist">
+          <div class="txlist" data-live="history">
             <div class="txrow" data-goto="txdetail"><div class="ic out"><svg><use href="#i-store"/></svg></div><div><div class="t">Kopi Tuku Senopati</div><div class="s">13 Sep · 09:12</div></div><div class="amt">−32,000<span class="st">Succeeded</span></div></div>
             <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Top up · BCA VA</div><div class="s">13 Sep · 08:40</div></div><div class="amt in">+500,000<span class="st">Succeeded</span></div></div>
             <div class="txrow"><div class="ic out"><svg><use href="#i-send"/></svg></div><div><div class="t">Transfer to Rani W.</div><div class="s">12 Sep · 19:03</div></div><div class="amt">−150,000<span class="st">Succeeded</span></div></div>
@@ -430,14 +470,14 @@
             <button class="back" data-goto="home" aria-label="Back"><svg><use href="#i-back"/></svg></button>
             <h3>Account</h3>
           </div>
-          <div class="qitem mt3"><div class="av">US</div><div><div class="t">Umar Sabirin</div><div class="s">0812-9903-1155</div></div><span class="badge gold">Verified</span></div>
+          <div class="qitem mt3"><div class="av" data-live="me-initials">US</div><div><div class="t" data-live="me-name">Umar Sabirin</div><div class="s" data-live="me-phone">0812-9903-1155</div></div><span class="badge gold" data-live="me-tier">Verified</span></div>
           <div class="sect"><h4>Tier &amp; limits</h4></div>
           <div class="card"><div class="body">
             <dl class="kv">
-              <dt>Current tier</dt><dd>Verified (ID card + selfie)</dd>
-              <dt>Maximum balance</dt><dd class="num">Rp 20,000,000</dd>
-              <dt>Transactions / month</dt><dd class="num">Rp 20,000,000</dd>
-              <dt>Used this month</dt><dd class="num">Rp 4,208,000</dd>
+              <dt>Current tier</dt><dd data-live="me-tier-long">Verified (ID card + selfie)</dd>
+              <dt>Maximum balance</dt><dd class="num" data-live="me-max-balance">Rp 20,000,000</dd>
+              <dt>Transactions / month</dt><dd class="num" data-live="me-max-month">Rp 20,000,000</dd>
+              <dt>Used this month</dt><dd class="num" data-live="me-used">Rp 4,208,000</dd>
             </dl>
           </div></div>
           <div class="sect"><h4>More</h4></div>
@@ -451,7 +491,11 @@
           <div class="txlist">
             <div class="txrow"><div class="ic"><svg><use href="#i-lock"/></svg></div><div><div class="t">Change PIN</div><div class="s">Last changed 4 months ago</div></div><div class="amt"></div></div>
             <div class="txrow"><div class="ic"><svg><use href="#i-card"/></svg></div><div><div class="t">Linked bank accounts</div><div class="s">1 account</div></div><div class="amt"></div></div>
-            <div class="txrow"><div class="ic"><svg><use href="#i-activity"/></svg></div><div><div class="t">Active devices</div><div class="s">2 devices</div></div><div class="amt"></div></div>
+          </div>
+          <div class="sect"><h4>Devices</h4></div>
+          <div class="txlist" data-live="devices">
+            <div class="txrow"><div class="ic"><svg><use href="#i-activity"/></svg></div><div><div class="t">iPhone 14</div><div class="s">This device · Jakarta</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-activity"/></svg></div><div><div class="t">Chrome on macOS</div><div class="s">Last seen yesterday</div></div><div class="amt"></div></div>
           </div>
         </section>
 
@@ -1373,6 +1417,8 @@
 
 </main>
 
+<script src="api.js"></script>
 <script src="app.js"></script>
+<script src="live.js"></script>
 </body>
 </html>

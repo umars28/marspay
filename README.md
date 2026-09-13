@@ -368,7 +368,8 @@ docs/
   api.md             HTTP contract, idempotency, webhooks
 cmd/marspay/         API server entrypoint
 cmd/crashdriver/     load and verify phases for the crash test
-cmd/demoseed/        one consumer, one merchant, an opening balance
+cmd/demoseed/        one consumer, one operator, one merchant, an opening balance
+cmd/uicheck/         replays what the UI calls and checks the fields it reads
 cmd/ledgerbench/     append-only ledger against a balance column
 cmd/stressdriver/    concurrency ramp that finds the saturation point
 internal/
@@ -396,7 +397,7 @@ internal/
   testdb/            per-package throwaway database for tests
 migrations/          numbered SQL, up and down
 scripts/             test infrastructure, ledger invariant check
-mockup/              clickable UI prototype, 38 screens, no backend
+mockup/              38 screens; the consumer role talks to the real API
 ```
 
 ## Running the API locally
@@ -452,10 +453,23 @@ with an API key, starts the API on `127.0.0.1:8080`, and serves the mockup on
 <http://127.0.0.1:8932>. It prints the credentials and a sequence of `curl` calls that signs
 in and spends money. Ctrl-C stops both.
 
-**The two halves are not connected.** The mockup is static HTML with fictional data; the API
-has no web UI. Clicking through the mockup shows what the product looks like, and the `curl`
-sequence shows what actually works. Wiring one to the other is the obvious next piece of work
-and has not been done.
+Click **Sample data** in the top right to open the connection bar, then sign in. The consumer
+screens switch from fictional data to the real ledger: the balance is a `SUM()` over
+`ledger_entries`, the history is the real activity feed, and Pay, Transfer, Top Up and Withdraw
+move real money through the real velocity rules. Sign out and the sample data comes back.
+
+Merchant, Admin/Ops and Risk still show sample data. Roughly half the screens in those roles
+have no endpoint behind them yet — the payout engine, float position, reconciliation runs and
+webhook delivery log all exist as tested Go packages but are not exposed over HTTP.
+
+```sh
+./scripts/check-ui.sh
+```
+
+Starts a throwaway stack and replays every call the consumer UI makes, checking the status and
+the fields the UI reads. It exists because the first version of the wiring asked for
+`full_name` where the API returns `name`, and sent `bca` where the API wants `BCA`; both
+failures were silent in the browser and obvious here.
 
 In demo mode the one-time code is returned in the `POST /v1/auth/otp` response, because there
 is no SMS provider. `MARSPAY_REVEAL_OTP` controls that and defaults to off everywhere else.
