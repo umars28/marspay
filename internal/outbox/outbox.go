@@ -100,16 +100,13 @@ func (r *Relay) Sweep(ctx context.Context) (int, error) {
 func (r *Relay) claim(ctx context.Context, tx pgx.Tx) ([]Message, error) {
 	rows, err := tx.Query(ctx,
 		`SELECT id, topic, partition_key, event_type, payload
-		 FROM (
-		   SELECT id, topic, partition_key, event_type, payload
-		   FROM outbox
-		   WHERE published_at IS NULL
-		   ORDER BY id
-		   LIMIT $1
-		 ) candidates
-		 WHERE pg_try_advisory_xact_lock(hashtext(partition_key))
-		 ORDER BY id`,
-		r.batchSize*4)
+		 FROM outbox
+		 WHERE published_at IS NULL
+		   AND pg_try_advisory_xact_lock(hashtext(partition_key))
+		 ORDER BY id
+		 LIMIT $1
+		 FOR UPDATE`,
+		r.batchSize)
 	if err != nil {
 		return nil, fmt.Errorf("outbox: claim: %w", err)
 	}
