@@ -62,6 +62,23 @@ if lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >/dev/null 2>&1; then
   exit 1
 fi
 
+echo "==> seeding ${USERS} consumer sessions"
+psql "$DSN" -q <<SQL >/dev/null
+INSERT INTO devices (id, user_id, platform, model, last_seen_at)
+SELECT 'dev_${USER_PREFIX}_' || i, '${USER_PREFIX}_' || i, 'android', 'load-rig', now()
+FROM generate_series(0, ${USERS} - 1) AS i;
+
+INSERT INTO sessions (id, user_id, device_id, access_hash, refresh_hash,
+                      access_expires_at, refresh_expires_at, last_seen_at)
+SELECT 'sess_${USER_PREFIX}_' || i,
+       '${USER_PREFIX}_' || i,
+       'dev_${USER_PREFIX}_' || i,
+       encode(sha256(('mp_at_${USER_PREFIX}_' || i)::bytea), 'hex'),
+       encode(sha256(('mp_rt_${USER_PREFIX}_' || i)::bytea), 'hex'),
+       now() + interval '2 hours', now() + interval '2 hours', now()
+FROM generate_series(0, ${USERS} - 1) AS i;
+SQL
+
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$ADDR" \
 MARSPAY_MAX_IN_FLIGHT="${MARSPAY_MAX_IN_FLIGHT:-}" \
@@ -90,7 +107,7 @@ echo "==> $(grep -o '"msg":"admission control"[^}]*' "$LOG" || echo 'admission c
 
 echo
 go run "$ROOT/cmd/stressdriver" \
-  -base="http://${ADDR}" -user="$USER_PREFIX" -users="$USERS" -merchant="$MERCHANT_ID" \
+  -base="http://${ADDR}" -user="mp_at_${USER_PREFIX}" -users="$USERS" -merchant="$MERCHANT_ID" \
   -run="$RUN_ID" -levels="$LEVELS" -dwell="$DWELL" -backoff="${MARSPAY_STRESS_BACKOFF:-0s}"
 
 echo

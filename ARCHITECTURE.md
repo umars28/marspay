@@ -98,7 +98,7 @@ Two paths with different budgets. Nothing on the hot path touches disk.
 
 ```
 HOT   POST /v1/payments
-      gateway auth (Redis)      3 ms
+      session lookup (Redis)    1 ms
       velocity check (Redis)    5 ms
       balance hold (Redis Lua)  4 ms
       ledger commit (Postgres) 25 ms

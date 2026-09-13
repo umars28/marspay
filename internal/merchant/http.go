@@ -27,8 +27,9 @@ func WithKey(ctx context.Context, k *Key) context.Context {
 func APIKeyAuth(keys *Keys) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
-			if !strings.HasPrefix(token, "mp_") {
+			token := auth.BearerToken(r)
+			if !strings.HasPrefix(token, auth.MerchantLive) &&
+				!strings.HasPrefix(token, auth.MerchantTest) {
 				next.ServeHTTP(w, r)
 				return
 			}

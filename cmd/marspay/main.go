@@ -16,6 +16,7 @@ import (
 
 	"github.com/umars28/marspay/internal/admission"
 	"github.com/umars28/marspay/internal/api"
+	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
@@ -111,6 +112,9 @@ func run() error {
 		Scores:    risk.NewStore(pool),
 		Pool:      pool,
 		Admission: limiter,
+		Auth: auth.NewStore(pool).
+			WithCache(auth.NewRedisCache(rdb, "marspay:")),
+		RevealOTP: env("MARSPAY_REVEAL_OTP", "false") == "true",
 	})
 
 	srv := &http.Server{

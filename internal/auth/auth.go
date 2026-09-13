@@ -11,6 +11,8 @@ type ctxKey int
 const (
 	userIDKey ctxKey = iota
 	merchantIDKey
+	deviceIDKey
+	sessionIDKey
 )
 
 func UserID(ctx context.Context) string {

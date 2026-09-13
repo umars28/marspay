@@ -6,11 +6,11 @@ that differs — **get paid within seconds instead of the next business day**.
 
 The money is simulated. The system is not.
 
-> **Status: feature complete, pre-auth.** 41 endpoints across consumer, merchant, operations
-> and risk surfaces, backed by 260 tests across 13 packages including integration tests against
-> real PostgreSQL, Redis and a Kafka broker. Merchant API keys are real; consumer
-> authentication is still a development stand-in, and device management waits on it.
-> Everything below states plainly what is proven and what is not.
+> **Status: feature complete.** 47 endpoints across consumer, merchant, operations and risk
+> surfaces, backed by 277 tests across 14 packages including integration tests against real
+> PostgreSQL, Redis and a Kafka broker. Both credential types are real: merchant API keys, and
+> consumer sessions from phone, one-time code and PIN, bound to a device. Everything below
+> states plainly what is proven and what is not.
 
 ## Why this exists
 
@@ -63,8 +63,48 @@ Claims in this repo are meant to be checkable. The ones that matter:
 | Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | done |
 | The limit is known | ramp to saturation and name the resource that queues | done |
 | Overload is refused, not queued | shed past a bounded queue; measure whether it helps | done |
+| A stolen token stops working | replay a rotated refresh token; the whole chain dies | done |
 
 None of these require a single real rupiah.
+
+### How a consumer signs in
+
+```
+POST /v1/auth/otp      phone                      -> challenge id, expires in 5 minutes
+POST /v1/auth/token    challenge + code + PIN     -> access token, refresh token, device id
+POST /v1/auth/refresh  refresh token              -> a new pair; the old one stops working
+POST /v1/auth/logout                              -> this session only
+GET  /v1/devices                                  -> every device, with the current one marked
+POST /v1/devices/{id}/revoke                      -> signs that handset out everywhere
+```
+
+Four secrets pass through this system and each is stored differently, because the threat
+against each one is different:
+
+| Secret | Stored as | Why |
+|---|---|---|
+| PIN | argon2id, salted | six digits is one million guesses; the hash has to be slow enough that a leaked database is not a list of PINs |
+| Access and refresh tokens | SHA-256 | 256 bits of entropy from `crypto/rand`; there is nothing to brute-force, and a slow hash on every request would be a denial of service against ourselves |
+| One-time code | SHA-256 | also weak, but it expires in five minutes and dies after three wrong guesses; the limits are the protection, not the hash |
+| Webhook signing secret | encrypted, recoverable | HMAC needs the secret back, so it cannot be hashed at all |
+
+Two behaviours are worth singling out.
+
+**A replayed refresh token revokes the whole chain.** Refresh tokens rotate: using one issues a
+new pair and retires the old. If a retired token is presented again, that is either a client
+bug or a stolen token being used alongside the real one, and there is no way to tell which from
+the server. So every session descended from it is revoked and both parties have to sign in
+again. `TestReplayingARotatedRefreshTokenKillsTheWholeChain` pins that.
+
+**A mistyped PIN does not cost you the SMS.** The one-time code is marked spent inside the same
+transaction that verifies the PIN and issues the tokens, so a typo leaves the code usable.
+Getting this backwards is easy — the first version consumed the code first — and it would have
+forced a new SMS for every fat-fingered PIN. The attempt limit that actually bounds an attacker
+is the PIN counter: three wrong entries lock entry for fifteen minutes.
+
+Sessions are resolved through Redis with a 60-second TTL, so the hot path does not spend a
+PostgreSQL connection authenticating. Logout and device revocation delete the cache entry
+directly, so the common case is immediate; the bound on anything else is that one minute.
 
 ### The load test
 
@@ -78,18 +118,18 @@ API, runs k6 against the real `POST /v1/payments` endpoint, then audits the book
 Measured on an M-series laptop, PostgreSQL 15, `synchronous_commit=on`, 50 virtual users:
 
 ```
-http_reqs .......... 233,022   5,826/s
-http_req_duration .. med=4.81ms  p(95)=8.86ms  p(99)=16.44ms  max=225ms
-http_req_failed .... 0.00%   0 out of 233,022
+http_reqs .......... 216,255   5,406/s
+http_req_duration .. med=4.66ms  p(95)=11.00ms  p(99)=25.07ms  max=233ms
+http_req_failed .... 0.00%   0 out of 216,255
 
  payments | ledger_transactions | ledger_entries | idempotency_keys | global_sum
-   233022 |              233022 |         699066 |           233022 |          0
+   216255 |              216255 |         648765 |           216255 |          0
 ```
 
 Three numbers matter more than the rate. `payments` equals `ledger_transactions` exactly, so
 no request produced a payment without a ledger transaction or the other way round.
 `ledger_entries` is exactly three times that, so every payment posted its full debit, credit
-and fee. And `global_sum` is zero after 230,000 concurrent writes.
+and fee. And `global_sum` is zero after 216,000 concurrent writes.
 
 **This test used to drive one consumer, and that was a bug in the test.** VR-08 caps outbound
 value at Rp 50,000,000 per user per hour, and each payment here is Rp 32,000 — so a single
@@ -98,8 +138,10 @@ account can make 1,562 payments and then every further request correctly returns
 engine existed and cannot be reproduced against this code; re-running it today yields exactly
 1,562 successes and half a million refusals. The fix is to drive a population of 500
 consumers, which is both what the product actually sees and what the rules are written for.
-The rate dropped from 6,294/s to 5,826/s in the process: 500 wallets mean 500 Redis keys and
-500 velocity counters instead of one hot pair, which is the honest number.
+The rate dropped from 6,294/s to 5,406/s across two honest changes: 500 wallets mean 500 Redis
+keys and 500 velocity counters instead of one hot pair, and every request now carries a real
+access token that has to be resolved to a user. Authentication alone accounts for about 7% of
+it — the same run measured 5,826/s before real sessions replaced the development stand-in.
 
 This is a single-node laptop figure, not a capacity claim for production. Run it yourself; the
 script takes about a minute end to end.
@@ -142,7 +184,7 @@ to fail, and none of them left a trace.
 Do not read 886 as a throughput figure. The driver fsyncs its journal under a single mutex on
 every acknowledgement, so every commit is serialised behind one disk flush. That is the
 opposite of what the load test does, and the gap between the two numbers — roughly 180/s here
-against 5,826/s there — is entirely that serialisation, not the database.
+against 5,406/s there — is entirely that serialisation, not the database.
 
 ### The stress test: where it stops scaling, and why
 
@@ -330,6 +372,7 @@ cmd/ledgerbench/     append-only ledger against a balance column
 cmd/stressdriver/    concurrency ramp that finds the saturation point
 internal/
   admission/         bounded in-flight, bounded queue, bounded wait
+  auth/              consumer sessions, PIN hashing, devices, token rotation
   money/             minor units, fee rounding
   ledger/            double-entry postings, Postgres repository
   wallet/            balance reservation (Redis Lua, and an in-memory twin)

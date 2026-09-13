@@ -146,6 +146,36 @@ why balances are derived; the read side is why Redis exists. Full results and th
 column shards its way back to 26,159/s if you know in advance which rows are hot — are in the
 README.
 
+### Sessions and one-time codes
+
+```sql
+CREATE TABLE sessions (
+  id                 TEXT PRIMARY KEY,
+  user_id            TEXT NOT NULL REFERENCES users(id),
+  device_id          TEXT NOT NULL REFERENCES devices(id),
+  access_hash        TEXT NOT NULL UNIQUE,
+  refresh_hash       TEXT NOT NULL UNIQUE,
+  rotated_to         TEXT REFERENCES sessions(id),
+  revoked_at         TIMESTAMPTZ,
+  revoked_reason     TEXT,
+  ...
+);
+```
+
+`rotated_to` is the whole design. A session is never updated in place on refresh; a new row is
+inserted and the old one points at it. That turns a session into a linked list, which is what
+makes replay detection possible: a refresh token whose row already has a `rotated_to` was used
+twice, and the recursive walk down that chain revokes every descendant in one statement.
+Overwriting the tokens in place would have thrown away exactly the evidence needed to notice.
+
+Both hashes are `UNIQUE`, so the database refuses to hold the same token twice regardless of
+what the application believes. Neither column can be reversed into a credential — they are
+SHA-256 digests, and the tokens they came from carry 256 bits from `crypto/rand`.
+
+`otp_challenges` keeps `attempts` and `max_attempts` as columns rather than in Redis, because a
+code that survives a cache flush with its attempt counter reset is a code that can be brute
+forced. The counter and the secret belong in the same place.
+
 ## 3. Operations
 
 Each product flow gets its own table rather than one polymorphic `transactions` table,

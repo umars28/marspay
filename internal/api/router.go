@@ -33,6 +33,8 @@ type Deps struct {
 	Scores      *risk.Store
 	Pool        *pgxpool.Pool
 	Admission   *admission.Limiter
+	Auth        *auth.Store
+	RevealOTP   bool
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -128,11 +130,26 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /internal/v1/merchants/{id}/score", scores.MerchantScore)
 	}
 
+	if d.Auth != nil {
+		a := auth.NewHandler(d.Auth, d.RevealOTP)
+		mux.HandleFunc("POST /v1/auth/otp", a.RequestOTP)
+		mux.HandleFunc("POST /v1/auth/token", a.Token)
+		mux.HandleFunc("POST /v1/auth/refresh", a.Refresh)
+		mux.HandleFunc("POST /v1/auth/logout", a.Logout)
+		mux.HandleFunc("GET /v1/devices", a.ListDevices)
+		mux.HandleFunc("POST /v1/devices/{id}/revoke", a.RevokeDevice)
+	}
+
 	handler := http.Handler(mux)
 	if d.Keys != nil {
 		handler = merchant.APIKeyAuth(d.Keys)(handler)
 	}
-	handler = auth.DevBearerAuth(handler)
+
+	if d.Auth != nil {
+		handler = auth.Bearer(d.Auth)(handler)
+	} else {
+		handler = auth.DevBearerAuth(handler)
+	}
 
 	if d.Admission != nil {
 		handler = admission.Skip(alwaysAnswer, d.Admission.Middleware)(handler)

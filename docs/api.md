@@ -23,9 +23,41 @@ Object prefixes: `usr_`, `merch_`, `out_` (outlet), `pay_`, `trf_`, `tup_`, `wdr
 
 | Audience | Credential | Header |
 |---|---|---|
-| Consumer app | short-lived access token from phone + PIN, refresh token bound to device | `Authorization: Bearer <token>` |
+| Consumer app | access token `mp_at_`, 15 minutes; refresh token `mp_rt_`, 30 days, bound to a device | `Authorization: Bearer mp_at_…` |
 | Merchant server | API key, `mp_live_` or `mp_test_` | `Authorization: Bearer mp_live_…` |
 | Internal tools | SSO session plus a role claim | `Authorization: Bearer <token>` |
+
+The prefix decides which middleware owns the credential, so the two consumer and merchant
+paths never have to guess. That makes the prefixes part of the contract rather than cosmetic:
+an `mp_at_` token presented to the merchant middleware is a bug, not a `401`.
+
+Signing in is three calls:
+
+```http
+POST /v1/auth/otp      {"phone": "081200000001"}
+  201 {"id": "otp_01J…", "expires_at": "2026-09-13T09:17:04Z"}
+
+POST /v1/auth/token    {"challenge_id": "otp_01J…", "code": "418223",
+                        "pin": "294715", "platform": "android", "model": "Pixel 9"}
+  201 {"session_id": "sess_01J…", "device_id": "dev_01J…",
+       "access_token": "mp_at_…", "refresh_token": "mp_rt_…",
+       "access_expires_at": "…", "refresh_expires_at": "…", "new_device": true}
+
+POST /v1/auth/refresh  {"refresh_token": "mp_rt_…"}
+  201  a new pair; the one you sent stops working
+```
+
+Send `device_id` on a later login and the same device row is reused, which is what
+`new_device` reports and what feeds the VR-02 velocity rule. The code is only marked spent once
+the PIN has verified, so a mistyped PIN does not cost the user their SMS; three wrong PINs lock
+entry for fifteen minutes.
+
+Refresh tokens rotate. Presenting one that has already been rotated revokes every session
+descended from it, because the server cannot distinguish a buggy client from a stolen token
+being replayed, and the safe reading of the two is the same.
+
+Only the code and the tokens' SHA-256 digests are stored. The PIN is argon2id. Nothing in the
+database can be replayed as a credential.
 
 Only the key **prefix** is stored in plaintext; the rest is hashed. The prefix is what maps a
 key to a merchant without scanning the table, which makes it part of the schema rather than
@@ -106,7 +138,9 @@ Limits are per credential and returned on every response as `RateLimit-Limit`,
 
 | Method | Path | Notes |
 |---|---|---|
-| `POST` | `/v1/auth/otp` · `/v1/auth/token` | phone OTP, then PIN; PIN attempts counted in Redis, lockout after 3 |
+| `POST` | `/v1/auth/otp` · `/v1/auth/token` | phone code, then PIN; three wrong PINs lock entry for 15 minutes |
+| `POST` | `/v1/auth/refresh` · `/v1/auth/logout` | rotation with replay detection; logout ends one session |
+| `GET` | `/v1/devices` · `POST /v1/devices/{id}/revoke` | revoking a device signs out every session on it |
 | `GET` | `/v1/me` | profile, KYC tier, limits, usage |
 | `POST` | `/v1/me/kyc` | submit for review; returns `pending` |
 | `GET` | `/v1/balance` | `available`, `held`, `currency` |
