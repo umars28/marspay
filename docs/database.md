@@ -138,6 +138,14 @@ projection: when Redis and this view disagree, **this view wins**, and the disag
 surfaces on the Admin reconciliation screen. A materialised view refreshed by the balance
 projector sits between the two for admin queries.
 
+`scripts/compare-ledger.sh` measures both halves of that trade. Appending sustains 20,613
+payments/s against one hot merchant where a `balance` column manages 8,419, because the column
+version serialises every payment in the system behind the single platform fee row. Reading one
+balance goes the other way: 344µs through `SUM()` against 58µs from a column. The write side is
+why balances are derived; the read side is why Redis exists. Full results and the caveat — a
+column shards its way back to 26,159/s if you know in advance which rows are hot — are in the
+README.
+
 ## 3. Operations
 
 Each product flow gets its own table rather than one polymorphic `transactions` table,

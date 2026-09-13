@@ -132,6 +132,73 @@ every acknowledgement, so every commit is serialised behind one disk flush. That
 opposite of what the load test does, and the gap between the two numbers — roughly 180/s here
 against 6,294/s there — is entirely that serialisation, not the database.
 
+### The comparison: an append-only ledger against a balance column
+
+```sh
+./scripts/compare-ledger.sh
+```
+
+`docs/database.md` claims that a balance is derived, never stored. This benchmark is the
+attempt to falsify that claim. It runs the same payment — debit the payer, credit the
+merchant, credit the platform fee — through two implementations against the same PostgreSQL
+instance, with 32 concurrent writers and 4,000 operations per scenario:
+
+- **append** is the real `internal/ledger` code: three immutable rows and a transaction
+  header, with the deferred balance trigger firing on every commit
+- **column** is the naive alternative: three `UPDATE accounts SET balance = balance ± x`
+  statements in one transaction
+
+```
+==> 4000 operations, 32 concurrent writers
+
+scenario                        ops/s        p50        p95        p99   errors
+---------------------------------------------------------------------------------
+append, one hot merchant        20613      1.5ms      1.8ms        4ms        0
+append, spread merchants        22404      1.4ms      1.6ms      1.7ms        0
+column, one hot merchant         8419      3.5ms      5.6ms      7.2ms        0
+column, spread merchants        12700      2.3ms      3.7ms      4.8ms        0
+column, sharded fee row         26159      1.2ms      1.3ms      1.4ms        0
+
+Reading one account balance:
+                              reads/s        p50        p99
+------------------------------------------------------------
+append balance read             17770      344µs      1.6ms
+column balance read            127420       58µs      158µs
+
+Correctness after the hot-account runs:
+  expected credit on the hot account : 12710400000
+  append  result                     : 12710400000
+  column  result                     : 12710400000
+  ledger global sum                  : 0
+```
+
+Both implementations are correct. Neither loses an update — PostgreSQL's row locks see to
+that. The difference is throughput, and the interesting part is *where* it comes from.
+
+The first version of this benchmark reported 8,482/s for the hot column scenario and 8,471/s
+for the spread one. That near-identity was the result worth chasing: if spreading writes
+across 200 merchant accounts changes nothing, then the merchant row was never the bottleneck.
+It wasn't. Every payment also credits **one** platform fee row, so every payment in the entire
+system serialised behind that single lock. Spreading the merchant accounts only moved the
+queue; it didn't shorten it.
+
+The last row proves the diagnosis. Shard the fee account 16 ways and the column model jumps to
+26,159/s — faster than the append-only ledger. So the honest conclusion is not that appending
+is faster:
+
+> An append-only ledger is contention-free *by construction*. A balance column can be made
+> faster, but only if you already know which rows are hot and shard each one.
+
+In a payment system you don't get that knowledge in advance. A merchant goes viral, a
+promotion lands, a biller settles — and yesterday's cold row is today's serialisation point.
+The append-only model never needs the prediction.
+
+It is not free. Reading one balance costs 344µs by `SUM()` against 58µs from a column, and
+that gap widens with every row the account accumulates. That number is the entire reason
+`internal/wallet` keeps a Redis projection in front of the ledger, and the reason the
+projection is treated as disposable: it is a cache over an expensive read, not a second copy
+of the truth.
+
 ## Repository layout
 
 ```
@@ -141,6 +208,7 @@ docs/
   api.md             HTTP contract, idempotency, webhooks
 cmd/marspay/         API server entrypoint
 cmd/crashdriver/     load and verify phases for the crash test
+cmd/ledgerbench/     append-only ledger against a balance column
 internal/
   money/             minor units, fee rounding
   ledger/            double-entry postings, Postgres repository
