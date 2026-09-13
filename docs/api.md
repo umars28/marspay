@@ -221,8 +221,13 @@ being replayed later.
 |---|---|
 | Timeout | 5 s; anything slower counts as a failure |
 | Retry schedule | 2 s, 4 s, 8 s, 30 s, 2 m, 10 m, 1 h, 6 h |
-| After 8 attempts | dead letter, visible in the merchant dashboard, manual replay only |
+| After 9 attempts | one first try plus eight retries, then dead letter: visible in the dashboard, manual replay only |
 | Ordering | not guaranteed — use `created_at`, not arrival order |
+
+The signing secret is stored **recoverably**, not hashed. A password can be hashed because
+verification only needs a comparison; a signing secret cannot, because we have to recompute the
+HMAC on every send. In production it belongs behind a KMS-managed key, encrypted at rest.
+Conflating the two is an easy mistake to make in a schema and impossible to work around later.
 
 Events: `payment.succeeded`, `payment.failed`, `payment.pending`, `refund.created`,
 `payout.settled`, `payout.failed`, `payout.degraded`, `settlement.paid`, `dispute.opened`,

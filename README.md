@@ -148,6 +148,7 @@ internal/
   rail/              bank rail interface and the fault-injecting simulator
   payout/            instant payout, float guard, rail selection
   reconcile/         internal books vs provider statement
+  webhook/           signing, backoff schedule, dispatcher with dead letter queue
   api/               router and wiring
   httpx/             error envelope, request ids, strict JSON decoding
   id/                prefixed ULIDs

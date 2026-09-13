@@ -2,7 +2,7 @@ CREATE TABLE webhook_endpoints (
   id          TEXT PRIMARY KEY,
   merchant_id TEXT NOT NULL REFERENCES merchants(id),
   url         TEXT NOT NULL,
-  secret_hash TEXT NOT NULL,
+  signing_secret TEXT NOT NULL,
   events      TEXT[] NOT NULL DEFAULT '{}',
   timeout_ms  INT NOT NULL DEFAULT 5000,
   disabled_at TIMESTAMPTZ,
@@ -15,7 +15,7 @@ CREATE TABLE webhook_events (
   merchant_id  TEXT NOT NULL REFERENCES merchants(id),
   type         TEXT NOT NULL,
   resource_id  TEXT NOT NULL,
-  payload      JSONB NOT NULL,
+  payload      BYTEA NOT NULL,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX webhook_events_merchant_idx ON webhook_events (merchant_id, created_at DESC);
