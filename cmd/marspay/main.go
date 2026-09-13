@@ -17,6 +17,7 @@ import (
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
+	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/velocity"
@@ -88,6 +89,8 @@ func run() error {
 		Audit:    audit,
 		KYC:      compliance.NewKYC(pool, audit),
 		Disputes: compliance.NewDisputes(pool, ledgerRepo, balances, audit),
+		Keys:     merchant.NewKeys(pool, audit),
+		Outlets:  merchant.NewOutlets(pool, audit),
 	})
 
 	srv := &http.Server{

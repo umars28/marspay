@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
+	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/testdb"
@@ -69,6 +70,8 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 			Audit:    audit,
 			KYC:      compliance.NewKYC(pool, audit),
 			Disputes: compliance.NewDisputes(pool, repo, mem, audit),
+			Keys:     merchant.NewKeys(pool, audit),
+			Outlets:  merchant.NewOutlets(pool, audit),
 		}),
 		pool:       pool,
 		wallet:     mem,

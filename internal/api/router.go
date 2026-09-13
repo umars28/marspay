@@ -7,6 +7,7 @@ import (
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/idempotency"
+	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/velocity"
@@ -21,6 +22,8 @@ type Deps struct {
 	Audit       *compliance.Audit
 	KYC         *compliance.KYC
 	Disputes    *compliance.Disputes
+	Keys        *merchant.Keys
+	Outlets     *merchant.Outlets
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -82,5 +85,21 @@ func NewRouter(d Deps) http.Handler {
 			"No route matches %s %s.", r.Method, r.URL.Path))
 	})
 
-	return httpx.WithRequestID(auth.DevBearerAuth(mux))
+	if d.Keys != nil && d.Outlets != nil {
+		m := merchant.NewHandler(d.Keys, d.Outlets)
+		mux.HandleFunc("POST /v1/api-keys", m.CreateKey)
+		mux.HandleFunc("GET /v1/api-keys", m.ListKeys)
+		mux.HandleFunc("POST /v1/api-keys/{id}/revoke", m.RevokeKey)
+		mux.HandleFunc("POST /v1/outlets", m.CreateOutlet)
+		mux.HandleFunc("GET /v1/outlets", m.ListOutlets)
+		mux.HandleFunc("POST /v1/staff", m.AddStaff)
+		mux.HandleFunc("GET /v1/staff", m.ListStaff)
+		mux.HandleFunc("POST /v1/staff/{id}/revoke", m.RevokeStaff)
+	}
+
+	handler := http.Handler(mux)
+	if d.Keys != nil {
+		handler = merchant.APIKeyAuth(d.Keys)(handler)
+	}
+	return httpx.WithRequestID(auth.DevBearerAuth(handler))
 }

@@ -43,3 +43,20 @@ func Prefix(s string) string {
 	}
 	return ""
 }
+
+func Secret(length int) string {
+	if length <= 0 {
+		length = 24
+	}
+
+	buf := make([]byte, length)
+	if _, err := crand.Read(buf); err != nil {
+		panic("id: crypto/rand unavailable: " + err.Error())
+	}
+
+	out := make([]byte, length)
+	for i, b := range buf {
+		out[i] = alphabet[b&31]
+	}
+	return string(out)
+}
