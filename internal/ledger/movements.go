@@ -189,3 +189,41 @@ func build(p Posting) (Posting, error) {
 	}
 	return p, nil
 }
+
+type DisputeRefund struct {
+	TransactionID     string
+	ReferenceID       string
+	HoldbackAccountID string
+	FloatAccountID    string
+	WalletAccountID   string
+	Amount            money.Minor
+	CoveredByHoldback money.Minor
+}
+
+func NewDisputeRefund(d DisputeRefund) (Posting, error) {
+	if d.Amount <= 0 {
+		return Posting{}, fmt.Errorf("%w: amount %d", money.ErrNegativeAmount, d.Amount)
+	}
+	if d.CoveredByHoldback < 0 || d.CoveredByHoldback > d.Amount {
+		return Posting{}, fmt.Errorf("ledger: holdback cover %d is not within the dispute %d",
+			d.CoveredByHoldback, d.Amount)
+	}
+
+	entries := []Entry{{AccountID: d.WalletAccountID, Amount: d.Amount}}
+	if d.CoveredByHoldback > 0 {
+		entries = append(entries, Entry{
+			AccountID: d.HoldbackAccountID, Amount: -d.CoveredByHoldback,
+		})
+	}
+	if loss := d.Amount - d.CoveredByHoldback; loss > 0 {
+		entries = append(entries, Entry{AccountID: d.FloatAccountID, Amount: -loss})
+	}
+
+	return build(Posting{
+		TransactionID: d.TransactionID,
+		Kind:          KindAdjustment,
+		ReferenceID:   d.ReferenceID,
+		Description:   "dispute resolved for the user",
+		Entries:       entries,
+	})
+}

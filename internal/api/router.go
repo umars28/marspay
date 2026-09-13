@@ -19,6 +19,8 @@ type Deps struct {
 	Velocity    *velocity.Guard
 	Blocks      *compliance.Blocks
 	Audit       *compliance.Audit
+	KYC         *compliance.KYC
+	Disputes    *compliance.Disputes
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -52,12 +54,23 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /v1/me", movements.Profile)
 
 	if d.Blocks != nil && d.Audit != nil {
-		ops := compliance.NewHandler(d.Blocks, d.Audit)
+		ops := compliance.NewHandler(d.Blocks, d.Audit, d.KYC, d.Disputes)
 		mux.HandleFunc("GET /internal/v1/blocks", ops.ListBlocks)
 		mux.HandleFunc("POST /internal/v1/blocks", ops.Block)
 		mux.HandleFunc("POST /internal/v1/blocks/{subject_type}/{subject_id}/unblock", ops.Unblock)
 		mux.HandleFunc("GET /internal/v1/audit", ops.Audit)
 		mux.HandleFunc("GET /internal/v1/audit/{object_type}/{object_id}", ops.AuditFor)
+
+		if d.KYC != nil {
+			mux.HandleFunc("POST /v1/me/kyc", ops.SubmitKYC)
+			mux.HandleFunc("GET /internal/v1/kyc", ops.KYCQueue)
+			mux.HandleFunc("POST /internal/v1/kyc/{id}/review", ops.ReviewKYC)
+		}
+		if d.Disputes != nil {
+			mux.HandleFunc("POST /v1/disputes", ops.OpenDispute)
+			mux.HandleFunc("GET /internal/v1/disputes", ops.DisputeQueue)
+			mux.HandleFunc("POST /internal/v1/disputes/{id}/resolve", ops.ResolveDispute)
+		}
 	}
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {

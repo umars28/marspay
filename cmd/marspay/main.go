@@ -85,7 +85,9 @@ func run() error {
 			velocityStore),
 		Blocks: compliance.NewBlocks(pool,
 			compliance.NewRedisFlags(rdb, "marspay:"), audit),
-		Audit: audit,
+		Audit:    audit,
+		KYC:      compliance.NewKYC(pool, audit),
+		Disputes: compliance.NewDisputes(pool, ledgerRepo, balances, audit),
 	})
 
 	srv := &http.Server{

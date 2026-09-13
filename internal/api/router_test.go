@@ -65,8 +65,10 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 			Idempotency: idempotency.NewStore(pool),
 			Velocity: velocity.NewGuard(
 				velocity.NewEngine(counter, velocity.DefaultRules()), store),
-			Blocks: blocks,
-			Audit:  audit,
+			Blocks:   blocks,
+			Audit:    audit,
+			KYC:      compliance.NewKYC(pool, audit),
+			Disputes: compliance.NewDisputes(pool, repo, mem, audit),
 		}),
 		pool:       pool,
 		wallet:     mem,

@@ -10,12 +10,121 @@ import (
 )
 
 type Handler struct {
-	blocks *Blocks
-	audit  *Audit
+	blocks   *Blocks
+	audit    *Audit
+	kyc      *KYC
+	disputes *Disputes
 }
 
-func NewHandler(blocks *Blocks, audit *Audit) *Handler {
-	return &Handler{blocks: blocks, audit: audit}
+func NewHandler(blocks *Blocks, audit *Audit, kyc *KYC, disputes *Disputes) *Handler {
+	return &Handler{blocks: blocks, audit: audit, kyc: kyc, disputes: disputes}
+}
+
+func (h *Handler) SubmitKYC(w http.ResponseWriter, r *http.Request) {
+	userID, ok := operator(w, r)
+	if !ok {
+		return
+	}
+
+	var req SubmitRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.kyc.Submit(r.Context(), userID, req)
+	if err != nil {
+		httpx.WriteError(w, r, translate(err))
+		return
+	}
+	httpx.WriteJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) KYCQueue(w http.ResponseWriter, r *http.Request) {
+	if _, ok := operator(w, r); !ok {
+		return
+	}
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	queue, err := h.kyc.Queue(r.Context(), limit)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": queue})
+}
+
+func (h *Handler) ReviewKYC(w http.ResponseWriter, r *http.Request) {
+	actor, ok := operator(w, r)
+	if !ok {
+		return
+	}
+
+	var req ReviewRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.kyc.Review(r.Context(), r.PathValue("id"), req, actor)
+	if err != nil {
+		httpx.WriteError(w, r, translate(err))
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) OpenDispute(w http.ResponseWriter, r *http.Request) {
+	userID, ok := operator(w, r)
+	if !ok {
+		return
+	}
+
+	var req OpenRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.disputes.Open(r.Context(), userID, req)
+	if err != nil {
+		httpx.WriteError(w, r, translate(err))
+		return
+	}
+	httpx.WriteJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) DisputeQueue(w http.ResponseWriter, r *http.Request) {
+	if _, ok := operator(w, r); !ok {
+		return
+	}
+
+	queue, err := h.disputes.Queue(r.Context())
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": queue})
+}
+
+func (h *Handler) ResolveDispute(w http.ResponseWriter, r *http.Request) {
+	actor, ok := operator(w, r)
+	if !ok {
+		return
+	}
+
+	var req ResolveRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.disputes.Resolve(r.Context(), r.PathValue("id"), req, actor)
+	if err != nil {
+		httpx.WriteError(w, r, translate(err))
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, result)
 }
 
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
