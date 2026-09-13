@@ -368,6 +368,7 @@ docs/
   api.md             HTTP contract, idempotency, webhooks
 cmd/marspay/         API server entrypoint
 cmd/crashdriver/     load and verify phases for the crash test
+cmd/demoseed/        one consumer, one merchant, an opening balance
 cmd/ledgerbench/     append-only ledger against a balance column
 cmd/stressdriver/    concurrency ramp that finds the saturation point
 internal/
@@ -440,17 +441,34 @@ the migration test. Three of them are the ones worth reading:
 | `TestDatabaseRejectsUnbalancedPostingBypassingGoValidation` | the database refuses an unbalanced commit even when the Go check is skipped |
 | `TestConcurrentPostingsKeepGlobalSumZero` | 400 concurrent postings leave `SUM(amount_minor) = 0` |
 
-## Running the mockup
+## Trying it
 
-The mockup is static HTML with no build step and no dependencies.
+```sh
+./scripts/demo.sh
+```
+
+Brings up PostgreSQL and Redis, migrates, seeds one consumer with a balance and one merchant
+with an API key, starts the API on `127.0.0.1:8080`, and serves the mockup on
+<http://127.0.0.1:8932>. It prints the credentials and a sequence of `curl` calls that signs
+in and spends money. Ctrl-C stops both.
+
+**The two halves are not connected.** The mockup is static HTML with fictional data; the API
+has no web UI. Clicking through the mockup shows what the product looks like, and the `curl`
+sequence shows what actually works. Wiring one to the other is the obvious next piece of work
+and has not been done.
+
+In demo mode the one-time code is returned in the `POST /v1/auth/otp` response, because there
+is no SMS provider. `MARSPAY_REVEAL_OTP` controls that and defaults to off everywhere else.
+
+The mockup alone, with no backend at all:
 
 ```sh
 cd mockup
 python3 -m http.server 8932
 ```
 
-Open <http://127.0.0.1:8932>. Switch between the four roles — Consumer, Merchant, Admin/Ops,
-Risk/Compliance — using the tabs in the header. All data is fictional.
+Switch between the four roles — Consumer, Merchant, Admin/Ops, Risk/Compliance — using the tabs
+in the header.
 
 ## Design decisions worth knowing before reading the code
 
