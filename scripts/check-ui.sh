@@ -12,6 +12,9 @@ if lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >/dev/null 2>&1; then
   exit 1
 fi
 
+go run "$ROOT/cmd/uilint" "$ROOT/mockup"
+echo
+
 echo "==> starting PostgreSQL and Redis"
 sh "$ROOT/scripts/test-db.sh" up >/dev/null
 DSN=$(sh "$ROOT/scripts/test-db.sh" dsn)

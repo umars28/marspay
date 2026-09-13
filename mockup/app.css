@@ -1086,6 +1086,8 @@ td.r, th.r { text-align: right; }
 
 .live { display: grid; }
 
+[hidden] { display: none !important; }
+
 .connectbar {
   border-bottom: 1px solid var(--line);
   background: var(--surface-2, #F7F8FA);
@@ -1116,6 +1118,11 @@ td.r, th.r { text-align: right; }
 }
 .connectbar input#api-base { min-width: 240px; }
 .connectbar input#merch-key { min-width: 300px; }
+.connectbar .cbhead {
+  font-size: 12px;
+  color: var(--ink-2, #5A6472);
+  padding-bottom: 2px;
+}
 .cbnote { font-size: 12px; color: var(--ink-2, #5A6472); }
 .cbnote.ok { color: #15803D; }
 .cbnote.bad { color: #B42318; }
