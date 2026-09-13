@@ -22,6 +22,8 @@ import type {
   Split,
 } from "@/lib/types";
 import { Badge, Note } from "@/components/ui";
+import { Notes } from "@/components/Notes";
+import type { NoteCard } from "@/components/Notes";
 
 type Screen =
   | "home"
@@ -76,10 +78,140 @@ export default function ConsumerPage() {
             ))}
           </div>
         </div>
+        <Notes cards={NOTES[screen] ?? HOME_NOTES} />
       </div>
     </div>
   );
 }
+
+const HOME_NOTES: NoteCard[] = [
+    {
+      icon: "i-book",
+      title: "Balance is not a column",
+      body: (
+        <>
+          <p>
+            The figure on the card is <code>SUM(amount_minor)</code> over that account&apos;s ledger
+            entries, cached in Redis. There is no <code>users.balance</code> to drift.
+          </p>
+          <p>
+            When the cache and the ledger disagree the ledger wins, and the screen says so rather
+            than hiding it.
+          </p>
+        </>
+      ),
+    },
+  {
+    icon: "i-lock",
+    title: "Held is a third state",
+    body: (
+      <p>
+        Money on hold has left <code>available</code> but not the system — a withdrawal the bank
+        has not finished. Two states would have to lie about one of those.
+      </p>
+    ),
+  },
+];
+
+const NOTES: Partial<Record<Screen, NoteCard[]>> = {
+  home: HOME_NOTES,
+  pay: [
+    {
+      icon: "i-shield",
+      title: "The payer never sets the price",
+      body: (
+        <p>
+          With a payment link the amount is resolved from the link server-side. A client that sends
+          its own amount against someone else&apos;s invoice is exactly the attack this prevents.
+        </p>
+      ),
+    },
+    {
+      icon: "i-refresh",
+      title: "Retrying is safe",
+      body: (
+        <p>
+          Every money-moving request carries an <code>Idempotency-Key</code>. A replay returns the
+          original response byte for byte instead of paying twice.
+        </p>
+      ),
+    },
+  ],
+  transfer: [
+    {
+      icon: "i-alert",
+      title: "Velocity runs on the hot path",
+      body: (
+        <p>
+          Counters live in Redis so the check costs milliseconds. Ten new recipients inside five
+          minutes freezes the account — VR-03, and it is enforced, not merely logged.
+        </p>
+      ),
+    },
+  ],
+  topup: [
+    {
+      icon: "i-clock",
+      title: "The callback moves the money",
+      body: (
+        <p>
+          Pressing the button records intent. The balance changes when the provider callback
+          arrives, which is why a lost callback shows up on the reconciliation screen rather than
+          as silently missing money.
+        </p>
+      ),
+    },
+  ],
+  withdraw: [
+    {
+      icon: "i-scale",
+      title: "Failures reverse, they do not delete",
+      body: (
+        <p>
+          A failed withdrawal posts new opposite entries. Nothing is ever removed from the ledger,
+          so the history of what was attempted survives the outcome.
+        </p>
+      ),
+    },
+  ],
+  inbox: [
+    {
+      icon: "i-info",
+      title: "Derived, not stored",
+      body: (
+        <p>
+          There is no notifications table. This feed is built from the activity, pending money
+          requests and expiring points — and the response says so, rather than implying a
+          subsystem that does not exist.
+        </p>
+      ),
+    },
+  ],
+  profile: [
+    {
+      icon: "i-key",
+      title: "A device can be signed out",
+      body: (
+        <p>
+          Revoking a device revokes every session on it. Refresh tokens rotate, and replaying a
+          retired one kills the whole chain, because a replay is indistinguishable from theft.
+        </p>
+      ),
+    },
+  ],
+  split: [
+    {
+      icon: "i-users",
+      title: "A split is not a transaction",
+      body: (
+        <p>
+          It is N independent requests. If two people never pay, the others still stand — which is
+          only true because nothing was posted to the ledger when the split was created.
+        </p>
+      ),
+    },
+  ],
+};
 
 type ScreenProps = {
   screen: Screen;

@@ -201,11 +201,33 @@ func TestFloatReportsHeadroomAndExposure(t *testing.T) {
 		t.Errorf("headroom = %d, want %d", view.Position.Headroom,
 			view.Position.Limit-view.Position.Outstanding)
 	}
-	if view.Position.UtilisationBps != 4000 {
-		t.Errorf("utilisation = %d bps, want 4000", view.Position.UtilisationBps)
-	}
 	if len(view.Top) == 0 {
-		t.Error("no merchant exposure although an instant payout is outstanding")
+		t.Fatal("no merchant exposure although an instant payout is outstanding")
+	}
+}
+
+func TestTheFloatPositionAgreesWithTheExposureBelowIt(t *testing.T) {
+	store, _, ctx := seed(t)
+
+	view, err := store.Float(ctx)
+	if err != nil {
+		t.Fatalf("float: %v", err)
+	}
+
+	var exposure int64
+	for _, row := range view.Top {
+		exposure += row.Outstanding
+	}
+
+	if view.Position.Outstanding == 0 && exposure > 0 {
+		t.Fatalf("the position says nothing is outstanding while the exposure below it totals %d; "+
+			"a screen that contradicts itself is worse than a screen with no data", exposure)
+	}
+	if view.Position.Outstanding != exposure {
+		t.Errorf("position outstanding = %d, exposure sums to %d", view.Position.Outstanding, exposure)
+	}
+	if !view.Position.InstantEnabled {
+		t.Error("instant payout reports degraded on a system nowhere near its float limit")
 	}
 }
 

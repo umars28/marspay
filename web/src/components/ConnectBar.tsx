@@ -30,12 +30,8 @@ export function ConnectBar({ tabs }: { tabs: ReactNode }) {
     tone: "",
   });
 
-  const connected = live.user || live.operator || live.merchant;
-  const parts = [
-    live.user && "consumer",
-    live.merchant && "merchant",
-    live.operator && "operator",
-  ].filter(Boolean);
+  const roles = [live.user, live.merchant, live.operator].filter(Boolean).length;
+  const connected = roles > 0;
 
   async function check() {
     const health = await api.request("GET", "/healthz");
@@ -56,7 +52,7 @@ export function ConnectBar({ tabs }: { tabs: ReactNode }) {
         <div className="spacer" />
         <button className="env" aria-expanded={open} onClick={() => setOpen(!open)}>
           <span className={`statusdot${connected ? " on" : ""}`} />
-          {connected ? `Live · ${parts.join(", ")}` : "Sample data"}
+          {connected ? `Live · ${roles} of 3` : "Sample data"}
         </button>
       </header>
 

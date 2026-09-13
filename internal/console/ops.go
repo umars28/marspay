@@ -31,8 +31,34 @@ type FloatView struct {
 	History  []Float    `json:"history"`
 }
 
+const (
+	floatLimitMinor      = int64(5_000_000_000)
+	floatDegradeBps      = 8_500
+	floatCollectionHours = 24
+)
+
 func (s *Store) Float(ctx context.Context) (*FloatView, error) {
 	view := &FloatView{Top: []Exposure{}, History: []Float{}}
+
+	var outstanding int64
+	if err := s.pool.QueryRow(ctx,
+		`SELECT COALESCE(SUM(net_minor), 0) FROM payouts
+		 WHERE mode = 'instant'
+		   AND status IN ('queued', 'sending', 'settled')
+		   AND created_at > now() - make_interval(hours => $1)`,
+		floatCollectionHours).Scan(&outstanding); err != nil {
+		return nil, err
+	}
+
+	live := Float{
+		Outstanding: outstanding,
+		Limit:       floatLimitMinor,
+		CapturedAt:  time.Now(),
+		Headroom:    floatLimitMinor - outstanding,
+	}
+	live.UtilisationBps = int(outstanding * 10_000 / floatLimitMinor)
+	live.InstantEnabled = live.UtilisationBps < floatDegradeBps
+	view.Position = live
 
 	rows, err := s.pool.Query(ctx,
 		`SELECT outstanding_minor, limit_minor, utilisation_bps, instant_enabled, captured_at
@@ -53,9 +79,6 @@ func (s *Store) Float(ctx context.Context) (*FloatView, error) {
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
-	}
-	if len(view.History) > 0 {
-		view.Position = view.History[0]
 	}
 
 	exposure, err := s.pool.Query(ctx,

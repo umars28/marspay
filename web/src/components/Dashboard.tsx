@@ -22,7 +22,7 @@ export function Dashboard({
 
   return (
     <div className="role active">
-      <div className="console">
+      <div className="shell">
         <aside className="sidebar">
           {[...groups.entries()].map(([name, items]) => (
             <div className="navgroup" key={name || "main"}>

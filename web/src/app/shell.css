@@ -59,7 +59,13 @@
 }
 .statusdot.on { background: #15803D; }
 
-button.env { cursor: pointer; font: inherit; border: 1px solid var(--line); background: #fff; }
+button.env {
+  cursor: pointer;
+  font: inherit;
+  flex: none;
+  white-space: nowrap;
+  background: transparent;
+}
 
 .offline {
   padding: var(--s5, 20px);
@@ -67,3 +73,6 @@ button.env { cursor: pointer; font: inherit; border: 1px solid var(--line); back
   font-size: 13px;
 }
 .loadrow { color: var(--ink-2, #5A6472); font-size: 13px; padding: var(--s4, 16px); }
+
+.phonewrap .notes { align-self: start; }
+.notecard code { font-size: 12px; }
