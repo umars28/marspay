@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/ledger"
@@ -57,6 +58,7 @@ type Service struct {
 	ledger *ledger.Repo
 	wallet wallet.Reserver
 	guard  *velocity.Guard
+	blocks *compliance.Blocks
 }
 
 func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service {
@@ -68,8 +70,24 @@ func (s *Service) WithVelocity(g *velocity.Guard) *Service {
 	return s
 }
 
+func (s *Service) WithBlocks(b *compliance.Blocks) *Service {
+	s.blocks = b
+	return s
+}
+
+func (s *Service) assertNotBlocked(ctx context.Context, userID string) error {
+	if s.blocks == nil {
+		return nil
+	}
+	return s.blocks.Assert(ctx, compliance.SubjectUser, userID)
+}
+
 func (s *Service) Create(ctx context.Context, userID string, req CreateRequest) (*Payment, error) {
 	if err := validate(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.assertNotBlocked(ctx, userID); err != nil {
 		return nil, err
 	}
 

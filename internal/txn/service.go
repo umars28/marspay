@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
@@ -26,6 +27,7 @@ type Service struct {
 	wallet     wallet.Reserver
 	billerRail rail.Rail
 	guard      *velocity.Guard
+	blocks     *compliance.Blocks
 }
 
 func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service {
@@ -40,6 +42,18 @@ func (s *Service) WithBillerRail(r rail.Rail) *Service {
 func (s *Service) WithVelocity(g *velocity.Guard) *Service {
 	s.guard = g
 	return s
+}
+
+func (s *Service) WithBlocks(b *compliance.Blocks) *Service {
+	s.blocks = b
+	return s
+}
+
+func (s *Service) assertNotBlocked(ctx context.Context, userID string) error {
+	if s.blocks == nil {
+		return nil
+	}
+	return s.blocks.Assert(ctx, compliance.SubjectUser, userID)
 }
 
 func (s *Service) checkVelocity(ctx context.Context, subj velocity.Subject) error {
@@ -149,7 +163,7 @@ func (s *Service) assertActive(ctx context.Context, userID string) error {
 		return httpx.Errorf(http.StatusForbidden, httpx.TypeForbidden,
 			"This account is %s and cannot move money.", status)
 	}
-	return nil
+	return s.assertNotBlocked(ctx, userID)
 }
 
 func invalidAmount(amount int64) error {

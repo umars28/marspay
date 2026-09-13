@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/umars28/marspay/internal/auth"
+	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/payment"
@@ -16,6 +17,8 @@ type Deps struct {
 	Txn         *txn.Service
 	Idempotency *idempotency.Store
 	Velocity    *velocity.Guard
+	Blocks      *compliance.Blocks
+	Audit       *compliance.Audit
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -24,6 +27,10 @@ func NewRouter(d Deps) http.Handler {
 	if d.Velocity != nil {
 		d.Payments = d.Payments.WithVelocity(d.Velocity)
 		d.Txn = d.Txn.WithVelocity(d.Velocity)
+	}
+	if d.Blocks != nil {
+		d.Payments = d.Payments.WithBlocks(d.Blocks)
+		d.Txn = d.Txn.WithBlocks(d.Blocks)
 	}
 
 	payments := payment.NewHandler(d.Payments)
@@ -43,6 +50,15 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /v1/balance", movements.Balance)
 	mux.HandleFunc("GET /v1/transactions", movements.History)
 	mux.HandleFunc("GET /v1/me", movements.Profile)
+
+	if d.Blocks != nil && d.Audit != nil {
+		ops := compliance.NewHandler(d.Blocks, d.Audit)
+		mux.HandleFunc("GET /internal/v1/blocks", ops.ListBlocks)
+		mux.HandleFunc("POST /internal/v1/blocks", ops.Block)
+		mux.HandleFunc("POST /internal/v1/blocks/{subject_type}/{subject_id}/unblock", ops.Unblock)
+		mux.HandleFunc("GET /internal/v1/audit", ops.Audit)
+		mux.HandleFunc("GET /internal/v1/audit/{object_type}/{object_id}", ops.AuditFor)
+	}
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})

@@ -14,6 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/umars28/marspay/internal/api"
+	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/payment"
@@ -73,6 +74,8 @@ func run() error {
 		return err
 	}
 
+	audit := compliance.NewAudit(pool)
+
 	router := api.NewRouter(api.Deps{
 		Payments:    payment.NewService(pool, ledgerRepo, balances),
 		Txn:         txn.NewService(pool, ledgerRepo, balances),
@@ -80,6 +83,9 @@ func run() error {
 		Velocity: velocity.NewGuard(
 			velocity.NewEngine(velocity.NewRedisCounter(rdb, "marspay:"), rules),
 			velocityStore),
+		Blocks: compliance.NewBlocks(pool,
+			compliance.NewRedisFlags(rdb, "marspay:"), audit),
+		Audit: audit,
 	})
 
 	srv := &http.Server{

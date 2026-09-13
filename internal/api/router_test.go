@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
@@ -27,6 +28,8 @@ type fixture struct {
 	wallet     *wallet.Memory
 	ledger     *ledger.Repo
 	counter    *velocity.MemoryCounter
+	flags      *compliance.MemoryFlags
+	blocks     *compliance.Blocks
 	userID     string
 	merchantID string
 }
@@ -51,6 +54,9 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 		t.Fatalf("sync velocity rules: %v", err)
 	}
 	counter := velocity.NewMemoryCounter()
+	flags := compliance.NewMemoryFlags()
+	audit := compliance.NewAudit(pool)
+	blocks := compliance.NewBlocks(pool, flags, audit)
 
 	return &fixture{
 		router: NewRouter(Deps{
@@ -59,11 +65,15 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 			Idempotency: idempotency.NewStore(pool),
 			Velocity: velocity.NewGuard(
 				velocity.NewEngine(counter, velocity.DefaultRules()), store),
+			Blocks: blocks,
+			Audit:  audit,
 		}),
 		pool:       pool,
 		wallet:     mem,
 		ledger:     repo,
 		counter:    counter,
+		flags:      flags,
+		blocks:     blocks,
 		userID:     userID,
 		merchantID: merchantID,
 	}, ctx
