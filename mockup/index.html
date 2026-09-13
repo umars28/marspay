@@ -1,0 +1,1378 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marspay — Feature Mockup</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5V20a1 1 0 0 1-1 1h-4v-7H9v7H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3 14.5 21 10 14 3 9.5z"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM18.5 18.5h2.5v2.5h-2.5z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3 1.8"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6z"/><path d="m9.2 12.2 2 2 3.6-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.5 20.5h19z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.2 12.4 2.6 2.6 4.9-5.4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4-4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.8-6.3"/><path d="M20.5 4v5h-5"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="4"/><path d="m10.9 12.6 8-8"/><path d="m16.8 4.8 2.4 2.4"/><path d="m14.2 7.4 2.4 2.4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5a4.5 4.5 0 0 0 6.4 0l2.1-2.1a4.5 4.5 0 0 0-6.4-6.4L11.5 6"/><path d="M13.5 10.5a4.5 4.5 0 0 0-6.4 0L5 12.6a4.5 4.5 0 0 0 6.4 6.4l1.1-1.1"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v14H6.5A2.5 2.5 0 0 0 4 19.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19v4H6.5A2.5 2.5 0 0 1 4 19.5z"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v17"/><path d="M5 7h14"/><path d="m5 7-3 7h6z"/><path d="m19 7-3 7h6z"/><path d="M8 20.5h8"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9 5 3.5h14L20.5 9"/><path d="M4.5 9v11h15V9"/><path d="M3.5 9a2.8 2.8 0 0 0 5.7 0 2.8 2.8 0 0 0 5.6 0 2.8 2.8 0 0 0 5.7 0"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 7.5 4-15 3 7.5h4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 8.5V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h8z"/><path d="M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m8 11.5 4 4 4-4"/><path d="M4.5 20h15"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10" width="15" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11.5v5"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 6H21M8.5 12H21M8.5 18H21"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 12.5h.01"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 4.5 13.5H11l-.8 8L19 10.5h-6.5z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.8 18.5h2.4"/></symbol>
+  <symbol id="i-droplet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c3.1 4.1 5.6 6.6 5.6 9.8a5.6 5.6 0 0 1-11.2 0c0-3.2 2.5-5.7 5.6-9.8z"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 9.2a14.5 14.5 0 0 1 18.8 0"/><path d="M6.2 12.8a9.3 9.3 0 0 1 11.6 0"/><path d="M9.6 16.3a4.4 4.4 0 0 1 4.8 0"/><path d="M12 19.6h.01"/></symbol>
+  <symbol id="i-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="13" rx="2"/><path d="m8 2.8 4 3.7 4-3.7"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4.2" rx="1"/><path d="M5 12.2V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7.8"/><path d="M12 8v13"/><path d="M12 8S10.6 3 8.2 3a2.5 2.5 0 0 0 0 5z"/><path d="M12 8s1.4-5 3.8-5a2.5 2.5 0 0 1 0 5z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.2V4a1 1 0 0 1 1-1h7.2l9 9-8.2 8.2z"/><path d="M7.4 7.4h.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.6 20.2a6.4 6.4 0 0 1 12.8 0"/><path d="M16.2 5.3a3.6 3.6 0 0 1 0 5.4"/><path d="M18 14.8a6.4 6.4 0 0 1 3.4 5.4"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5h5l1.6 3h4.8l1.6-3h5"/><path d="M4.6 5.6 3 13.5V19a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-5.5l-1.6-7.9a1 1 0 0 0-1-.6H5.6a1 1 0 0 0-1 .6z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.4 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17.4l-5.4 2.9 1-6.1L3.2 9.9l6.1-.9z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 18.5a9 9 0 1 1 17 0"/><path d="m12 14.5 4.2-4.6"/><circle cx="12" cy="15" r="1.6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M12 10 6.5 4.5"/><path d="M12 10l5.5-5.5"/><path d="M3.5 4.5h3v3"/><path d="M20.5 4.5h-3v3"/></symbol>
+  <symbol id="i-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="2.2" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="brandmark"><span class="dot">M</span> Marspay</div>
+  <div class="rolebar" role="tablist" aria-label="Pilih role">
+    <button role="tab" aria-selected="true" data-role="user">Konsumen</button>
+    <button role="tab" aria-selected="false" data-role="merchant">Merchant</button>
+    <button role="tab" aria-selected="false" data-role="admin">Admin / Ops</button>
+    <button role="tab" aria-selected="false" data-role="risk">Risk / Compliance</button>
+  </div>
+  <div class="spacer"></div>
+  <span class="env">Mockup · data dummy</span>
+</header>
+
+<main>
+
+<div class="role active" id="role-user">
+  <div class="phonewrap">
+    <div class="phone">
+      <div class="statusbar"><span>09:41</span><span>Rp · IDR</span></div>
+      <div class="view">
+
+        <section class="pscreen active" data-pscreen="home">
+          <div class="balance">
+            <div class="k">Saldo tersedia</div>
+            <div class="v">Rp 2.480.500</div>
+            <div class="meta">
+              <span>Ditahan Rp 150.000</span>
+              <span>·</span>
+              <span>Tier Verified</span>
+            </div>
+          </div>
+          <div class="quick">
+            <button data-goto="topup"><svg><use href="#i-plus"/></svg>Top Up</button>
+            <button data-goto="transfer"><svg><use href="#i-send"/></svg>Transfer</button>
+            <button data-goto="pay"><svg><use href="#i-qr"/></svg>Bayar</button>
+            <button data-goto="withdraw"><svg><use href="#i-out"/></svg>Tarik</button>
+          </div>
+
+          <button class="pointsbar" data-goto="points">
+            <svg><use href="#i-star"/></svg>
+            <div><div class="t">MarsPoin</div><div class="s">2.400 poin kedaluwarsa 30 Sep</div></div>
+            <div class="v">12.480</div>
+          </button>
+
+          <div class="sect"><h4>Bayar tagihan</h4><a href="#" data-goto="bills">Semua</a></div>
+          <div class="services">
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-phone"/></svg></span>Pulsa &amp; Data</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-zap"/></svg></span>Listrik PLN</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-shield"/></svg></span>BPJS</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-wifi"/></svg></span>Internet</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-droplet"/></svg></span>PDAM</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-tv"/></svg></span>TV Kabel</button>
+            <button data-goto="split" class="gold"><span class="ic"><svg><use href="#i-split"/></svg></span>Split Bill</button>
+            <button data-goto="bills"><span class="ic"><svg><use href="#i-grid"/></svg></span>Lainnya</button>
+          </div>
+
+          <div class="sect"><h4>Promo untuk kamu</h4><a href="#" data-goto="promo">Semua</a></div>
+          <div class="promoscroll">
+            <button class="promocard" data-goto="promo"><div class="top" style="background:linear-gradient(135deg,#1E3A8A,#3B5FB8)">30%</div><div class="bd"><div class="t">Cashback kopi</div><div class="s">Maks Rp 15.000 · s/d 20 Sep</div></div></button>
+            <button class="promocard" data-goto="promo"><div class="top" style="background:linear-gradient(135deg,#A16207,#C98A1E)">Rp 25rb</div><div class="bd"><div class="t">Potongan listrik PLN</div><div class="s">Min. Rp 100.000 · s/d 30 Sep</div></div></button>
+            <button class="promocard" data-goto="promo"><div class="top" style="background:linear-gradient(135deg,#15803D,#2AA55B)">2×</div><div class="bd"><div class="t">Poin ganda akhir pekan</div><div class="s">Sabtu &amp; Minggu · semua merchant</div></div></button>
+          </div>
+
+          <div class="note info mt5">
+            <svg><use href="#i-info"/></svg>
+            <div>Limit bulanan terpakai <strong class="num">Rp 4,2 jt</strong> dari Rp 20 jt. Naikkan tier untuk limit lebih besar.</div>
+          </div>
+
+          <div class="sect"><h4>Transaksi terakhir</h4><a href="#" data-goto="history">Lihat semua</a></div>
+          <div class="txlist">
+            <div class="txrow" data-goto="txdetail">
+              <div class="ic out"><svg><use href="#i-store"/></svg></div>
+              <div><div class="t">Kopi Tuku Senopati</div><div class="s">QRIS · 09:12</div></div>
+              <div class="amt">−32.000<span class="st">Berhasil</span></div>
+            </div>
+            <div class="txrow">
+              <div class="ic in"><svg><use href="#i-in"/></svg></div>
+              <div><div class="t">Top up · BCA VA</div><div class="s">Virtual Account · 08:40</div></div>
+              <div class="amt in">+500.000<span class="st">Berhasil</span></div>
+            </div>
+            <div class="txrow">
+              <div class="ic out"><svg><use href="#i-send"/></svg></div>
+              <div><div class="t">Transfer ke Rani W.</div><div class="s">Sesama Marspay · kemarin</div></div>
+              <div class="amt">−150.000<span class="st">Berhasil</span></div>
+            </div>
+            <div class="txrow">
+              <div class="ic"><svg><use href="#i-clock"/></svg></div>
+              <div><div class="t">Tarik ke BCA ····4471</div><div class="s">Diproses bank · kemarin</div></div>
+              <div class="amt">−1.000.000<span class="st">Pending</span></div>
+            </div>
+            <div class="txrow">
+              <div class="ic out"><svg><use href="#i-store"/></svg></div>
+              <div><div class="t">Tokopedia</div><div class="s">Payment link · 2 hari lalu</div></div>
+              <div class="amt">−289.000<span class="st">Berhasil</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="pscreen" data-pscreen="topup">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Top Up</h3>
+          </div>
+          <label class="field mt4"><span class="lbl">Nominal</span>
+            <input class="input num" value="500.000" inputmode="numeric">
+            <span class="help">Minimum Rp 10.000 · maksimum Rp 20.000.000 per transaksi</span>
+          </label>
+          <div class="sect"><h4>Sumber dana</h4></div>
+          <div class="txlist">
+            <div class="txrow"><div class="ic"><svg><use href="#i-card"/></svg></div><div><div class="t">BCA Virtual Account</div><div class="s">Instan · gratis</div></div><div class="amt"><span class="badge info flat">Dipilih</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-card"/></svg></div><div><div class="t">Mandiri Virtual Account</div><div class="s">Instan · gratis</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-store"/></svg></div><div><div class="t">Alfamart</div><div class="s">Tunai · biaya Rp 2.500</div></div><div class="amt"></div></div>
+          </div>
+          <div class="note warn mt5"><svg><use href="#i-info"/></svg><div>Saldo bertambah setelah <strong>webhook konfirmasi</strong> dari bank diterima, bukan saat kamu menekan tombol ini.</div></div>
+          <button class="btn brand block mt4" data-goto="home">Lanjutkan</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="transfer">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Transfer</h3>
+          </div>
+          <label class="field mt4"><span class="lbl">Tujuan</span>
+            <input class="input" value="0812-8841-2290" placeholder="Nomor HP atau username">
+            <span class="help">Rani Wulandari · terverifikasi</span>
+          </label>
+          <label class="field mt4"><span class="lbl">Nominal</span>
+            <input class="input num" value="150.000" inputmode="numeric">
+          </label>
+          <label class="field mt4"><span class="lbl">Catatan (opsional)</span>
+            <input class="input" placeholder="Patungan makan siang">
+          </label>
+          <div class="note info mt5"><svg><use href="#i-info"/></svg><div>Penerima baru pertama kali. Transaksi ini akan melewati <strong>velocity check</strong> sebelum diteruskan.</div></div>
+          <button class="btn brand block mt4" data-goto="pin">Lanjut ke PIN</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="pin">
+          <div class="pheader">
+            <button class="back" data-goto="transfer" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Masukkan PIN</h3>
+          </div>
+          <p class="small muted mt3">Transfer <strong class="num">Rp 150.000</strong> ke Rani Wulandari</p>
+          <div class="pindots"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+          <div class="keypad">
+            <button>1</button><button>2</button><button>3</button>
+            <button>4</button><button>5</button><button>6</button>
+            <button>7</button><button>8</button><button>9</button>
+            <button aria-label="Kosong"></button><button>0</button><button aria-label="Hapus">⌫</button>
+          </div>
+          <div class="note warn mt5"><svg><use href="#i-lock"/></svg><div>Salah 3× berturut-turut → akun terkunci 15 menit. Counter-nya di Redis, bukan Postgres.</div></div>
+          <button class="btn brand block mt4" data-goto="txdetail">Konfirmasi</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="pay">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Bayar</h3>
+          </div>
+          <div class="qrbox"><div class="frame"></div><div class="cap">Arahkan ke QRIS merchant</div></div>
+          <div class="note ok"><svg><use href="#i-check"/></svg><div>Terdeteksi: <strong>Kopi Tuku Senopati</strong> · NMID ID2023xxxx0912</div></div>
+          <label class="field mt4"><span class="lbl">Nominal</span><input class="input num" value="32.000" inputmode="numeric"></label>
+          <button class="btn brand block mt4" data-goto="txdetail">Bayar sekarang</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="withdraw">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Tarik Saldo</h3>
+          </div>
+          <div class="sect"><h4>Rekening tujuan</h4></div>
+          <div class="txlist">
+            <div class="txrow"><div class="ic"><svg><use href="#i-card"/></svg></div><div><div class="t">BCA ····4471</div><div class="s">a.n. Umar Sabirin</div></div><div class="amt"><span class="badge info flat">Dipilih</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-plus"/></svg></div><div><div class="t">Tambah rekening</div><div class="s">Nama harus sama dengan KYC</div></div><div class="amt"></div></div>
+          </div>
+          <label class="field mt4"><span class="lbl">Nominal</span>
+            <input class="input num" value="1.000.000" inputmode="numeric">
+            <span class="help">Biaya admin Rp 2.500 · dana masuk ≤ 1 hari kerja</span>
+          </label>
+          <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Penarikan bersifat <strong>asinkron dan bisa gagal</strong> di sisi bank. Kalau gagal, saldo dikembalikan lewat entri ledger baru — bukan dengan menghapus entri lama.</div></div>
+          <button class="btn brand block mt4" data-goto="home">Tarik</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="history">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Riwayat</h3>
+          </div>
+          <div class="filters">
+            <select class="input"><option>Semua tipe</option><option>Top up</option><option>Transfer</option><option>Pembayaran</option><option>Penarikan</option></select>
+            <select class="input"><option>30 hari terakhir</option><option>90 hari</option><option>Tahun ini</option></select>
+          </div>
+          <div class="txlist">
+            <div class="txrow" data-goto="txdetail"><div class="ic out"><svg><use href="#i-store"/></svg></div><div><div class="t">Kopi Tuku Senopati</div><div class="s">13 Sep · 09:12</div></div><div class="amt">−32.000<span class="st">Berhasil</span></div></div>
+            <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Top up · BCA VA</div><div class="s">13 Sep · 08:40</div></div><div class="amt in">+500.000<span class="st">Berhasil</span></div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-send"/></svg></div><div><div class="t">Transfer ke Rani W.</div><div class="s">12 Sep · 19:03</div></div><div class="amt">−150.000<span class="st">Berhasil</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-clock"/></svg></div><div><div class="t">Tarik ke BCA ····4471</div><div class="s">12 Sep · 16:20</div></div><div class="amt">−1.000.000<span class="st">Pending</span></div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-store"/></svg></div><div><div class="t">Tokopedia</div><div class="s">11 Sep · 21:47</div></div><div class="amt">−289.000<span class="st">Berhasil</span></div></div>
+            <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Refund · Tiket.com</div><div class="s">10 Sep · 14:02</div></div><div class="amt in">+412.000<span class="st">Berhasil</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-x"/></svg></div><div><div class="t">Bayar · Indomaret</div><div class="s">09 Sep · 11:33</div></div><div class="amt">−75.000<span class="st">Gagal · dikembalikan</span></div></div>
+          </div>
+        </section>
+
+        <section class="pscreen" data-pscreen="txdetail">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Detail transaksi</h3>
+          </div>
+          <div class="note ok mt3"><svg><use href="#i-check"/></svg><div><strong>Berhasil</strong> · Rp 32.000 ke Kopi Tuku Senopati</div></div>
+          <dl class="kv mt5">
+            <dt>ID transaksi</dt><dd class="mono">txn_01J7QF3K2M</dd>
+            <dt>Waktu</dt><dd>13 Sep 2026, 09:12:04 WIB</dd>
+            <dt>Metode</dt><dd>QRIS</dd>
+            <dt>Merchant</dt><dd>Kopi Tuku Senopati</dd>
+            <dt>Nominal</dt><dd class="num">Rp 32.000</dd>
+            <dt>Biaya</dt><dd class="num">Rp 0</dd>
+            <dt>Saldo setelah</dt><dd class="num">Rp 2.480.500</dd>
+          </dl>
+          <div class="sect"><h4>Perjalanan status</h4></div>
+          <ul class="timeline">
+            <li><span class="pip ok"></span><div><div class="t">Dibuat</div><div class="s">09:12:04 · saldo dikunci</div></div></li>
+            <li><span class="pip ok"></span><div><div class="t">Lolos risk check</div><div class="s">09:12:04 · 31 ms</div></div></li>
+            <li><span class="pip ok"></span><div><div class="t">Ledger diposting</div><div class="s">09:12:04 · 2 entri, selisih nol</div></div></li>
+            <li><span class="pip ok"></span><div><div class="t">Merchant diberi tahu</div><div class="s">09:12:05 · webhook 200 OK</div></div></li>
+          </ul>
+          <button class="btn block mt5"><svg><use href="#i-download"/></svg> Unduh bukti</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="bills">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Bayar Tagihan</h3>
+          </div>
+          <input class="input mt3" placeholder="Cari layanan" style="width:100%">
+          <div class="sect"><h4>Sering kamu bayar</h4></div>
+          <div class="txlist">
+            <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-zap"/></svg></div><div><div class="t">PLN Pascabayar</div><div class="s">ID 512201884471 · rumah</div></div><div class="amt">Rp 412.300<span class="st">Jatuh tempo 20 Sep</span></div></div>
+            <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-phone"/></svg></div><div><div class="t">Telkomsel</div><div class="s">0812-9903-1155</div></div><div class="amt"><span class="st">Isi ulang</span></div></div>
+            <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-wifi"/></svg></div><div><div class="t">IndiHome</div><div class="s">ID 1220118842</div></div><div class="amt">Rp 385.000<span class="st">Sudah dibayar</span></div></div>
+          </div>
+          <div class="sect"><h4>Semua layanan</h4></div>
+          <div class="services">
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-phone"/></svg></span>Pulsa &amp; Data</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-zap"/></svg></span>Listrik PLN</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-shield"/></svg></span>BPJS</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-wifi"/></svg></span>Internet</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-droplet"/></svg></span>PDAM</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-tv"/></svg></span>TV Kabel</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-card"/></svg></span>Kartu Kredit</button>
+            <button data-goto="billform"><span class="ic"><svg><use href="#i-gift"/></svg></span>Voucher Game</button>
+          </div>
+          <div class="note info mt5"><svg><use href="#i-info"/></svg><div>Tiap biller adalah penyedia eksternal dengan latensi dan tingkat kegagalan sendiri. Itu artinya <strong>satu baris rekonsiliasi lagi per biller</strong>, bukan cuma satu tombol lagi di layar.</div></div>
+        </section>
+
+        <section class="pscreen" data-pscreen="billform">
+          <div class="pheader">
+            <button class="back" data-goto="bills" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Listrik PLN</h3>
+          </div>
+          <label class="field mt4"><span class="lbl">ID Pelanggan</span><input class="input mono" value="512201884471"></label>
+          <div class="card mt4"><div class="body">
+            <dl class="kv" style="grid-template-columns:110px minmax(0,1fr)">
+              <dt>Nama</dt><dd>UMAR SABIRIN</dd>
+              <dt>Tarif / Daya</dt><dd>R1 / 2200 VA</dd>
+              <dt>Periode</dt><dd>Agustus 2026</dd>
+              <dt>Tagihan</dt><dd class="num">Rp 410.300</dd>
+              <dt>Biaya admin</dt><dd class="num">Rp 2.000</dd>
+            </dl>
+            <div style="border-top:1px solid var(--border);margin-top:var(--s3);padding-top:var(--s3);display:flex">
+              <strong>Total</strong><strong class="num" style="margin-left:auto">Rp 412.300</strong>
+            </div>
+          </div></div>
+          <div class="note ok mt4"><svg><use href="#i-gift"/></svg><div>Pakai promo <strong>Potongan listrik Rp 25.000</strong>? Bayar jadi Rp 387.300.</div></div>
+          <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Kalau PLN timeout setelah saldo terpotong, transaksi masuk status <strong>pending</strong> — bukan gagal. Worker akan menanyakan statusnya sampai pasti, baru memutuskan lanjut atau balikin.</div></div>
+          <button class="btn brand block mt4" data-goto="pin">Bayar</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="split">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Split Bill</h3>
+          </div>
+          <div class="card mt3"><div class="body">
+            <div class="small muted">Tagihan yang dibagi</div>
+            <div class="num strong" style="font-size:22px">Rp 480.000</div>
+            <div class="small muted">Makan malam · Sate Khas Senayan · 12 Sep</div>
+          </div></div>
+          <div class="sect"><h4>Dibagi ke 4 orang</h4><a href="#" data-goto="request">Tagih manual</a></div>
+          <div class="queue">
+            <div class="qitem"><div class="av">US</div><div><div class="t">Kamu</div><div class="s num">Rp 120.000</div></div><span class="badge ok">Sudah bayar</span></div>
+            <div class="qitem"><div class="av">RW</div><div><div class="t">Rani Wulandari</div><div class="s num">Rp 120.000</div></div><span class="badge ok">Sudah bayar</span></div>
+            <div class="qitem"><div class="av">AF</div><div><div class="t">Ahmad Fauzi</div><div class="s num">Rp 120.000</div></div><span class="badge pend">Menunggu</span></div>
+            <div class="qitem"><div class="av">NK</div><div><div class="t">Nadia Kusuma</div><div class="s num">Rp 120.000</div></div><span class="badge pend">Menunggu</span></div>
+          </div>
+          <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Split bill bukan transaksi. Dia cuma <strong>4 permintaan bayar</strong> yang masing-masing berdiri sendiri — kalau dua orang tidak bayar, dua yang lain tetap sah.</div></div>
+          <button class="btn block mt4">Ingatkan yang belum bayar</button>
+        </section>
+
+        <section class="pscreen" data-pscreen="request">
+          <div class="pheader">
+            <button class="back" data-goto="split" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Tagih Teman</h3>
+          </div>
+          <label class="field mt4"><span class="lbl">Tagih siapa</span><input class="input" value="Ahmad Fauzi" placeholder="Nomor HP atau username"></label>
+          <label class="field mt4"><span class="lbl">Nominal</span><input class="input num" value="120.000"></label>
+          <label class="field mt4"><span class="lbl">Untuk apa</span><input class="input" value="Patungan sate"></label>
+          <label class="field mt4"><span class="lbl">Kedaluwarsa</span><select class="input"><option>3 hari</option><option>7 hari</option><option>Tidak ada</option></select>
+            <span class="help">Setelah lewat, permintaan otomatis ditutup oleh worker kedaluwarsa.</span></label>
+          <button class="btn brand block mt4" data-goto="split">Kirim permintaan</button>
+          <div class="sect"><h4>Permintaan masuk</h4></div>
+          <div class="queue">
+            <div class="qitem"><div class="av">RW</div><div><div class="t">Rani Wulandari menagih</div><div class="s num">Rp 85.000 · bensin</div></div><div class="ops"><button class="btn sm">Tolak</button><button class="btn sm brand">Bayar</button></div></div>
+          </div>
+        </section>
+
+        <section class="pscreen" data-pscreen="points">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>MarsPoin</h3>
+          </div>
+          <div class="balance" style="background:linear-gradient(145deg,#A16207 0%,#C98A1E 100%)">
+            <div class="k">Total poin</div>
+            <div class="v">12.480</div>
+            <div class="meta"><span>2.400 hangus 30 Sep</span><span>·</span><span>1 poin = Rp 1</span></div>
+          </div>
+          <div class="sect"><h4>Tukar poin</h4></div>
+          <div class="txlist">
+            <div class="txrow"><div class="ic out"><svg><use href="#i-wallet"/></svg></div><div><div class="t">Jadi saldo</div><div class="s">Minimal 10.000 poin</div></div><div class="amt"><span class="badge info flat">Tukar</span></div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-gift"/></svg></div><div><div class="t">Voucher Alfamart Rp 50.000</div><div class="s">5.000 poin</div></div><div class="amt"><span class="badge info flat">Tukar</span></div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-zap"/></svg></div><div><div class="t">Token listrik Rp 20.000</div><div class="s">2.000 poin</div></div><div class="amt"><span class="badge info flat">Tukar</span></div></div>
+          </div>
+          <div class="sect"><h4>Riwayat poin</h4></div>
+          <div class="txlist">
+            <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Cashback Kopi Tuku</div><div class="s">13 Sep · 30% dari Rp 32.000</div></div><div class="amt in">+9.600</div></div>
+            <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Poin ganda akhir pekan</div><div class="s">12 Sep · Tokopedia</div></div><div class="amt in">+5.780</div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-out"/></svg></div><div><div class="t">Ditukar jadi saldo</div><div class="s">10 Sep</div></div><div class="amt">−10.000</div></div>
+          </div>
+          <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Poin punya ledger sendiri yang terpisah dari ledger rupiah. Mencampur keduanya di satu tabel bikin invariant "jumlah semua saldo = nol" jadi tidak berlaku lagi.</div></div>
+        </section>
+
+        <section class="pscreen" data-pscreen="promo">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Promo</h3>
+          </div>
+          <div class="filters mt3">
+            <select class="input" style="flex:1"><option>Semua kategori</option><option>Makan &amp; minum</option><option>Tagihan</option><option>Belanja</option></select>
+          </div>
+          <div class="queue">
+            <div class="qitem"><div class="av" style="background:var(--brand-soft);color:var(--brand)">30%</div><div><div class="t">Cashback kopi</div><div class="s">Maks Rp 15.000 · 42 merchant · s/d 20 Sep</div></div><button class="btn sm brand">Aktifkan</button></div>
+            <div class="qitem"><div class="av" style="background:var(--accent-soft);color:var(--accent)">25k</div><div><div class="t">Potongan listrik PLN</div><div class="s">Min. Rp 100.000 · 1× per pengguna · s/d 30 Sep</div></div><button class="btn sm brand">Aktifkan</button></div>
+            <div class="qitem"><div class="av" style="background:var(--success-soft);color:var(--success)">2×</div><div><div class="t">Poin ganda akhir pekan</div><div class="s">Sabtu &amp; Minggu · otomatis</div></div><span class="badge ok">Aktif</span></div>
+            <div class="qitem"><div class="av" style="background:var(--muted);color:var(--muted-text)">15%</div><div><div class="t">Diskon transportasi</div><div class="s">Kuota habis · 10.000/10.000 terpakai</div></div><span class="badge mute">Habis</span></div>
+          </div>
+          <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Kuota promo adalah <strong>counter panas</strong> — satu promo viral bisa ditekan puluhan ribu kali per detik. Ini dijaga dengan decrement atomik di Redis, bukan <span class="mono">SELECT … FOR UPDATE</span> di Postgres.</div></div>
+        </section>
+
+        <section class="pscreen" data-pscreen="inbox">
+          <div class="pheader">
+            <button class="back" data-goto="profile" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Notifikasi</h3>
+          </div>
+          <div class="txlist mt3">
+            <div class="txrow"><div class="ic in"><svg><use href="#i-check"/></svg></div><div><div class="t">Pembayaran berhasil</div><div class="s">Rp 32.000 ke Kopi Tuku · 09:12</div></div><div class="amt"><span class="badge info flat">Baru</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-star"/></svg></div><div><div class="t">Kamu dapat 9.600 poin</div><div class="s">Cashback 30% · 09:12</div></div><div class="amt"><span class="badge info flat">Baru</span></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-users"/></svg></div><div><div class="t">Rani menagih Rp 85.000</div><div class="s">Bensin · 08:30</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-clock"/></svg></div><div><div class="t">Penarikan masih diproses</div><div class="s">Rp 1.000.000 ke BCA · kemarin</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-gift"/></svg></div><div><div class="t">2.400 poin hangus 30 Sep</div><div class="s">Tukar sebelum kedaluwarsa · kemarin</div></div><div class="amt"></div></div>
+          </div>
+        </section>
+
+        <section class="pscreen" data-pscreen="profile">
+          <div class="pheader">
+            <button class="back" data-goto="home" aria-label="Kembali"><svg><use href="#i-back"/></svg></button>
+            <h3>Akun</h3>
+          </div>
+          <div class="qitem mt3"><div class="av">US</div><div><div class="t">Umar Sabirin</div><div class="s">0812-9903-1155</div></div><span class="badge gold">Verified</span></div>
+          <div class="sect"><h4>Tier &amp; limit</h4></div>
+          <div class="card"><div class="body">
+            <dl class="kv">
+              <dt>Tier saat ini</dt><dd>Verified (KTP + selfie)</dd>
+              <dt>Saldo maksimum</dt><dd class="num">Rp 20.000.000</dd>
+              <dt>Transaksi / bulan</dt><dd class="num">Rp 20.000.000</dd>
+              <dt>Terpakai bulan ini</dt><dd class="num">Rp 4.208.000</dd>
+            </dl>
+          </div></div>
+          <div class="sect"><h4>Lainnya</h4></div>
+          <div class="txlist">
+            <div class="txrow" data-goto="inbox"><div class="ic"><svg><use href="#i-inbox"/></svg></div><div><div class="t">Notifikasi</div><div class="s">2 belum dibaca</div></div><div class="amt"><span class="badge info flat">2</span></div></div>
+            <div class="txrow" data-goto="points"><div class="ic"><svg><use href="#i-star"/></svg></div><div><div class="t">MarsPoin</div><div class="s">12.480 poin</div></div><div class="amt"></div></div>
+            <div class="txrow" data-goto="promo"><div class="ic"><svg><use href="#i-tag"/></svg></div><div><div class="t">Promo saya</div><div class="s">1 promo aktif</div></div><div class="amt"></div></div>
+            <div class="txrow" data-goto="request"><div class="ic"><svg><use href="#i-users"/></svg></div><div><div class="t">Tagihan &amp; permintaan</div><div class="s">1 permintaan masuk</div></div><div class="amt"></div></div>
+          </div>
+          <div class="sect"><h4>Keamanan</h4></div>
+          <div class="txlist">
+            <div class="txrow"><div class="ic"><svg><use href="#i-lock"/></svg></div><div><div class="t">Ubah PIN</div><div class="s">Terakhir diubah 4 bulan lalu</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-card"/></svg></div><div><div class="t">Rekening tertaut</div><div class="s">1 rekening</div></div><div class="amt"></div></div>
+            <div class="txrow"><div class="ic"><svg><use href="#i-activity"/></svg></div><div><div class="t">Perangkat aktif</div><div class="s">2 perangkat</div></div><div class="amt"></div></div>
+          </div>
+        </section>
+
+      </div>
+      <nav class="tabbar" aria-label="Navigasi aplikasi">
+        <button data-goto="home" aria-current="page"><svg><use href="#i-home"/></svg>Beranda</button>
+        <button data-goto="pay"><svg><use href="#i-qr"/></svg>Bayar</button>
+        <button data-goto="history"><svg><use href="#i-list"/></svg>Riwayat</button>
+        <button data-goto="profile"><svg><use href="#i-user"/></svg>Akun</button>
+      </nav>
+    </div>
+
+    <div class="notes">
+      <div class="notecard">
+        <h4><svg width="15" height="15"><use href="#i-book"/></svg> Saldo bukan kolom</h4>
+        <p>Angka <code>Rp 2.480.500</code> di kartu itu hasil agregasi ledger yang di-cache di Redis, bukan <code>users.balance</code>. Postgres tetap pemegang kebenaran; Redis cuma jalur cepat.</p>
+        <p>Konsekuensinya: kalau cache dan ledger beda, ledger yang menang — dan selisihnya muncul di layar rekonsiliasi Admin.</p>
+      </div>
+      <div class="notecard">
+        <h4><svg width="15" height="15"><use href="#i-lock"/></svg> Saldo ditahan</h4>
+        <p><code>Rp 150.000</code> yang ditahan adalah <em>hold</em> dari penarikan yang belum selesai di bank. Uangnya sudah tidak bisa dipakai, tapi belum keluar dari sistem.</p>
+        <p>Ini yang bikin butuh tiga state, bukan dua: <code>available</code>, <code>held</code>, <code>settled</code>.</p>
+      </div>
+      <div class="notecard">
+        <h4><svg width="15" height="15"><use href="#i-refresh"/></svg> Semua aksi = entri ledger</h4>
+        <p>Top up, transfer, bayar, tarik, refund — tidak ada satu pun yang "mengurangi saldo". Semua menambah dua baris yang jumlahnya nol.</p>
+        <p>Transaksi gagal pun tidak dihapus. Dia dibalik dengan entri baru, supaya jejak auditnya utuh.</p>
+      </div>
+      <div class="notecard">
+        <h4><svg width="15" height="15"><use href="#i-activity"/></svg> Jalur panas vs jalur lambat</h4>
+        <p>Layar beranda dan PIN check harus di bawah 100 ms — semuanya Redis. Riwayat transaksi boleh 300 ms — itu Postgres dengan partisi per bulan.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="role" id="role-merchant">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="who"><div class="name">Kopi Tuku Senopati</div><div class="sub">merch_8812 · Live</div></div>
+      <div class="navgroup">
+        <div class="label">Operasional</div>
+        <nav>
+          <button data-screen="m-overview" aria-current="page"><svg><use href="#i-trend"/></svg>Ringkasan</button>
+          <button data-screen="m-tx"><svg><use href="#i-list"/></svg>Transaksi</button>
+          <button data-screen="m-charges"><svg><use href="#i-link"/></svg>Payment Link</button>
+          <button data-screen="m-outlets"><svg><use href="#i-layers"/></svg>Outlet &amp; Kasir</button>
+        </nav>
+      </div>
+      <div class="navgroup">
+        <div class="label">Pencairan</div>
+        <nav>
+          <button data-screen="m-instant"><svg><use href="#i-zap"/></svg>Cair Instan</button>
+          <button data-screen="m-settlement"><svg><use href="#i-card"/></svg>Riwayat Pencairan</button>
+        </nav>
+      </div>
+      <div class="navgroup">
+        <div class="label">Integrasi</div>
+        <nav>
+          <button data-screen="m-webhooks"><svg><use href="#i-activity"/></svg>Webhook<span class="tail">3</span></button>
+          <button data-screen="m-keys"><svg><use href="#i-key"/></svg>API Key</button>
+        </nav>
+      </div>
+    </aside>
+    <div class="main">
+
+      <section class="screen active" data-screen="m-overview">
+        <div class="pagehead">
+          <div><h2>Ringkasan</h2><p>13 September 2026 · diperbarui 8 detik lalu</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Ekspor</button><button class="btn primary"><svg><use href="#i-plus"/></svg>Buat tagihan</button></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Volume hari ini</div><div class="v">Rp 18,4 jt</div><div class="d up">+12,4% vs kemarin</div></div>
+          <div class="stat"><div class="k">Transaksi</div><div class="v">612</div><div class="d up">+41 vs kemarin</div></div>
+          <div class="stat"><div class="k">Success rate</div><div class="v">99,2%</div><div class="d">5 gagal · 3 kedaluwarsa</div></div>
+          <div class="stat"><div class="k">Sudah cair hari ini</div><div class="v">Rp 16,1 jt</div><div class="d up">instan · rata-rata 6,2 detik</div></div>
+        </div>
+        <div class="keyband mt4">
+          <div class="txt">
+            <h3>Cair Instan aktif</h3>
+            <p>Uang masuk rekening kamu dalam hitungan detik setelah pelanggan bayar — bukan besok pagi. Holdback 4% ditahan sebentar untuk menutup risiko sengketa, dan dilepas otomatis 24 jam kemudian.</p>
+          </div>
+          <div class="big">6,2 dtk<span>p95 bayar → masuk rekening</span></div>
+        </div>
+        <div class="grid g-main mt4">
+          <div class="card">
+            <header><h3>Volume per jam</h3><span class="hint">00:00 – 23:00 WIB</span></header>
+            <div class="body">
+              <div class="bars">
+                <div style="height:8%"></div><div style="height:5%"></div><div style="height:4%"></div><div style="height:3%"></div>
+                <div style="height:6%"></div><div style="height:14%"></div><div style="height:32%"></div><div style="height:58%"></div>
+                <div style="height:74%"></div><div style="height:61%"></div><div style="height:49%"></div><div style="height:67%"></div>
+                <div style="height:92%"></div><div style="height:81%"></div><div style="height:44%"></div><div style="height:38%"></div>
+                <div style="height:41%"></div><div style="height:63%"></div><div style="height:86%"></div><div style="height:100%"></div>
+                <div style="height:72%"></div><div style="height:44%"></div><div style="height:22%"></div><div style="height:11%"></div>
+              </div>
+              <div class="axisrow"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <header><h3>Kesehatan integrasi</h3></header>
+            <div class="body">
+              <dl class="kv">
+                <dt>Webhook sukses</dt><dd><span class="badge pend">97,1% (24 jam)</span></dd>
+                <dt>Antre retry</dt><dd class="num">3</dd>
+                <dt>Masuk DLQ</dt><dd class="num">1</dd>
+                <dt>p95 respons endpoint</dt><dd class="num">840 ms</dd>
+              </dl>
+              <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Endpoint kamu lambat. Di atas 5 detik kami anggap timeout dan kirim ulang.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Transaksi terakhir</h3><div class="actions"><button class="btn sm" data-screen="m-tx">Lihat semua</button></div></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>ID</th><th>Waktu</th><th>Metode</th><th>Pelanggan</th><th class="r">Nominal</th><th class="r">Fee</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">txn_01J7QF3K2M</td><td>09:12:04</td><td>QRIS</td><td>Umar S.</td><td class="r num">32.000</td><td class="r num">224</td><td><span class="badge ok">Berhasil</span></td></tr>
+              <tr><td class="mono">txn_01J7QF1X9B</td><td>09:11:38</td><td>QRIS</td><td>Dewi A.</td><td class="r num">48.000</td><td class="r num">336</td><td><span class="badge ok">Berhasil</span></td></tr>
+              <tr><td class="mono">txn_01J7QEZZ04</td><td>09:10:52</td><td>Payment link</td><td>PT Sinar Jaya</td><td class="r num">1.240.000</td><td class="r num">8.680</td><td><span class="badge pend">Menunggu bayar</span></td></tr>
+              <tr><td class="mono">txn_01J7QEY7TT</td><td>09:09:11</td><td>QRIS</td><td>Bagus P.</td><td class="r num">27.000</td><td class="r num">189</td><td><span class="badge fail">Gagal · saldo kurang</span></td></tr>
+              <tr><td class="mono">txn_01J7QEW2KD</td><td>09:08:03</td><td>QRIS</td><td>Rani W.</td><td class="r num">55.000</td><td class="r num">385</td><td><span class="badge ok">Berhasil</span></td></tr>
+              <tr><td class="mono">txn_01J7QEV0P1</td><td>09:06:47</td><td>QRIS</td><td>Ahmad F.</td><td class="r num">-18.000</td><td class="r num">0</td><td><span class="badge info">Refund sebagian</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="m-tx">
+        <div class="pagehead">
+          <div><h2>Transaksi</h2><p>4.812 transaksi · 30 hari terakhir</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Ekspor CSV</button></div>
+        </div>
+        <div class="filters">
+          <input class="input" placeholder="Cari ID, pelanggan, atau referensi" style="min-width:260px">
+          <select class="input"><option>Semua status</option><option>Berhasil</option><option>Pending</option><option>Gagal</option><option>Refund</option></select>
+          <select class="input"><option>Semua metode</option><option>QRIS</option><option>Payment link</option><option>Virtual Account</option></select>
+          <select class="input"><option>30 hari terakhir</option><option>Hari ini</option><option>7 hari</option></select>
+          <button class="btn">Terapkan</button>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>ID</th><th>Waktu</th><th>Metode</th><th>Pelanggan</th><th class="r">Nominal</th><th class="r">Fee</th><th class="r">Net</th><th>Status</th><th>Settlement</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">txn_01J7QF3K2M</td><td>13 Sep 09:12</td><td>QRIS</td><td>Umar S.</td><td class="r num">32.000</td><td class="r num">224</td><td class="r num">31.776</td><td><span class="badge ok">Berhasil</span></td><td><span class="badge mute">Batch besok</span></td><td><button class="btn sm">Refund</button></td></tr>
+              <tr><td class="mono">txn_01J7QF1X9B</td><td>13 Sep 09:11</td><td>QRIS</td><td>Dewi A.</td><td class="r num">48.000</td><td class="r num">336</td><td class="r num">47.664</td><td><span class="badge ok">Berhasil</span></td><td><span class="badge mute">Batch besok</span></td><td><button class="btn sm">Refund</button></td></tr>
+              <tr><td class="mono">txn_01J7QEZZ04</td><td>13 Sep 09:10</td><td>Link</td><td>PT Sinar Jaya</td><td class="r num">1.240.000</td><td class="r num">8.680</td><td class="r num">1.231.320</td><td><span class="badge pend">Menunggu bayar</span></td><td class="muted">—</td><td><button class="btn sm">Batalkan</button></td></tr>
+              <tr><td class="mono">txn_01J7QEY7TT</td><td>13 Sep 09:09</td><td>QRIS</td><td>Bagus P.</td><td class="r num">27.000</td><td class="r num">0</td><td class="r num">0</td><td><span class="badge fail">Gagal</span></td><td class="muted">—</td><td></td></tr>
+              <tr><td class="mono">txn_01J7QEV0P1</td><td>13 Sep 09:06</td><td>QRIS</td><td>Ahmad F.</td><td class="r num">−18.000</td><td class="r num">0</td><td class="r num">−18.000</td><td><span class="badge info">Refund sebagian</span></td><td><span class="badge mute">Batch besok</span></td><td></td></tr>
+              <tr><td class="mono">txn_01J7QDK81N</td><td>12 Sep 21:44</td><td>QRIS</td><td>Sari M.</td><td class="r num">96.000</td><td class="r num">672</td><td class="r num">95.328</td><td><span class="badge ok">Berhasil</span></td><td><span class="badge ok">Cair 13 Sep</span></td><td></td></tr>
+              <tr><td class="mono">txn_01J7QCB55Z</td><td>12 Sep 19:02</td><td>VA</td><td>PT Maju Terus</td><td class="r num">3.500.000</td><td class="r num">4.000</td><td class="r num">3.496.000</td><td><span class="badge ok">Berhasil</span></td><td><span class="badge ok">Cair 13 Sep</span></td><td></td></tr>
+              <tr><td class="mono">txn_01J7QAA19F</td><td>12 Sep 17:31</td><td>QRIS</td><td>Nadia K.</td><td class="r num">41.000</td><td class="r num">287</td><td class="r num">40.713</td><td><span class="badge ok">Berhasil</span></td><td><span class="badge ok">Cair 13 Sep</span></td><td></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="m-charges">
+        <div class="pagehead">
+          <div><h2>Payment Link</h2><p>Tagihan sekali pakai dengan masa berlaku</p></div>
+          <div class="actions"><button class="btn primary"><svg><use href="#i-plus"/></svg>Buat baru</button></div>
+        </div>
+        <div class="grid g-main">
+          <div class="card">
+            <header><h3>Link aktif</h3></header>
+            <div class="tablewrap"><table>
+              <thead><tr><th>Referensi</th><th>Untuk</th><th class="r">Nominal</th><th>Kedaluwarsa</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="mono">inv-2026-0912</td><td>PT Sinar Jaya</td><td class="r num">1.240.000</td><td>13 Sep 21:10</td><td><span class="badge pend">Belum dibayar</span></td><td><button class="btn sm">Salin</button></td></tr>
+                <tr><td class="mono">inv-2026-0911</td><td>CV Abadi</td><td class="r num">780.000</td><td>14 Sep 08:00</td><td><span class="badge pend">Belum dibayar</span></td><td><button class="btn sm">Salin</button></td></tr>
+                <tr><td class="mono">inv-2026-0908</td><td>PT Maju Terus</td><td class="r num">3.500.000</td><td>—</td><td><span class="badge ok">Dibayar</span></td><td></td></tr>
+                <tr><td class="mono">inv-2026-0903</td><td>Toko Rahayu</td><td class="r num">215.000</td><td>—</td><td><span class="badge mute">Kedaluwarsa</span></td><td></td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div class="card">
+            <header><h3>Buat tagihan</h3></header>
+            <div class="body grid" style="gap:var(--s4)">
+              <label class="field"><span class="lbl">Nominal</span><input class="input num" value="1.240.000"></label>
+              <label class="field"><span class="lbl">Referensi kamu</span><input class="input mono" value="inv-2026-0913">
+                <span class="help">Dipakai sebagai idempotency key. Kirim dua kali dengan nilai sama → tetap satu tagihan.</span></label>
+              <label class="field"><span class="lbl">Berlaku sampai</span><select class="input"><option>12 jam</option><option>24 jam</option><option>7 hari</option></select>
+                <span class="help">Setelah lewat, worker kedaluwarsa melepas hold-nya.</span></label>
+              <button class="btn brand block">Buat link</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="m-instant">
+        <div class="pagehead">
+          <div><h2>Cair Instan</h2><p>Setiap pembayaran dicairkan sendiri-sendiri, bukan menunggu batch malam</p></div>
+          <div class="actions">
+            <div class="toggle" role="group" aria-label="Mode pencairan">
+              <button aria-pressed="true">Instan</button>
+              <button aria-pressed="false">Batch harian</button>
+            </div>
+          </div>
+        </div>
+        <div class="keyband">
+          <div class="txt">
+            <h3>Kenapa ini beda</h3>
+            <p>Dompet digital lain mencairkan T+1 atau T+2 karena mereka menunggu risiko mengendap. Kami tidak menunggu — kami <em>menghitung</em> risikonya per merchant, menahan sebagian kecil, dan melepas sisanya sekarang juga.</p>
+          </div>
+          <div class="big">4,0%<span>holdback kamu saat ini</span></div>
+        </div>
+        <div class="grid g4 mt4">
+          <div class="stat"><div class="k">Cair hari ini</div><div class="v">Rp 16,1 jt</div><div class="d">418 pencairan</div></div>
+          <div class="stat"><div class="k">p50 / p95 latensi</div><div class="v" style="font-size:19px">3,1 / 6,2 dtk</div><div class="d up">SLA 10 detik</div></div>
+          <div class="stat"><div class="k">Ditahan (holdback)</div><div class="v">Rp 671 rb</div><div class="d">dilepas bertahap 24 jam</div></div>
+          <div class="stat"><div class="k">Gagal ke bank</div><div class="v">3</div><div class="d down">otomatis dicoba ulang</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Aliran pencairan langsung</h3><span class="hint">diperbarui real-time</span></header>
+          <div class="live">
+            <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QF3K2M · Umar S.</span><span class="num">Rp 32.000</span><span class="num muted">− Rp 1.280</span><span class="lat">masuk 2,9 dtk · <span class="badge ok">BCA</span></span></div>
+            <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QF1X9B · Dewi A.</span><span class="num">Rp 48.000</span><span class="num muted">− Rp 1.920</span><span class="lat">masuk 3,4 dtk · <span class="badge ok">BCA</span></span></div>
+            <div class="liverow"><span class="pulse slow"></span><span class="who">txn_01J7QEW2KD · Rani W.</span><span class="num">Rp 55.000</span><span class="num muted">− Rp 2.200</span><span class="lat">menunggu bank 11 dtk · <span class="badge pend">BI-FAST</span></span></div>
+            <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QEV9RR · Sari M.</span><span class="num">Rp 96.000</span><span class="num muted">− Rp 3.840</span><span class="lat">masuk 2,2 dtk · <span class="badge ok">BCA</span></span></div>
+            <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QET1MF · Bagus P.</span><span class="num">Rp 27.000</span><span class="num muted">− Rp 1.080</span><span class="lat">masuk 4,8 dtk · <span class="badge ok">BCA</span></span></div>
+          </div>
+        </div>
+        <div class="grid g2 mt4">
+          <div class="card"><header><h3>Holdback kamu</h3><span class="hint">dihitung ulang tiap 5 menit</span></header><div class="body">
+            <div class="meterrow"><span>Tarif holdback</span><span class="n">4,0%</span></div>
+            <div class="meter ok"><i style="width:8%"></i></div>
+            <p class="small muted mt3">Merchant baru mulai di 20%. Milikmu turun ke 4% setelah 6 bulan tanpa sengketa dan refund di bawah 0,5%. Terendah yang mungkin: 1,5%.</p>
+            <dl class="kv mt4" style="grid-template-columns:160px minmax(0,1fr)">
+              <dt>Umur merchant</dt><dd>6 bulan 11 hari</dd>
+              <dt>Rasio refund 90 hari</dt><dd class="num">0,31%</dd>
+              <dt>Sengketa 90 hari</dt><dd class="num">0</dd>
+              <dt>Volume stabil</dt><dd><span class="badge ok">Ya</span></dd>
+            </dl>
+          </div></div>
+          <div class="card"><header><h3>Cara turunkan holdback</h3></header><div class="body">
+            <ul class="timeline">
+              <li><span class="pip ok"></span><div><div class="t">Lewati 90 hari pertama</div><div class="s">Selesai · holdback 20% → 8%</div></div></li>
+              <li><span class="pip ok"></span><div><div class="t">Rasio refund di bawah 1%</div><div class="s">Selesai · 8% → 4%</div></div></li>
+              <li><span class="pip pend"></span><div><div class="t">12 bulan tanpa sengketa</div><div class="s">Sisa 5 bulan 19 hari · 4% → 2,5%</div></div></li>
+              <li><span class="pip"></span><div><div class="t">Verifikasi badan usaha penuh</div><div class="s">Belum dimulai · 2,5% → 1,5%</div></div></li>
+            </ul>
+          </div></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="m-outlets">
+        <div class="pagehead">
+          <div><h2>Outlet &amp; Kasir</h2><p>3 outlet · 8 kasir · masing-masing punya QRIS statis sendiri</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-plus"/></svg>Tambah kasir</button><button class="btn primary"><svg><use href="#i-plus"/></svg>Tambah outlet</button></div>
+        </div>
+        <div class="card">
+          <header><h3>Outlet</h3></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Outlet</th><th>NMID</th><th class="r">Kasir</th><th class="r">Transaksi hari ini</th><th class="r">Volume</th><th>Rekening cair</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Senopati</td><td class="mono">ID2023xxxx0912</td><td class="r num">4</td><td class="r num">318</td><td class="r num">9.420.000</td><td class="mono">BCA ····2013</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td>Kemang</td><td class="mono">ID2023xxxx1144</td><td class="r num">3</td><td class="r num">201</td><td class="r num">6.180.000</td><td class="mono">BCA ····2013</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td>Bintaro</td><td class="mono">ID2023xxxx1780</td><td class="r num">1</td><td class="r num">93</td><td class="r num">2.800.000</td><td class="mono">Mandiri ····8891</td><td><span class="badge pend">Verifikasi rekening</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Kasir</h3><span class="hint">akses terbatas: hanya lihat transaksi outlet sendiri</span></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Nama</th><th>Outlet</th><th>Peran</th><th>Terakhir aktif</th><th class="r">Transaksi hari ini</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Yuda Pratama</td><td>Senopati</td><td><span class="badge mute flat">Kasir</span></td><td>3 menit lalu</td><td class="r num">112</td><td><button class="btn sm danger">Cabut akses</button></td></tr>
+              <tr><td>Intan Permata</td><td>Senopati</td><td><span class="badge info flat">Supervisor</span></td><td>18 menit lalu</td><td class="r num">86</td><td><button class="btn sm danger">Cabut akses</button></td></tr>
+              <tr><td>Fajar Nugroho</td><td>Kemang</td><td><span class="badge mute flat">Kasir</span></td><td>1 jam lalu</td><td class="r num">74</td><td><button class="btn sm danger">Cabut akses</button></td></tr>
+              <tr><td>Lia Safitri</td><td>Bintaro</td><td><span class="badge mute flat">Kasir</span></td><td>kemarin</td><td class="r num">0</td><td><button class="btn sm danger">Cabut akses</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Kasir bukan user terpisah di sistem — dia <strong>peran di bawah merchant</strong>. Kalau kasir dibuat sebagai akun sendiri, kamu harus memutuskan siapa pemilik saldonya, dan jawabannya selalu bikin ledger berantakan.</div></div>
+      </section>
+
+      <section class="screen" data-screen="m-webhooks">
+        <div class="pagehead">
+          <div><h2>Webhook</h2><p>Pengiriman notifikasi ke sistem kamu</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Kirim ulang gagal</button><button class="btn primary">Uji kirim</button></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Terkirim 24 jam</div><div class="v">1.834</div><div class="d">dari 1.889 percobaan</div></div>
+          <div class="stat"><div class="k">Sukses percobaan-1</div><div class="v">97,1%</div><div class="d down">turun dari 99,4%</div></div>
+          <div class="stat"><div class="k">Antre retry</div><div class="v">3</div><div class="d">backoff 2s → 4s → 8s</div></div>
+          <div class="stat"><div class="k">Dead letter</div><div class="v">1</div><div class="d down">butuh tindakan manual</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Endpoint</h3><div class="actions"><button class="btn sm">Ubah</button></div></header>
+          <div class="body">
+            <dl class="kv">
+              <dt>URL</dt><dd class="mono">https://api.kopituku.id/hooks/marspay</dd>
+              <dt>Signing secret</dt><dd class="mono">whsec_••••••••••••3f9a <button class="btn sm" style="margin-left:8px">Tampilkan</button></dd>
+              <dt>Event dilanggan</dt><dd><span class="badge info flat">payment.succeeded</span> <span class="badge info flat">payment.failed</span> <span class="badge info flat">refund.created</span> <span class="badge info flat">settlement.paid</span></dd>
+              <dt>Timeout</dt><dd>5 detik</dd>
+            </dl>
+            <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Kami menjamin <strong>at-least-once</strong>, bukan exactly-once. Endpoint kamu harus idempoten — pakai <code>event_id</code> di header untuk menolak duplikat.</div></div>
+          </div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Log pengiriman</h3><span class="hint">Disimpan 30 hari</span></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Event ID</th><th>Tipe</th><th>Waktu</th><th class="r">Percobaan</th><th class="r">Latensi</th><th>Respons</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">evt_9K2M4Q</td><td>payment.succeeded</td><td>09:12:05</td><td class="r num">1</td><td class="r num">212 ms</td><td class="mono">200</td><td><span class="badge ok">Terkirim</span></td><td></td></tr>
+              <tr><td class="mono">evt_9K2M1B</td><td>payment.succeeded</td><td>09:11:39</td><td class="r num">1</td><td class="r num">304 ms</td><td class="mono">200</td><td><span class="badge ok">Terkirim</span></td><td></td></tr>
+              <tr><td class="mono">evt_9K2LZ0</td><td>payment.failed</td><td>09:09:12</td><td class="r num">2</td><td class="r num">5.000 ms</td><td class="mono">timeout</td><td><span class="badge pend">Antre retry</span></td><td><button class="btn sm">Kirim ulang</button></td></tr>
+              <tr><td class="mono">evt_9K2LY7</td><td>refund.created</td><td>09:06:48</td><td class="r num">3</td><td class="r num">5.000 ms</td><td class="mono">timeout</td><td><span class="badge pend">Antre retry</span></td><td><button class="btn sm">Kirim ulang</button></td></tr>
+              <tr><td class="mono">evt_9K2LW2</td><td>payment.succeeded</td><td>08:58:14</td><td class="r num">3</td><td class="r num">98 ms</td><td class="mono">500</td><td><span class="badge pend">Antre retry</span></td><td><button class="btn sm">Kirim ulang</button></td></tr>
+              <tr class="diffrow"><td class="mono">evt_9K2J4P</td><td>settlement.paid</td><td>02:00:11</td><td class="r num">8</td><td class="r num">—</td><td class="mono">503</td><td><span class="badge fail">Dead letter</span></td><td><button class="btn sm danger">Proses manual</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="m-settlement">
+        <div class="pagehead">
+          <div><h2>Riwayat Pencairan</h2><p>Mode instan sejak 08 Sep · sebelumnya batch harian 10:00 WIB</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Unduh laporan</button></div>
+        </div>
+        <div class="grid g3">
+          <div class="stat"><div class="k">Saldo merchant</div><div class="v">Rp 41,2 jt</div><div class="d">belum dicairkan</div></div>
+          <div class="stat"><div class="k">Batch berikutnya</div><div class="v">14 Sep 10:00</div><div class="d">612 transaksi</div></div>
+          <div class="stat"><div class="k">Rekening tujuan</div><div class="v" style="font-size:16px">BCA ····2013</div><div class="d">a.n. PT Tuku Kopi Nusantara</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Riwayat batch</h3></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Batch</th><th>Periode</th><th class="r">Transaksi</th><th class="r">Bruto</th><th class="r">Fee</th><th class="r">Net dicairkan</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">stl_20260913</td><td>12 Sep 00:00 – 23:59</td><td class="r num">589</td><td class="r num">38.910.000</td><td class="r num">272.370</td><td class="r num">38.637.630</td><td><span class="badge ok">Cair 10:04</span></td></tr>
+              <tr><td class="mono">stl_20260912</td><td>11 Sep 00:00 – 23:59</td><td class="r num">604</td><td class="r num">41.220.000</td><td class="r num">288.540</td><td class="r num">40.931.460</td><td><span class="badge ok">Cair 10:02</span></td></tr>
+              <tr><td class="mono">stl_20260911</td><td>10 Sep 00:00 – 23:59</td><td class="r num">551</td><td class="r num">35.740.000</td><td class="r num">250.180</td><td class="r num">35.489.820</td><td><span class="badge pend">Cair 14:38 · telat</span></td></tr>
+              <tr><td class="mono">stl_20260910</td><td>09 Sep 00:00 – 23:59</td><td class="r num">577</td><td class="r num">37.100.000</td><td class="r num">259.700</td><td class="r num">36.840.300</td><td><span class="badge ok">Cair 10:01</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Batch <span class="mono">stl_20260911</span> telat karena bank tujuan menolak percobaan pertama. Batch tidak dibuat ulang — dia di-retry, karena nomor batch adalah idempotency key-nya.</div></div>
+      </section>
+
+      <section class="screen" data-screen="m-keys">
+        <div class="pagehead">
+          <div><h2>API Key</h2><p>Kunci live hanya ditampilkan sekali saat dibuat</p></div>
+          <div class="actions"><button class="btn primary"><svg><use href="#i-plus"/></svg>Buat kunci</button></div>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>Nama</th><th>Prefix</th><th>Mode</th><th>Dibuat</th><th>Terakhir dipakai</th><th>Izin</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Backend produksi</td><td class="mono">mp_live_8kQ2···</td><td><span class="badge fail">Live</span></td><td>02 Mar 2026</td><td>12 detik lalu</td><td><span class="badge mute flat">baca + tulis</span></td><td><button class="btn sm danger">Cabut</button></td></tr>
+              <tr><td>Dashboard internal</td><td class="mono">mp_live_3mX7···</td><td><span class="badge fail">Live</span></td><td>02 Mar 2026</td><td>4 jam lalu</td><td><span class="badge mute flat">baca saja</span></td><td><button class="btn sm danger">Cabut</button></td></tr>
+              <tr><td>Staging</td><td class="mono">mp_test_9pL1···</td><td><span class="badge info">Sandbox</span></td><td>18 Jul 2026</td><td>2 hari lalu</td><td><span class="badge mute flat">baca + tulis</span></td><td><button class="btn sm">Cabut</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note warn mt4"><svg><use href="#i-lock"/></svg><div>Yang kami simpan cuma hash kunci dan prefix-nya. Prefix dipakai untuk mencocokkan kunci ke merchant tanpa harus memindai seluruh tabel.</div></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="role" id="role-admin">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="who"><div class="name">Umar Sabirin</div><div class="sub">Ops Engineer · akses penuh</div></div>
+      <div class="navgroup">
+        <div class="label">Investigasi</div>
+        <nav>
+          <button data-screen="a-search" aria-current="page"><svg><use href="#i-search"/></svg>Cari</button>
+          <button data-screen="a-txdetail"><svg><use href="#i-book"/></svg>Detail &amp; Ledger</button>
+          <button data-screen="a-accounts"><svg><use href="#i-user"/></svg>Akun</button>
+        </nav>
+      </div>
+      <div class="navgroup">
+        <div class="label">Kesehatan sistem</div>
+        <nav>
+          <button data-screen="a-float"><svg><use href="#i-gauge"/></svg>Float &amp; Likuiditas</button>
+          <button data-screen="a-instant"><svg><use href="#i-zap"/></svg>Mesin Cair Instan</button>
+          <button data-screen="a-recon"><svg><use href="#i-scale"/></svg>Rekonsiliasi<span class="tail">2</span></button>
+          <button data-screen="a-jobs"><svg><use href="#i-activity"/></svg>Job &amp; Antrean</button>
+          <button data-screen="a-audit"><svg><use href="#i-file"/></svg>Audit Log</button>
+        </nav>
+      </div>
+    </aside>
+    <div class="main">
+
+      <section class="screen active" data-screen="a-search">
+        <div class="pagehead"><div><h2>Cari</h2><p>Satu kotak untuk user, merchant, transaksi, atau referensi eksternal</p></div></div>
+        <div class="card">
+          <div class="body">
+            <div class="filters" style="margin:0">
+              <input class="input mono" value="txn_01J7QF3K2M" style="flex:1;min-width:280px">
+              <button class="btn brand"><svg><use href="#i-search"/></svg>Cari</button>
+            </div>
+            <p class="small muted mt3">Dikenali sebagai ID transaksi. Format lain yang diterima: nomor HP, email, <span class="mono">merch_*</span>, <span class="mono">evt_*</span>, <span class="mono">stl_*</span>, nomor referensi bank.</p>
+          </div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Hasil</h3><span class="hint">1 transaksi · 2 entri ledger · 1 event webhook</span></header>
+          <div class="queue body">
+            <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-card"/></svg></div><div><div class="t">txn_01J7QF3K2M · Rp 32.000</div><div class="s">QRIS · Umar Sabirin → Kopi Tuku Senopati · 13 Sep 09:12:04</div></div><div class="ops"><span class="badge ok">Berhasil</span><button class="btn sm" data-screen="a-txdetail">Buka</button></div></div>
+            <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-user"/></svg></div><div><div class="t">Umar Sabirin · usr_44182</div><div class="s">0812-9903-1155 · tier Verified · saldo Rp 2.480.500</div></div><div class="ops"><span class="badge ok">Aktif</span><button class="btn sm" data-screen="a-accounts">Buka</button></div></div>
+            <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-store"/></svg></div><div><div class="t">Kopi Tuku Senopati · merch_8812</div><div class="s">Live sejak 02 Mar 2026 · saldo Rp 41.200.000</div></div><div class="ops"><span class="badge ok">Aktif</span><button class="btn sm">Buka</button></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-txdetail">
+        <div class="pagehead">
+          <div><h2>txn_01J7QF3K2M</h2><p>Pembayaran QRIS · 13 September 2026, 09:12:04 WIB</p></div>
+          <div class="actions"><button class="btn">Kirim ulang webhook</button><button class="btn danger">Reversal manual</button></div>
+        </div>
+        <div class="grid g-main">
+          <div class="card">
+            <header><h3>Entri ledger</h3><span class="hint">double-entry · append-only</span></header>
+            <div class="tablewrap"><table class="ledger">
+              <thead><tr><th>Entry ID</th><th>Akun</th><th>Pemilik</th><th class="r">Debit</th><th class="r">Kredit</th><th>Waktu</th></tr></thead>
+              <tbody>
+                <tr><td>led_7712004</td><td>user_wallet</td><td>usr_44182</td><td class="r dr">32.000</td><td class="r muted">—</td><td>09:12:04.118</td></tr>
+                <tr><td>led_7712005</td><td>merchant_payable</td><td>merch_8812</td><td class="r muted">—</td><td class="r cr">31.776</td><td>09:12:04.118</td></tr>
+                <tr><td>led_7712006</td><td>platform_fee_revenue</td><td>marspay</td><td class="r muted">—</td><td class="r cr">224</td><td>09:12:04.118</td></tr>
+              </tbody>
+              <tfoot><tr><td colspan="3">Selisih harus nol</td><td class="r">32.000</td><td class="r">32.000</td><td>✓ seimbang</td></tr></tfoot>
+            </table></div>
+            <div class="body" style="border-top:1px solid var(--border)">
+              <div class="note ok" style="margin:0"><svg><use href="#i-check"/></svg><div>Tiga entri ini ditulis dalam <strong>satu transaksi Postgres</strong>. Tidak ada keadaan di mana saldo user berkurang tapi merchant belum bertambah.</div></div>
+            </div>
+          </div>
+          <div class="grid" style="gap:var(--s4)">
+            <div class="card">
+              <header><h3>Jejak sistem</h3></header>
+              <div class="body">
+                <ul class="timeline">
+                  <li><span class="pip ok"></span><div><div class="t">Request diterima</div><div class="s">09:12:04.061 · idem-key <span class="mono">qr-8812-6f2a</span></div></div></li>
+                  <li><span class="pip ok"></span><div><div class="t">Risk check lolos</div><div class="s">09:12:04.092 · 31 ms · velocity 2/10</div></div></li>
+                  <li><span class="pip ok"></span><div><div class="t">Hold saldo di Redis</div><div class="s">09:12:04.096 · 4 ms</div></div></li>
+                  <li><span class="pip ok"></span><div><div class="t">Ledger di-commit</div><div class="s">09:12:04.118 · 22 ms</div></div></li>
+                  <li><span class="pip ok"></span><div><div class="t">Event dipublikasi</div><div class="s">09:12:04.121 · topic <span class="mono">payment.events</span> p3 off 88421</div></div></li>
+                  <li><span class="pip ok"></span><div><div class="t">Webhook terkirim</div><div class="s">09:12:05.003 · 200 OK · percobaan 1</div></div></li>
+                </ul>
+              </div>
+            </div>
+            <div class="card">
+              <header><h3>Konteks</h3></header>
+              <div class="body"><dl class="kv" style="grid-template-columns:120px minmax(0,1fr)">
+                <dt>Idempotency</dt><dd class="mono">qr-8812-6f2a</dd>
+                <dt>Total latensi</dt><dd class="num">57 ms</dd>
+                <dt>Perangkat</dt><dd>iPhone · app 3.2.1</dd>
+                <dt>IP</dt><dd class="mono">103.28.14.90</dd>
+                <dt>Device ID</dt><dd class="mono">dev_a91f02</dd>
+              </dl></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-float">
+        <div class="pagehead">
+          <div><h2>Float &amp; Likuiditas</h2><p>Konsekuensi langsung dari Cair Instan: kami membayar merchant sebelum dana benar-benar terkumpul</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Muat ulang</button><button class="btn danger">Rem darurat</button></div>
+        </div>
+        <div class="keyband">
+          <div class="txt">
+            <h3>Posisi float saat ini</h3>
+            <p>Uang kami sendiri yang sedang dipinjamkan ke merchant sambil menunggu dana masuk dari switch QRIS dan bank. Kalau angka ini menembus batas, Cair Instan otomatis turun ke mode batch — bukan berhenti.</p>
+          </div>
+          <div class="big">Rp 2,84 M<span>terpakai dari batas Rp 5 M</span></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Pemakaian float</h3><span class="hint">ambang otomatis di 85%</span></header>
+          <div class="body">
+            <div class="meterrow"><span>Terpakai</span><span class="n">56,8% · Rp 2,84 M dari Rp 5 M</span></div>
+            <div class="meter ok"><i style="width:56.8%"></i></div>
+            <div class="grid g4 mt5">
+              <div><div class="small muted">Puncak hari ini</div><div class="num strong">Rp 3,41 M</div></div>
+              <div><div class="small muted">Puncak 30 hari</div><div class="num strong">Rp 4,12 M</div></div>
+              <div><div class="small muted">Rata-rata kembali</div><div class="num strong">4,2 jam</div></div>
+              <div><div class="small muted">Belum kembali &gt; 24 jam</div><div class="num strong">Rp 18,4 jt</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid g-main mt4">
+          <div class="card">
+            <header><h3>Eksposur per merchant</h3><span class="hint">dana yang sudah kami bayar tapi belum tertagih</span></header>
+            <div class="tablewrap"><table>
+              <thead><tr><th>Merchant</th><th class="r">Eksposur</th><th class="r">Batas</th><th class="r">Holdback</th><th class="r">Umur tertua</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Tokopedia Official</td><td class="r num">412.800.000</td><td class="r num">600.000.000</td><td class="r num">1,5%</td><td class="r num">3,1 jam</td><td><span class="badge ok">Aman</span></td><td></td></tr>
+                <tr><td>Alfamart Group</td><td class="r num">318.200.000</td><td class="r num">500.000.000</td><td class="r num">1,5%</td><td class="r num">2,4 jam</td><td><span class="badge ok">Aman</span></td><td></td></tr>
+                <tr class="diffrow"><td>Toko Elektronik Jaya</td><td class="r num">88.400.000</td><td class="r num">90.000.000</td><td class="r num">12,0%</td><td class="r num">19,8 jam</td><td><span class="badge fail">Mendekati batas</span></td><td><button class="btn sm danger">Turunkan ke batch</button></td></tr>
+                <tr><td>Kopi Tuku Senopati</td><td class="r num">16.100.000</td><td class="r num">80.000.000</td><td class="r num">4,0%</td><td class="r num">5,2 jam</td><td><span class="badge ok">Aman</span></td><td></td></tr>
+                <tr><td>Warung Bu Tini</td><td class="r num">2.900.000</td><td class="r num">10.000.000</td><td class="r num">20,0%</td><td class="r num">1,1 jam</td><td><span class="badge ok">Aman</span></td><td></td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div class="grid" style="gap:var(--s4)">
+            <div class="card"><header><h3>Aturan otomatis</h3></header><div class="body">
+              <ul class="timeline">
+                <li><span class="pip ok"></span><div><div class="t">Float &lt; 70%</div><div class="s">Semua merchant instan</div></div></li>
+                <li><span class="pip pend"></span><div><div class="t">Float 70–85%</div><div class="s">Merchant holdback &gt; 10% turun ke batch</div></div></li>
+                <li><span class="pip"></span><div><div class="t">Float &gt; 85%</div><div class="s">Semua turun ke batch, instan ditutup</div></div></li>
+                <li><span class="pip"></span><div><div class="t">Float &gt; 95%</div><div class="s">Halaman insiden + panggil on-call</div></div></li>
+              </ul>
+            </div></div>
+            <div class="card"><header><h3>Kenapa layar ini wajib ada</h3></header><div class="body">
+              <p class="small muted">Cair Instan terdengar seperti fitur produk, tapi sebenarnya keputusan neraca. Setiap detik yang kami potong dari waktu pencairan merchant adalah detik tambahan uang kami sendiri berada di luar.</p>
+              <p class="small muted mt3">Tanpa batas dan penurunan otomatis, satu merchant penipu bisa menguras float dalam satu sore.</p>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-instant">
+        <div class="pagehead">
+          <div><h2>Mesin Cair Instan</h2><p>Jalur panas produk ini · SLA 10 detik dari bayar sampai masuk rekening merchant</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Muat ulang</button></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Throughput sekarang</div><div class="v">1.840/s</div><div class="d up">puncak hari ini 3.210/s</div></div>
+          <div class="stat"><div class="k">p50 / p95 / p99</div><div class="v" style="font-size:17px">3,1 / 6,2 / 9,4</div><div class="d">detik · SLA 10</div></div>
+          <div class="stat"><div class="k">Di luar SLA 24 jam</div><div class="v">0,08%</div><div class="d up">anggaran error 0,5%</div></div>
+          <div class="stat"><div class="k">Diturunkan ke batch</div><div class="v">14</div><div class="d">merchant · aturan float</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Rincian latensi</h3><span class="hint">di mana 6,2 detik itu dihabiskan</span></header>
+          <div class="body grid" style="gap:var(--s4)">
+            <div>
+              <div class="meterrow"><span>Risk scoring + hitung holdback</span><span class="n">41 ms</span></div>
+              <div class="meter ok"><i style="width:1%"></i></div>
+            </div>
+            <div>
+              <div class="meterrow"><span>Posting ledger (Postgres)</span><span class="n">28 ms</span></div>
+              <div class="meter ok"><i style="width:1%"></i></div>
+            </div>
+            <div>
+              <div class="meterrow"><span>Antre di Kafka sampai diambil worker</span><span class="n">180 ms</span></div>
+              <div class="meter ok"><i style="width:3%"></i></div>
+            </div>
+            <div>
+              <div class="meterrow"><span>Panggilan BI-FAST ke bank tujuan</span><span class="n">5.900 ms</span></div>
+              <div class="meter warn"><i style="width:95%"></i></div>
+            </div>
+            <div class="note info" style="margin:0"><svg><use href="#i-info"/></svg><div>95% waktunya ada di luar kendali kami — di rail bank. Artinya optimasi kode tidak akan menggeser angka ini; yang menggeser adalah <strong>memilih rail</strong> dan menyiapkan fallback saat satu rail melambat.</div></div>
+          </div>
+        </div>
+        <div class="grid g2 mt4">
+          <div class="card"><header><h3>Kesehatan rail bank</h3></header><div class="tablewrap"><table>
+            <thead><tr><th>Rail</th><th class="r">Pangsa</th><th class="r">p95</th><th class="r">Sukses</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>BI-FAST</td><td class="r num">71%</td><td class="r num">5,9 dtk</td><td class="r num">99,7%</td><td><span class="badge ok">Sehat</span></td></tr>
+              <tr><td>Transfer internal BCA</td><td class="r num">22%</td><td class="r num">1,8 dtk</td><td class="r num">99,9%</td><td><span class="badge ok">Sehat</span></td></tr>
+              <tr class="diffrow"><td>SKNBI</td><td class="r num">7%</td><td class="r num">41 mnt</td><td class="r num">98,1%</td><td><span class="badge pend">Lambat</span></td></tr>
+            </tbody>
+          </table></div></div>
+          <div class="card"><header><h3>Pencairan gagal</h3><div class="actions"><button class="btn sm">Coba ulang semua</button></div></header><div class="tablewrap"><table>
+            <thead><tr><th>Pencairan</th><th>Merchant</th><th class="r">Nominal</th><th>Sebab</th><th class="r">Percobaan</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">po_01J7QF88</td><td>Warung Bu Tini</td><td class="r num">340.000</td><td>Rekening tujuan tidak aktif</td><td class="r num">3</td></tr>
+              <tr><td class="mono">po_01J7QF41</td><td>Kopi Tuku Kemang</td><td class="r num">1.240.000</td><td>Bank timeout</td><td class="r num">2</td></tr>
+              <tr><td class="mono">po_01J7QEM9</td><td>Toko Elektronik Jaya</td><td class="r num">4.800.000</td><td>Melebihi batas eksposur</td><td class="r num">1</td></tr>
+            </tbody>
+          </table></div></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-recon">
+        <div class="pagehead">
+          <div><h2>Rekonsiliasi harian</h2><p>Ledger internal dibandingkan dengan statement penyedia · 12 September 2026</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Jalankan ulang</button><button class="btn"><svg><use href="#i-download"/></svg>Unduh selisih</button></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Baris dibandingkan</div><div class="v">48.221</div><div class="d">selesai 02:14 · 6m 41s</div></div>
+          <div class="stat"><div class="k">Cocok</div><div class="v">48.219</div><div class="d up">99,996%</div></div>
+          <div class="stat"><div class="k">Selisih</div><div class="v">2</div><div class="d down">butuh tindakan</div></div>
+          <div class="stat"><div class="k">Nilai selisih</div><div class="v">Rp 91.000</div><div class="d">dua arah</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Baris yang tidak cocok</h3><span class="hint">hanya selisih yang ditampilkan</span></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Referensi</th><th>Sumber</th><th class="r">Internal</th><th class="r">Penyedia</th><th class="r">Delta</th><th>Dugaan</th><th></th></tr></thead>
+            <tbody>
+              <tr class="diffrow"><td class="mono">wd_01J7P8X22K</td><td>Bank BCA</td><td class="r num">1.000.000</td><td class="r muted">tidak ada</td><td class="r num">+1.000.000</td><td>Penarikan pending, bank belum posting</td><td><button class="btn sm">Tunda 1 hari</button></td></tr>
+              <tr class="diffrow"><td class="mono">qr-8791-1c04</td><td>QRIS switch</td><td class="r num">0</td><td class="r num">91.000</td><td class="r num">−91.000</td><td>Callback hilang, transaksi tak pernah masuk</td><td><button class="btn sm danger">Posting manual</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="grid g2 mt4">
+          <div class="card"><header><h3>Riwayat 7 hari</h3></header><div class="body">
+            <div class="bars">
+              <div style="height:4%"></div><div style="height:0%"></div><div style="height:9%"></div><div style="height:2%"></div>
+              <div style="height:0%"></div><div style="height:14%"></div><div style="height:6%"></div>
+            </div>
+            <div class="axisrow"><span>06 Sep</span><span>09 Sep</span><span>12 Sep</span></div>
+            <p class="small muted mt3">Sumbu Y = jumlah baris tidak cocok. Nol itu normal; lonjakan hampir selalu berarti callback penyedia hilang, bukan bug ledger.</p>
+          </div></div>
+          <div class="card"><header><h3>Kenapa layar ini ada</h3></header><div class="body">
+            <p class="small muted">Sistem pembayaran tidak pernah bebas dari selisih — penyedia timeout, callback hilang, bank posting mundur. Yang membedakan sistem serius bukan "tidak pernah selisih", tapi <strong>selisihnya ketahuan dalam hitungan jam dan ada yang menanganinya</strong>.</p>
+            <div class="note info mt4" style="margin:0"><svg><use href="#i-info"/></svg><div>Tanpa layar ini, selisih Rp 91.000 tadi baru ketahuan saat pelanggan komplain — atau tidak pernah.</div></div>
+          </div></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-jobs">
+        <div class="pagehead">
+          <div><h2>Job &amp; Antrean</h2><p>Proses latar yang menjaga sistem tetap konsisten</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Muat ulang</button></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Consumer lag tertinggi</div><div class="v">1.204</div><div class="d">topic payment.events p3</div></div>
+          <div class="stat"><div class="k">Kedalaman DLQ</div><div class="v">7</div><div class="d down">4 webhook · 3 notifikasi</div></div>
+          <div class="stat"><div class="k">Job gagal 24 jam</div><div class="v">2</div><div class="d">keduanya sudah retry</div></div>
+          <div class="stat"><div class="k">Replikasi Postgres</div><div class="v">88 ms</div><div class="d up">standby sehat</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Konsumer</h3></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Consumer group</th><th>Topic</th><th class="r">Partisi</th><th class="r">Lag</th><th class="r">Throughput</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">settlement-worker</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">12</td><td class="r num">840/s</td><td><span class="badge ok">Sehat</span></td><td></td></tr>
+              <tr><td class="mono">webhook-dispatcher</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">1.204</td><td class="r num">310/s</td><td><span class="badge pend">Tertinggal</span></td><td><button class="btn sm">Tambah worker</button></td></tr>
+              <tr><td class="mono">notification-worker</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">31</td><td class="r num">790/s</td><td><span class="badge ok">Sehat</span></td><td></td></tr>
+              <tr><td class="mono">ledger-projector</td><td class="mono">ledger.entries</td><td class="r num">12</td><td class="r num">0</td><td class="r num">1.920/s</td><td><span class="badge ok">Sehat</span></td><td></td></tr>
+              <tr><td class="mono">risk-scorer</td><td class="mono">payment.attempts</td><td class="r num">6</td><td class="r num">4</td><td class="r num">1.100/s</td><td><span class="badge ok">Sehat</span></td><td></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Job terjadwal</h3></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Job</th><th>Jadwal</th><th>Terakhir jalan</th><th class="r">Durasi</th><th>Hasil</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Rekonsiliasi harian</td><td class="mono">0 2 * * *</td><td>13 Sep 02:14</td><td class="r num">6m 41s</td><td><span class="badge pend">2 selisih</span></td><td><button class="btn sm" data-screen="a-recon">Lihat</button></td></tr>
+              <tr><td>Batch settlement</td><td class="mono">0 10 * * *</td><td>13 Sep 10:04</td><td class="r num">3m 12s</td><td><span class="badge ok">Sukses</span></td><td></td></tr>
+              <tr><td>Kedaluwarsa tagihan</td><td class="mono">*/5 * * * *</td><td>09:15:00</td><td class="r num">1,2s</td><td><span class="badge ok">14 dilepas</span></td><td></td></tr>
+              <tr><td>Reset limit harian</td><td class="mono">0 0 * * *</td><td>13 Sep 00:00</td><td class="r num">8s</td><td><span class="badge ok">Sukses</span></td><td></td></tr>
+              <tr><td>Snapshot saldo ke cache</td><td class="mono">*/15 * * * *</td><td>09:15:00</td><td class="r num">44s</td><td><span class="badge ok">Sukses</span></td><td></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-accounts">
+        <div class="pagehead">
+          <div><h2>usr_44182 · Umar Sabirin</h2><p>Terdaftar 12 Jan 2026 · tier Verified</p></div>
+          <div class="actions"><button class="btn">Ubah limit</button><button class="btn danger"><svg><use href="#i-ban"/></svg>Bekukan akun</button></div>
+        </div>
+        <div class="grid g-main">
+          <div class="grid" style="gap:var(--s4)">
+            <div class="card"><header><h3>Ringkasan saldo</h3></header><div class="body">
+              <div class="grid g3">
+                <div><div class="small muted">Tersedia</div><div class="num strong" style="font-size:18px">Rp 2.480.500</div></div>
+                <div><div class="small muted">Ditahan</div><div class="num strong" style="font-size:18px">Rp 150.000</div></div>
+                <div><div class="small muted">Dari ledger</div><div class="num strong" style="font-size:18px">Rp 2.630.500</div></div>
+              </div>
+              <div class="note ok mt4" style="margin-bottom:0"><svg><use href="#i-check"/></svg><div>Cache Redis cocok dengan agregasi ledger. Kalau tidak cocok, angka ketiga yang dipakai.</div></div>
+            </div></div>
+            <div class="card"><header><h3>Transaksi terakhir</h3></header><div class="tablewrap"><table>
+              <thead><tr><th>ID</th><th>Tipe</th><th>Waktu</th><th class="r">Nominal</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">txn_01J7QF3K2M</td><td>Pembayaran</td><td>13 Sep 09:12</td><td class="r num">−32.000</td><td><span class="badge ok">Berhasil</span></td></tr>
+                <tr><td class="mono">tup_01J7QEM4W8</td><td>Top up</td><td>13 Sep 08:40</td><td class="r num">+500.000</td><td><span class="badge ok">Berhasil</span></td></tr>
+                <tr><td class="mono">trf_01J7PZQ71A</td><td>Transfer keluar</td><td>12 Sep 19:03</td><td class="r num">−150.000</td><td><span class="badge ok">Berhasil</span></td></tr>
+                <tr><td class="mono">wd_01J7P8X22K</td><td>Penarikan</td><td>12 Sep 16:20</td><td class="r num">−1.000.000</td><td><span class="badge pend">Pending bank</span></td></tr>
+              </tbody>
+            </table></div></div>
+          </div>
+          <div class="grid" style="gap:var(--s4)">
+            <div class="card"><header><h3>Batas</h3></header><div class="body"><dl class="kv" style="grid-template-columns:130px minmax(0,1fr)">
+              <dt>Saldo maks</dt><dd class="num">Rp 20.000.000</dd>
+              <dt>Per transaksi</dt><dd class="num">Rp 20.000.000</dd>
+              <dt>Per bulan</dt><dd class="num">Rp 20.000.000</dd>
+              <dt>Terpakai</dt><dd class="num">Rp 4.208.000</dd>
+            </dl></div></div>
+            <div class="card"><header><h3>Perangkat</h3></header><div class="body">
+              <div class="queue">
+                <div class="qitem"><div class="av">iOS</div><div><div class="t">iPhone 15</div><div class="s">Aktif · Jakarta · 12 detik lalu</div></div><span class="badge ok">Terpercaya</span></div>
+                <div class="qitem"><div class="av">And</div><div><div class="t">Xiaomi 14</div><div class="s">Terakhir 4 hari lalu · Bandung</div></div><button class="btn sm danger">Cabut</button></div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="a-audit">
+        <div class="pagehead">
+          <div><h2>Audit Log</h2><p>Append-only · tidak bisa dihapus oleh siapa pun, termasuk admin</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Ekspor</button></div>
+        </div>
+        <div class="filters">
+          <input class="input" placeholder="Cari aktor, objek, atau aksi" style="min-width:280px">
+          <select class="input"><option>Semua aksi</option><option>Pembekuan akun</option><option>Reversal manual</option><option>Ubah limit</option><option>Posting manual</option></select>
+          <button class="btn">Terapkan</button>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Objek</th><th>Sebelum → Sesudah</th><th>Alasan</th><th>IP</th></tr></thead>
+            <tbody>
+              <tr><td>13 Sep 09:44</td><td>umar@marspay</td><td>ubah_limit</td><td class="mono">usr_44182</td><td class="mono">10jt → 20jt</td><td>Upgrade tier Verified</td><td class="mono">10.0.4.18</td></tr>
+              <tr><td>13 Sep 08:02</td><td>rani@marspay</td><td>posting_manual</td><td class="mono">qr-8791-1c04</td><td class="mono">— → Rp 91.000</td><td>Callback QRIS hilang</td><td class="mono">10.0.4.22</td></tr>
+              <tr><td>12 Sep 22:15</td><td>sistem</td><td>bekukan_akun</td><td class="mono">usr_91027</td><td class="mono">aktif → beku</td><td>Velocity rule VR-03</td><td class="mono">—</td></tr>
+              <tr><td>12 Sep 17:40</td><td>umar@marspay</td><td>reversal_manual</td><td class="mono">txn_01J7QAA19F</td><td class="mono">berhasil → dibalik</td><td>Double charge dilaporkan</td><td class="mono">10.0.4.18</td></tr>
+              <tr><td>12 Sep 11:08</td><td>dewi@marspay</td><td>cabut_api_key</td><td class="mono">merch_8812</td><td class="mono">mp_live_1aB9···</td><td>Kunci bocor di repo publik</td><td class="mono">10.0.4.31</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note warn mt4"><svg><use href="#i-lock"/></svg><div>Kolom <strong>Alasan</strong> wajib diisi. Aksi istimewa tanpa alasan tertulis akan ditolak di level API, bukan cuma disembunyikan di UI.</div></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="role" id="role-risk">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="who"><div class="name">Dewi Anggraini</div><div class="sub">Risk Analyst · akses terbatas</div></div>
+      <div class="navgroup">
+        <div class="label">Antrean kerja</div>
+        <nav>
+          <button data-screen="r-kyc" aria-current="page"><svg><use href="#i-shield"/></svg>Review KYC<span class="tail">18</span></button>
+          <button data-screen="r-alerts"><svg><use href="#i-alert"/></svg>Alert Fraud<span class="tail">5</span></button>
+          <button data-screen="r-dispute"><svg><use href="#i-scale"/></svg>Sengketa<span class="tail">3</span></button>
+          <button data-screen="r-blocked"><svg><use href="#i-ban"/></svg>Akun Diblokir</button>
+        </nav>
+      </div>
+      <div class="navgroup">
+        <div class="label">Cair Instan</div>
+        <nav>
+          <button data-screen="r-merchant"><svg><use href="#i-gauge"/></svg>Skor &amp; Holdback</button>
+        </nav>
+      </div>
+      <div class="navgroup">
+        <div class="label">Konfigurasi</div>
+        <nav>
+          <button data-screen="r-rules"><svg><use href="#i-cog"/></svg>Aturan Velocity</button>
+        </nav>
+      </div>
+    </aside>
+    <div class="main">
+
+      <section class="screen active" data-screen="r-kyc">
+        <div class="pagehead">
+          <div><h2>Review KYC</h2><p>18 menunggu · SLA 1×24 jam · 4 mendekati batas</p></div>
+          <div class="actions"><select class="input"><option>Terlama dulu</option><option>Nominal tertinggi</option><option>Mendekati SLA</option></select></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Menunggu</div><div class="v">18</div><div class="d">4 mendekati SLA</div></div>
+          <div class="stat"><div class="k">Disetujui hari ini</div><div class="v">41</div><div class="d up">rata-rata 3j 12m</div></div>
+          <div class="stat"><div class="k">Ditolak hari ini</div><div class="v">6</div><div class="d">3 dokumen buram</div></div>
+          <div class="stat"><div class="k">Otomatis lolos</div><div class="v">72%</div><div class="d">sisanya ke antrean ini</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Antrean</h3><span class="hint">klik untuk membandingkan KTP dan selfie</span></header>
+          <div class="queue body">
+            <div class="qitem"><div class="av">BP</div><div><div class="t">Bagus Prakoso · usr_91288</div><div class="s">Upgrade ke Verified · masuk 22 jam lalu · <span class="badge pend flat">SLA 2 jam lagi</span></div></div><div class="ops"><button class="btn sm danger">Tolak</button><button class="btn sm brand">Setujui</button></div></div>
+            <div class="qitem"><div class="av">SM</div><div><div class="t">Sari Maharani · usr_91301</div><div class="s">Upgrade ke Verified · masuk 19 jam lalu</div></div><div class="ops"><button class="btn sm danger">Tolak</button><button class="btn sm brand">Setujui</button></div></div>
+            <div class="qitem"><div class="av">AF</div><div><div class="t">Ahmad Fauzi · usr_91344</div><div class="s">Nama di KTP beda tipis dengan rekening bank · masuk 14 jam lalu</div></div><div class="ops"><button class="btn sm">Minta ulang</button><button class="btn sm brand">Setujui</button></div></div>
+            <div class="qitem"><div class="av">NK</div><div><div class="t">Nadia Kusuma · usr_91390</div><div class="s">Selfie tidak cocok dengan KTP (skor 0,41) · masuk 9 jam lalu</div></div><div class="ops"><button class="btn sm danger">Tolak</button><button class="btn sm">Minta ulang</button></div></div>
+            <div class="qitem"><div class="av">RW</div><div><div class="t">Rizky Wijaya · usr_91402</div><div class="s">NIK sudah dipakai akun lain · masuk 7 jam lalu · <span class="badge fail flat">Eskalasi</span></div></div><div class="ops"><button class="btn sm danger">Tolak</button><button class="btn sm">Eskalasi</button></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="r-alerts">
+        <div class="pagehead">
+          <div><h2>Alert Fraud</h2><p>Dipicu aturan velocity · akun otomatis dibekukan pada severity tinggi</p></div>
+          <div class="actions"><select class="input"><option>Semua severity</option><option>Tinggi</option><option>Sedang</option></select></div>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>Waktu</th><th>Akun</th><th>Aturan</th><th>Yang terdeteksi</th><th class="r">Nilai</th><th>Severity</th><th>Tindakan otomatis</th><th></th></tr></thead>
+            <tbody>
+              <tr class="diffrow"><td>09:41</td><td class="mono">usr_91027</td><td class="mono">VR-03</td><td>12 transfer dalam 4 menit ke 12 penerima baru</td><td class="r num">Rp 11,4 jt</td><td><span class="badge fail">Tinggi</span></td><td><span class="badge fail flat">Dibekukan</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td>09:12</td><td class="mono">usr_88410</td><td class="mono">VR-07</td><td>Top up lalu tarik penuh dalam 90 detik</td><td class="r num">Rp 4,8 jt</td><td><span class="badge pend">Sedang</span></td><td><span class="badge pend flat">Penarikan ditahan</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td>08:55</td><td class="mono">usr_90112</td><td class="mono">VR-01</td><td>Login dari 3 negara dalam 1 jam</td><td class="r num">—</td><td><span class="badge pend">Sedang</span></td><td><span class="badge pend flat">Wajib OTP</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td>08:31</td><td class="mono">usr_79233</td><td class="mono">VR-05</td><td>Nominal 9,9 jt berulang (di bawah ambang pelaporan)</td><td class="r num">Rp 29,7 jt</td><td><span class="badge fail">Tinggi</span></td><td><span class="badge fail flat">Dibekukan</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td>07:48</td><td class="mono">usr_91288</td><td class="mono">VR-02</td><td>Perangkat baru + rekening baru + nominal besar</td><td class="r num">Rp 7,2 jt</td><td><span class="badge pend">Sedang</span></td><td><span class="badge mute flat">Ditandai saja</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note info mt4"><svg><use href="#i-info"/></svg><div>Semua aturan ini hitungan counter sederhana di Redis dengan TTL — bukan model machine learning. Yang mahal bukan modelnya, tapi memastikan pengecekan ini tidak menambah lebih dari <strong>5 ms</strong> di jalur pembayaran.</div></div>
+      </section>
+
+      <section class="screen" data-screen="r-merchant">
+        <div class="pagehead">
+          <div><h2>Skor &amp; Holdback</h2><p>Skor ini yang menentukan berapa persen ditahan dan seberapa cepat merchant dibayar</p></div>
+          <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Ekspor</button></div>
+        </div>
+        <div class="keyband">
+          <div class="txt">
+            <h3>Di sinilah pembeda produk kami dikendalikan</h3>
+            <p>Dompet lain menahan uang semua merchant selama 24 jam karena tidak tahu mana yang berisiko. Kami tahu — jadi yang ditahan hanya persentase kecil, dihitung ulang tiap 5 menit dari aliran event yang sama dengan yang dipakai deteksi fraud.</p>
+          </div>
+          <div class="big">3,8%<span>holdback rata-rata tertimbang</span></div>
+        </div>
+        <div class="grid g4 mt4">
+          <div class="stat"><div class="k">Merchant instan</div><div class="v">1.284</div><div class="d up">92% dari total aktif</div></div>
+          <div class="stat"><div class="k">Dipaksa batch</div><div class="v">108</div><div class="d">skor di bawah 40</div></div>
+          <div class="stat"><div class="k">Kerugian 90 hari</div><div class="v">Rp 4,1 jt</div><div class="d up">0,0009% dari volume</div></div>
+          <div class="stat"><div class="k">Holdback terkumpul</div><div class="v">Rp 812 jt</div><div class="d">menutup 198× kerugian</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Merchant menurut skor</h3><span class="hint">skor 0–100 · ambang instan di 40</span></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Merchant</th><th class="r">Skor</th><th class="r">Umur</th><th class="r">Refund 90h</th><th class="r">Sengketa</th><th class="r">Holdback</th><th>Mode</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Tokopedia Official</td><td class="r num">96</td><td class="r num">4,2 th</td><td class="r num">0,08%</td><td class="r num">0</td><td class="r num">1,5%</td><td><span class="badge ok">Instan</span></td><td></td></tr>
+              <tr><td>Alfamart Group</td><td class="r num">94</td><td class="r num">3,8 th</td><td class="r num">0,11%</td><td class="r num">1</td><td class="r num">1,5%</td><td><span class="badge ok">Instan</span></td><td></td></tr>
+              <tr><td>Kopi Tuku Senopati</td><td class="r num">78</td><td class="r num">6,4 bl</td><td class="r num">0,31%</td><td class="r num">0</td><td class="r num">4,0%</td><td><span class="badge ok">Instan</span></td><td></td></tr>
+              <tr><td>Warung Bu Tini</td><td class="r num">52</td><td class="r num">1,2 bl</td><td class="r num">0,00%</td><td class="r num">0</td><td class="r num">20,0%</td><td><span class="badge ok">Instan</span></td><td></td></tr>
+              <tr class="diffrow"><td>Toko Elektronik Jaya</td><td class="r num">38</td><td class="r num">2,1 bl</td><td class="r num">6,40%</td><td class="r num">4</td><td class="r num">12,0%</td><td><span class="badge fail">Dipaksa batch</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr class="diffrow"><td>Gadget Murah ID</td><td class="r num">21</td><td class="r num">11 hr</td><td class="r num">18,90%</td><td class="r num">9</td><td class="r num">45,0%</td><td><span class="badge fail">Pencairan ditahan</span></td><td><button class="btn sm danger">Bekukan</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="grid g2 mt4">
+          <div class="card"><header><h3>Toko Elektronik Jaya · merch_9914</h3></header><div class="body">
+            <div class="scorebox">
+              <div class="ring warn">38</div>
+              <div>
+                <div class="strong">Turun dari 71 dalam 9 hari</div>
+                <div class="small muted">Dipicu lonjakan refund setelah kampanye diskon besar. Sudah diturunkan otomatis ke mode batch.</div>
+              </div>
+            </div>
+            <div class="grid mt5" style="gap:var(--s3)">
+              <div><div class="meterrow"><span>Umur merchant</span><span class="n">12 / 25</span></div><div class="meter warn"><i style="width:48%"></i></div></div>
+              <div><div class="meterrow"><span>Rasio refund</span><span class="n">4 / 25</span></div><div class="meter bad"><i style="width:16%"></i></div></div>
+              <div><div class="meterrow"><span>Riwayat sengketa</span><span class="n">8 / 25</span></div><div class="meter bad"><i style="width:32%"></i></div></div>
+              <div><div class="meterrow"><span>Kestabilan volume</span><span class="n">14 / 25</span></div><div class="meter warn"><i style="width:56%"></i></div></div>
+            </div>
+          </div></div>
+          <div class="card"><header><h3>Batas yang dijaga</h3></header><div class="body">
+            <p class="small muted">Holdback bukan hukuman, dia asuransi. Rumus yang dipakai sederhana dan sengaja bisa dijelaskan ke merchant:</p>
+            <div class="note info mt3" style="margin:0"><svg><use href="#i-info"/></svg><div class="mono" style="font-size:12px">holdback = clamp(1,5%, 45%, kerugian_diperkirakan × 200)</div></div>
+            <p class="small muted mt4">Pengali 200 dipilih supaya holdback yang terkumpul menutup kerugian sekitar 200 kali lipat. Angka itu bisa diturunkan seiring data bertambah — dan setiap perubahannya tercatat di audit log.</p>
+            <div class="note warn mt4" style="margin:0"><svg><use href="#i-alert"/></svg><div>Skor tidak boleh dihitung dari model yang tidak bisa dijelaskan. Merchant berhak tahu kenapa uangnya ditahan lebih lama.</div></div>
+          </div></div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="r-dispute">
+        <div class="pagehead">
+          <div><h2>Sengketa</h2><p>3 terbuka · jendela klaim 90 hari sejak transaksi</p></div>
+          <div class="actions"><select class="input"><option>Semua status</option><option>Terbuka</option><option>Menunggu merchant</option><option>Selesai</option></select></div>
+        </div>
+        <div class="grid g4">
+          <div class="stat"><div class="k">Terbuka</div><div class="v">3</div><div class="d">1 mendekati SLA</div></div>
+          <div class="stat"><div class="k">Nilai disengketakan</div><div class="v">Rp 8,4 jt</div><div class="d">tertutup holdback</div></div>
+          <div class="stat"><div class="k">Menang pengguna</div><div class="v">68%</div><div class="d">90 hari terakhir</div></div>
+          <div class="stat"><div class="k">Rata-rata selesai</div><div class="v">3,1 hari</div><div class="d up">SLA 7 hari</div></div>
+        </div>
+        <div class="card mt4">
+          <header><h3>Antrean sengketa</h3></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>ID</th><th>Transaksi</th><th>Pengguna</th><th>Merchant</th><th class="r">Nominal</th><th>Alasan</th><th>Tertutup holdback?</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">dsp_4471</td><td class="mono">txn_01J7NX22K</td><td>Sari M.</td><td>Gadget Murah ID</td><td class="r num">4.200.000</td><td>Barang tidak dikirim</td><td><span class="badge ok">Ya · Rp 1,9 jt</span></td><td><span class="badge pend">Menunggu merchant</span></td><td><button class="btn sm">Buka</button></td></tr>
+              <tr><td class="mono">dsp_4468</td><td class="mono">txn_01J7MK09F</td><td>Bagus P.</td><td>Toko Elektronik Jaya</td><td class="r num">3.100.000</td><td>Barang tidak sesuai</td><td><span class="badge ok">Ya · Rp 372 rb</span></td><td><span class="badge pend">Bukti ditinjau</span></td><td><button class="btn sm">Buka</button></td></tr>
+              <tr class="diffrow"><td class="mono">dsp_4460</td><td class="mono">txn_01J7J118B</td><td>Nadia K.</td><td>Gadget Murah ID</td><td class="r num">1.100.000</td><td>Transaksi tidak dikenali</td><td><span class="badge fail">Tidak · merchant kosong</span></td><td><span class="badge fail">SLA 8 jam lagi</span></td><td><button class="btn sm danger">Eskalasi</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Baris merah adalah risiko yang sebenarnya dari Cair Instan: uangnya sudah kami kirim, merchant sudah menghabiskannya, dan holdback tidak cukup. Kerugian ini ditanggung platform — dan itulah alasan skor merchant harus dihitung dengan benar.</div></div>
+      </section>
+
+      <section class="screen" data-screen="r-blocked">
+        <div class="pagehead">
+          <div><h2>Akun Diblokir</h2><p>Saldo tetap utuh selama pemblokiran · tidak ada dana yang disita sistem</p></div>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>Akun</th><th>Diblokir</th><th>Oleh</th><th>Alasan</th><th class="r">Saldo tertahan</th><th>Banding</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">usr_91027</td><td>13 Sep 09:41</td><td>sistem · VR-03</td><td>Pola structuring</td><td class="r num">11.402.000</td><td><span class="badge pend">Diajukan</span></td><td><button class="btn sm brand">Buka blokir</button></td></tr>
+              <tr><td class="mono">usr_79233</td><td>13 Sep 08:31</td><td>sistem · VR-05</td><td>Nominal tepat di bawah ambang</td><td class="r num">2.180.000</td><td><span class="badge mute">Belum</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td class="mono">usr_66781</td><td>11 Sep 14:20</td><td>dewi@marspay</td><td>Dokumen KYC dipalsukan</td><td class="r num">0</td><td><span class="badge fail">Ditolak</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+              <tr><td class="mono">usr_52990</td><td>08 Sep 10:02</td><td>rani@marspay</td><td>Permintaan penegak hukum</td><td class="r num">48.900.000</td><td><span class="badge mute">Belum</span></td><td><button class="btn sm">Tinjau</button></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>Pemblokiran adalah flag yang dibaca di jalur panas, jadi dia hidup di Redis. Sumber kebenarannya tetap Postgres — Redis diisi ulang dari sana saat cache dingin.</div></div>
+      </section>
+
+      <section class="screen" data-screen="r-rules">
+        <div class="pagehead">
+          <div><h2>Aturan Velocity</h2><p>Perubahan berlaku dalam 30 detik tanpa deploy</p></div>
+          <div class="actions"><button class="btn primary"><svg><use href="#i-plus"/></svg>Aturan baru</button></div>
+        </div>
+        <div class="card">
+          <div class="tablewrap"><table>
+            <thead><tr><th>Kode</th><th>Kondisi</th><th class="r">Jendela</th><th class="r">Ambang</th><th>Tindakan</th><th class="r">Kena 7 hari</th><th class="r">False positive</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">VR-01</td><td>Login dari negara berbeda</td><td class="r num">1 jam</td><td class="r num">3</td><td>Wajib OTP</td><td class="r num">28</td><td class="r num">21%</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td class="mono">VR-02</td><td>Perangkat baru + rekening baru</td><td class="r num">24 jam</td><td class="r num">1</td><td>Tandai</td><td class="r num">143</td><td class="r num">62%</td><td><span class="badge pend">Mode pantau</span></td></tr>
+              <tr><td class="mono">VR-03</td><td>Transfer ke penerima baru</td><td class="r num">5 menit</td><td class="r num">10</td><td>Bekukan</td><td class="r num">7</td><td class="r num">4%</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td class="mono">VR-05</td><td>Nominal 90–99% ambang pelaporan</td><td class="r num">7 hari</td><td class="r num">3</td><td>Bekukan</td><td class="r num">4</td><td class="r num">11%</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td class="mono">VR-07</td><td>Top up → tarik penuh</td><td class="r num">10 menit</td><td class="r num">1</td><td>Tahan penarikan</td><td class="r num">19</td><td class="r num">33%</td><td><span class="badge ok">Aktif</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="grid g2 mt4">
+          <div class="card"><header><h3>Ubah VR-02</h3></header><div class="body grid" style="gap:var(--s4)">
+            <label class="field"><span class="lbl">Jendela waktu</span><select class="input"><option>24 jam</option><option>12 jam</option><option>48 jam</option></select></label>
+            <label class="field"><span class="lbl">Tindakan</span><select class="input"><option>Tandai saja</option><option>Wajib OTP</option><option>Tahan penarikan</option><option>Bekukan</option></select>
+              <span class="help">False positive 62% terlalu tinggi untuk pembekuan. Biarkan di mode pantau dulu.</span></label>
+            <button class="btn brand block">Simpan</button>
+          </div></div>
+          <div class="card"><header><h3>Kenapa false positive ditampilkan</h3></header><div class="body">
+            <p class="small muted">Aturan fraud yang terlalu ketat lebih merusak daripada tidak ada aturan sama sekali — pengguna sah terkunci, CS kebanjiran, dan orangnya pindah aplikasi.</p>
+            <p class="small muted mt3">Karena itu tiap aturan punya <strong>mode pantau</strong>: dia dihitung dan dicatat tapi tidak menindak, sampai angka false positive-nya cukup rendah untuk dipromosikan jadi aktif.</p>
+          </div></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
