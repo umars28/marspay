@@ -220,6 +220,11 @@ func operator(w http.ResponseWriter, r *http.Request) (string, bool) {
 			httpx.TypeUnauthorized, "An operator token is required."))
 		return "", false
 	}
+	if !auth.IsOperator(r.Context()) {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusForbidden,
+			httpx.TypeForbidden, "This endpoint is for operators."))
+		return "", false
+	}
 	return actor, true
 }
 

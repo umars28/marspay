@@ -20,6 +20,8 @@ const (
 	consumerPhone = "081200000001"
 	consumerPin   = "294715"
 	merchantID    = "merch_demo"
+	operatorID    = "usr_ops"
+	operatorPhone = "081200000009"
 	walletAccount = "acc_usr_demo_user_wallet"
 	openingMinor  = 250_000_00
 )
@@ -67,6 +69,14 @@ func main() {
 		`INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status)
 		 VALUES ('usr_demo_payee', '081200000002', 'Demo Friend', $1, 'verified', 'active')
 		 ON CONFLICT (id) DO NOTHING`, pinHash); err != nil {
+		fatal(err)
+	}
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status, role)
+		 VALUES ($1, $2, 'Demo Operator', $3, 'verified', 'active', 'operator')
+		 ON CONFLICT (id) DO UPDATE SET pin_hash = EXCLUDED.pin_hash, role = 'operator'`,
+		operatorID, operatorPhone, pinHash); err != nil {
 		fatal(err)
 	}
 
@@ -134,13 +144,18 @@ func main() {
     PIN              %s
     opening balance  Rp %s
 
+  Operator (admin, ops, risk screens)
+    phone            %s
+    PIN              %s
+
   Merchant
     id               %s
     API key          %s
 
   The one-time code is returned by POST /v1/auth/otp because this is a demo;
   in any other mode that field is empty and the code would go out by SMS.
-`, consumerPhone, consumerPin, rupiah(openingMinor), merchantID, key.Secret)
+`, consumerPhone, consumerPin, rupiah(openingMinor),
+		operatorPhone, consumerPin, merchantID, key.Secret)
 }
 
 func openBalance(ctx context.Context, pool *pgxpool.Pool, account string, amount int64) error {

@@ -61,6 +61,11 @@ func (h *Handler) MerchantScore(w http.ResponseWriter, r *http.Request) {
 			httpx.TypeUnauthorized, "An operator token is required."))
 		return
 	}
+	if !auth.IsOperator(r.Context()) {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusForbidden,
+			httpx.TypeForbidden, "This endpoint is for operators."))
+		return
+	}
 
 	merchantID := r.PathValue("id")
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))

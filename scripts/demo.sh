@@ -39,6 +39,7 @@ go run "$ROOT/cmd/demoseed" -dsn="$DSN" -redis="$REDIS"
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$API_ADDR" \
 MARSPAY_REVEAL_OTP=true \
+MARSPAY_CORS_ORIGINS="http://127.0.0.1:${UI_PORT},http://localhost:${UI_PORT}" \
   "$BIN" >"$LOG" 2>&1 &
 SERVER_PID=$!
 

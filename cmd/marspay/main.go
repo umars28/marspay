@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -114,7 +115,8 @@ func run() error {
 		Admission: limiter,
 		Auth: auth.NewStore(pool).
 			WithCache(auth.NewRedisCache(rdb, "marspay:")),
-		RevealOTP: env("MARSPAY_REVEAL_OTP", "false") == "true",
+		RevealOTP:   env("MARSPAY_REVEAL_OTP", "false") == "true",
+		CORSOrigins: strings.Split(env("MARSPAY_CORS_ORIGINS", ""), ","),
 	})
 
 	srv := &http.Server{

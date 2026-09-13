@@ -65,6 +65,7 @@ type Principal struct {
 	UserID    string
 	DeviceID  string
 	SessionID string
+	Role      string
 }
 
 type Store struct {
@@ -366,10 +367,10 @@ func (s *Store) Verify(ctx context.Context, accessToken string) (*Principal, err
 		status    string
 	)
 	err := s.pool.QueryRow(ctx,
-		`SELECT s.id, s.user_id, s.device_id, s.access_expires_at, s.revoked_at, u.status
+		`SELECT s.id, s.user_id, s.device_id, s.access_expires_at, s.revoked_at, u.status, u.role
 		 FROM sessions s JOIN users u ON u.id = s.user_id
 		 WHERE s.access_hash = $1`, hash).
-		Scan(&p.SessionID, &p.UserID, &p.DeviceID, &expiresAt, &revokedAt, &status)
+		Scan(&p.SessionID, &p.UserID, &p.DeviceID, &expiresAt, &revokedAt, &status, &p.Role)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNoSession
 	}
@@ -571,7 +572,7 @@ func (s *Store) forget(ctx context.Context, accessHash string) {
 }
 
 func encodePrincipal(p *Principal) string {
-	return p.UserID + "|" + p.DeviceID + "|" + p.SessionID
+	return p.UserID + "|" + p.DeviceID + "|" + p.SessionID + "|" + p.Role
 }
 
 func decodePrincipal(v string) (*Principal, error) {
@@ -587,12 +588,14 @@ func decodePrincipal(v string) (*Principal, error) {
 				p.DeviceID = v[start:i]
 			case 2:
 				p.SessionID = v[start:i]
+			case 3:
+				p.Role = v[start:i]
 			}
 			n++
 			start = i + 1
 		}
 	}
-	if n != 3 || p.UserID == "" {
+	if n != 4 || p.UserID == "" {
 		return nil, errors.New("auth: malformed cached principal")
 	}
 	return &p, nil

@@ -29,9 +29,21 @@ func SessionID(ctx context.Context) string {
 	return v
 }
 
+const RoleConsumer, RoleOperator = "consumer", "operator"
+
+func Role(ctx context.Context) string {
+	v, _ := ctx.Value(roleKey).(string)
+	return v
+}
+
+func IsOperator(ctx context.Context) bool {
+	return Role(ctx) == RoleOperator
+}
+
 func withPrincipal(ctx context.Context, p *Principal) context.Context {
 	ctx = WithUserID(ctx, p.UserID)
 	ctx = context.WithValue(ctx, deviceIDKey, p.DeviceID)
+	ctx = context.WithValue(ctx, roleKey, p.Role)
 	return context.WithValue(ctx, sessionIDKey, p.SessionID)
 }
 

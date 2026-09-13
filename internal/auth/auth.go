@@ -13,6 +13,7 @@ const (
 	merchantIDKey
 	deviceIDKey
 	sessionIDKey
+	roleKey
 )
 
 func UserID(ctx context.Context) string {
@@ -40,7 +41,9 @@ func DevBearerAuth(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		next.ServeHTTP(w, r.WithContext(WithUserID(r.Context(), token)))
+		ctx := WithUserID(r.Context(), token)
+		ctx = context.WithValue(ctx, roleKey, RoleOperator)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

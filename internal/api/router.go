@@ -35,18 +35,27 @@ type Deps struct {
 	Admission   *admission.Limiter
 	Auth        *auth.Store
 	RevealOTP   bool
+	CORSOrigins []string
 }
 
 func NewRouter(d Deps) http.Handler {
 	mux := http.NewServeMux()
 
 	if d.Velocity != nil {
-		d.Payments = d.Payments.WithVelocity(d.Velocity)
-		d.Txn = d.Txn.WithVelocity(d.Velocity)
+		if d.Payments != nil {
+			d.Payments = d.Payments.WithVelocity(d.Velocity)
+		}
+		if d.Txn != nil {
+			d.Txn = d.Txn.WithVelocity(d.Velocity)
+		}
 	}
 	if d.Blocks != nil {
-		d.Payments = d.Payments.WithBlocks(d.Blocks)
-		d.Txn = d.Txn.WithBlocks(d.Blocks)
+		if d.Payments != nil {
+			d.Payments = d.Payments.WithBlocks(d.Blocks)
+		}
+		if d.Txn != nil {
+			d.Txn = d.Txn.WithBlocks(d.Blocks)
+		}
 	}
 
 	payments := payment.NewHandler(d.Payments)
@@ -154,7 +163,7 @@ func NewRouter(d Deps) http.Handler {
 	if d.Admission != nil {
 		handler = admission.Skip(alwaysAnswer, d.Admission.Middleware)(handler)
 	}
-	return httpx.WithRequestID(handler)
+	return CORS(d.CORSOrigins)(httpx.WithRequestID(handler))
 }
 
 func alwaysAnswer(r *http.Request) bool {
