@@ -72,6 +72,29 @@ mockup/              clickable UI prototype, 38 screens, no backend
 Backend directories (`cmd/`, `internal/`, `migrations/`, `deploy/`) arrive with the
 implementation.
 
+## Running the tests
+
+Unit tests need nothing. Ledger integration tests need a PostgreSQL 15+ cluster, and skip
+themselves when `MARSPAY_TEST_DATABASE_URL` is unset rather than failing.
+
+```sh
+go test ./...                          # unit tests only, integration tests skip
+
+./scripts/test-db.sh up                # throwaway cluster, prints the DSN
+export MARSPAY_TEST_DATABASE_URL="$(./scripts/test-db.sh dsn)"
+go test ./...                          # now the integration tests run too
+./scripts/test-db.sh down              # stop and delete
+```
+
+The integration tests apply every migration from scratch on each run, so they also serve as
+the migration test. Three of them are the ones worth reading:
+
+| Test | What it proves |
+|---|---|
+| `TestPostWritesBalancedPayment` | a payment lands as three entries summing to zero |
+| `TestDatabaseRejectsUnbalancedPostingBypassingGoValidation` | the database refuses an unbalanced commit even when the Go check is skipped |
+| `TestConcurrentPostingsKeepGlobalSumZero` | 400 concurrent postings leave `SUM(amount_minor) = 0` |
+
 ## Running the mockup
 
 The mockup is static HTML with no build step and no dependencies.
