@@ -15,17 +15,24 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
+	"github.com/umars28/marspay/internal/rail"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
 type Service struct {
-	pool   *pgxpool.Pool
-	ledger *ledger.Repo
-	wallet wallet.Reserver
+	pool       *pgxpool.Pool
+	ledger     *ledger.Repo
+	wallet     wallet.Reserver
+	billerRail rail.Rail
 }
 
 func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service {
 	return &Service{pool: pool, ledger: l, wallet: w}
+}
+
+func (s *Service) WithBillerRail(r rail.Rail) *Service {
+	s.billerRail = r
+	return s
 }
 
 func (s *Service) reserve(ctx context.Context, account string, amount money.Minor) (money.Minor, error) {
