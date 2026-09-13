@@ -17,6 +17,7 @@ import (
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/payment"
+	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -60,9 +61,11 @@ func run() error {
 	}
 
 	ledgerRepo := ledger.NewRepo(pool)
+	balances := wallet.NewRedis(rdb, "marspay:", 12*time.Hour)
+
 	router := api.NewRouter(api.Deps{
-		Payments: payment.NewService(pool, ledgerRepo,
-			wallet.NewRedis(rdb, "marspay:", 12*time.Hour)),
+		Payments:    payment.NewService(pool, ledgerRepo, balances),
+		Txn:         txn.NewService(pool, ledgerRepo, balances),
 		Idempotency: idempotency.NewStore(pool),
 	})
 

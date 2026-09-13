@@ -16,6 +16,7 @@ import (
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/testdb"
+	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -46,6 +47,7 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 	return &fixture{
 		router: NewRouter(Deps{
 			Payments:    payment.NewService(pool, repo, mem),
+			Txn:         txn.NewService(pool, repo, mem),
 			Idempotency: idempotency.NewStore(pool),
 		}),
 		pool:       pool,
@@ -380,6 +382,7 @@ func TestColdCacheRebuildsBalanceFromLedger(t *testing.T) {
 	f.wallet = wallet.NewMemory()
 	f.router = NewRouter(Deps{
 		Payments:    payment.NewService(f.pool, f.ledger, f.wallet),
+		Txn:         txn.NewService(f.pool, f.ledger, f.wallet),
 		Idempotency: idempotency.NewStore(f.pool),
 	})
 

@@ -18,6 +18,7 @@ type Reserver interface {
 	Release(ctx context.Context, accountID string, amount money.Minor) (money.Minor, error)
 	Available(ctx context.Context, accountID string) (money.Minor, error)
 	Warm(ctx context.Context, accountID string, balance money.Minor) error
+	Invalidate(ctx context.Context, accountID string) error
 }
 
 type Memory struct {
@@ -33,6 +34,13 @@ func (m *Memory) Warm(_ context.Context, accountID string, balance money.Minor) 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.balances[accountID] = balance
+	return nil
+}
+
+func (m *Memory) Invalidate(_ context.Context, accountID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.balances, accountID)
 	return nil
 }
 

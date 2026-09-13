@@ -3,13 +3,16 @@ package api
 import (
 	"net/http"
 
+	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/payment"
+	"github.com/umars28/marspay/internal/txn"
 )
 
 type Deps struct {
 	Payments    *payment.Service
+	Txn         *txn.Service
 	Idempotency *idempotency.Store
 }
 
@@ -17,9 +20,12 @@ func NewRouter(d Deps) http.Handler {
 	mux := http.NewServeMux()
 
 	payments := payment.NewHandler(d.Payments)
-	guard := idempotency.Middleware(d.Idempotency, payment.ScopeFromUser)
+	movements := txn.NewHandler(d.Txn)
+	guard := idempotency.Middleware(d.Idempotency, auth.ScopeFromRequest)
 
 	mux.Handle("POST /v1/payments", guard(http.HandlerFunc(payments.Create)))
+	mux.Handle("POST /v1/transfers", guard(http.HandlerFunc(movements.CreateTransfer)))
+	mux.Handle("POST /v1/withdrawals", guard(http.HandlerFunc(movements.CreateWithdrawal)))
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -30,5 +36,5 @@ func NewRouter(d Deps) http.Handler {
 			"No route matches %s %s.", r.Method, r.URL.Path))
 	})
 
-	return httpx.WithRequestID(payment.DevBearerAuth(mux))
+	return httpx.WithRequestID(auth.DevBearerAuth(mux))
 }

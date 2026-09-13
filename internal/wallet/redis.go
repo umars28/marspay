@@ -58,6 +58,13 @@ func (r *Redis) Warm(ctx context.Context, accountID string, balance money.Minor)
 	return nil
 }
 
+func (r *Redis) Invalidate(ctx context.Context, accountID string) error {
+	if err := r.client.Del(ctx, r.key(accountID)).Err(); err != nil {
+		return fmt.Errorf("wallet: invalidate %s: %w", accountID, err)
+	}
+	return nil
+}
+
 func (r *Redis) Available(ctx context.Context, accountID string) (money.Minor, error) {
 	v, err := r.client.Get(ctx, r.key(accountID)).Int64()
 	if errors.Is(err, redis.Nil) {
