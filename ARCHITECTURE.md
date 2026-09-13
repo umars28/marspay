@@ -157,6 +157,9 @@ ordering is intentional and is the reason the ledger is written before anything 
 | `webhook.deliveries` | `merchant_id` | 6 | 3 d | webhook-dispatcher |
 | `webhook.dlq` | `merchant_id` | 3 | 30 d | manual replay only |
 
+`payment.events` is implemented today, fed by the outbox relay in §6a and verified against a
+real broker. The rest are designed, not yet produced to.
+
 Keying by `merchant_id` gives per-merchant ordering without locks. It also creates the hot
 partition problem when one merchant dominates volume; the mitigation is a composite key
 `merchant_id:shard_n` for merchants above a volume threshold.

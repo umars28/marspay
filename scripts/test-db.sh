@@ -10,14 +10,22 @@ DB_USER=marspay
 REDIS_PORT="${MARSPAY_REDISPORT:-6399}"
 REDIS_DIR="${MARSPAY_REDISDIR:-${TMPDIR:-/tmp}/marspay-redis}"
 
+KAFKA_PORT="${MARSPAY_KAFKAPORT:-19092}"
+KAFKA_CONTAINER="${MARSPAY_KAFKA_CONTAINER:-marspay-redpanda}"
+KAFKA_IMAGE="${MARSPAY_KAFKA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v24.2.7}"
+
 usage() {
-  echo "usage: $0 {up|down|env|dsn|redis-addr}"
+  echo "usage: $0 {up|down|env|dsn|redis-addr|kafka-brokers}"
   echo
-  echo "  up          start throwaway PostgreSQL and Redis, print the exports"
-  echo "  down        stop both and delete their data directories"
-  echo "  env         print the export lines only"
-  echo "  dsn         print the PostgreSQL DSN only"
-  echo "  redis-addr  print the Redis address only"
+  echo "  up             start throwaway PostgreSQL, Redis and Redpanda, print the exports"
+  echo "  down           stop all three and delete their data"
+  echo "  env            print the export lines only"
+  echo "  dsn            print the PostgreSQL DSN only"
+  echo "  redis-addr     print the Redis address only"
+  echo "  kafka-brokers  print the Kafka broker list only"
+  echo
+  echo "Redpanda needs Docker. If it is not running, PostgreSQL and Redis still come up"
+  echo "and the Kafka tests skip themselves."
   exit 64
 }
 
@@ -29,9 +37,56 @@ redis_addr() {
   echo "127.0.0.1:${REDIS_PORT}"
 }
 
+kafka_brokers() {
+  echo "127.0.0.1:${KAFKA_PORT}"
+}
+
 print_env() {
   echo "export MARSPAY_TEST_DATABASE_URL=\"$(dsn)\""
   echo "export MARSPAY_TEST_REDIS_ADDR=\"$(redis_addr)\""
+  if kafka_running; then
+    echo "export MARSPAY_TEST_KAFKA_BROKERS=\"$(kafka_brokers)\""
+  fi
+}
+
+kafka_running() {
+  docker ps --filter "name=^/${KAFKA_CONTAINER}$" --filter "status=running" \
+    --format '{{.Names}}' 2>/dev/null | grep -q "$KAFKA_CONTAINER"
+}
+
+kafka_up() {
+  if ! docker info >/dev/null 2>&1; then
+    echo "redpanda  skipped, Docker is not running"
+    return
+  fi
+
+  if kafka_running; then
+    return
+  fi
+
+  docker rm -f "$KAFKA_CONTAINER" >/dev/null 2>&1 || true
+  docker run -d --name "$KAFKA_CONTAINER" \
+    -p "${KAFKA_PORT}:${KAFKA_PORT}" \
+    "$KAFKA_IMAGE" \
+    redpanda start \
+      --overprovisioned --smp 1 --memory 512M --reserve-memory 0M \
+      --node-id 0 --check=false \
+      --kafka-addr "external://0.0.0.0:${KAFKA_PORT}" \
+      --advertise-kafka-addr "external://127.0.0.1:${KAFKA_PORT}" >/dev/null
+
+  for _ in $(seq 1 40); do
+    if docker exec "$KAFKA_CONTAINER" rpk cluster info \
+         --brokers "127.0.0.1:${KAFKA_PORT}" >/dev/null 2>&1; then
+      return
+    fi
+    sleep 0.5
+  done
+
+  echo "redpanda did not become ready; see: docker logs $KAFKA_CONTAINER" >&2
+}
+
+kafka_down() {
+  docker rm -f "$KAFKA_CONTAINER" >/dev/null 2>&1 || true
 }
 
 postgres_up() {
@@ -81,8 +136,12 @@ redis_up() {
 up() {
   postgres_up
   redis_up
+  kafka_up
   echo "postgres ready on 127.0.0.1:${PG_PORT}"
   echo "redis    ready on 127.0.0.1:${REDIS_PORT}"
+  if kafka_running; then
+    echo "redpanda ready on 127.0.0.1:${KAFKA_PORT}"
+  fi
   echo
   print_env
   echo "  go test ./..."
@@ -91,8 +150,9 @@ up() {
 down() {
   pg_ctl -D "$PG_DATA" stop -m fast >/dev/null 2>&1 || true
   redis-cli -p "$REDIS_PORT" shutdown nosave >/dev/null 2>&1 || true
+  kafka_down
   rm -rf "$PG_DATA" "$PG_SOCKET" "$REDIS_DIR"
-  echo "postgres and redis removed"
+  echo "postgres, redis and redpanda removed"
 }
 
 case "${1:-}" in
@@ -101,5 +161,6 @@ case "${1:-}" in
   env) print_env ;;
   dsn) dsn ;;
   redis-addr) redis_addr ;;
+  kafka-brokers) kafka_brokers ;;
   *) usage ;;
 esac

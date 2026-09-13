@@ -7,10 +7,10 @@ that differs — **get paid within seconds instead of the next business day**.
 The money is simulated. The system is not.
 
 > **Status: in progress.** The ledger, payments API, risk scoring, instant payout, webhook
-> dispatcher, reconciler and transactional outbox are built and tested — 108 tests across 11
-> packages, including integration tests against real PostgreSQL and Redis. Kafka is designed
-> but not yet wired; the outbox that feeds it is. Authentication is a development stand-in.
-> Everything below states plainly what is proven and what is not.
+> dispatcher, reconciler, transactional outbox and its Kafka relay are built and tested — 113
+> tests across 11 packages, including integration tests against real PostgreSQL, Redis and a
+> Kafka broker. Authentication is a development stand-in. Everything below states plainly what
+> is proven and what is not.
 
 ## Why this exists
 
@@ -152,7 +152,7 @@ internal/
   payout/            instant payout, float guard, rail selection
   reconcile/         internal books vs provider statement
   webhook/           signing, backoff schedule, dispatcher with dead letter queue
-  outbox/            transactional outbox and the relay that drains it
+  outbox/            transactional outbox, ordered relay, Kafka publisher
   api/               router and wiring
   httpx/             error envelope, request ids, strict JSON decoding
   id/                prefixed ULIDs
@@ -180,17 +180,20 @@ token is taken as the user id until the real auth service exists. It is named
 
 ## Running the tests
 
-Unit tests need nothing. Ledger integration tests need a PostgreSQL 15+ cluster, and skip
-themselves when `MARSPAY_TEST_DATABASE_URL` is unset rather than failing.
+Unit tests need nothing. Integration tests need PostgreSQL 15+, Redis and a Kafka broker, and
+each group skips itself when its environment variable is unset rather than failing.
 
 ```sh
-go test ./...                          # unit tests only, integration tests skip
+go test ./...                      # unit tests only, integration tests skip
 
-./scripts/test-db.sh up                # throwaway cluster, prints the DSN
-export MARSPAY_TEST_DATABASE_URL="$(./scripts/test-db.sh dsn)"
-go test ./...                          # now the integration tests run too
-./scripts/test-db.sh down              # stop and delete
+./scripts/test-db.sh up            # PostgreSQL, Redis and Redpanda; prints the exports
+eval "$(./scripts/test-db.sh env)"
+go test ./...                      # now everything runs
+./scripts/test-db.sh down          # stop and delete all three
 ```
+
+PostgreSQL and Redis run natively on non-default ports. Redpanda runs in Docker as a
+Kafka-compatible broker; if Docker is not running the script says so and the Kafka tests skip.
 
 The integration tests apply every migration from scratch on each run, so they also serve as
 the migration test. Three of them are the ones worth reading:
