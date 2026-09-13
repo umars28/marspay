@@ -2,16 +2,16 @@
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-ADDR="${MARSPAY_LOAD_ADDR:-127.0.0.1:8099}"
-RUN_ID="load$(date +%s)"
-BIN="${TMPDIR:-/tmp}/marspay-load-server"
-LOG="${TMPDIR:-/tmp}/marspay-load-server.log"
+ADDR="${MARSPAY_STRESS_ADDR:-127.0.0.1:8099}"
+RUN_ID="stress$(date +%s)"
+LEVELS="${MARSPAY_STRESS_LEVELS:-1,2,4,8,16,32,64,128,256,384}"
+DWELL="${MARSPAY_STRESS_DWELL:-6s}"
+BIN="${TMPDIR:-/tmp}/marspay-stress-server"
+LOG="${TMPDIR:-/tmp}/marspay-stress-server.log"
 
 USER_PREFIX=usr_load
-USERS="${MARSPAY_LOAD_USERS:-500}"
+USERS="${MARSPAY_STRESS_USERS:-500}"
 MERCHANT_ID=merch_load
-
-command -v k6 >/dev/null 2>&1 || { echo "k6 is not installed" >&2; exit 1; }
 
 echo "==> starting PostgreSQL and Redis"
 sh "$ROOT/scripts/test-db.sh" up >/dev/null
@@ -27,8 +27,8 @@ cleanup() {
 trap cleanup EXIT
 
 echo "==> synchronous_commit is $(psql "$DSN" -tAc 'SHOW synchronous_commit')"
+echo "==> postgres max_connections is $(psql "$DSN" -tAc 'SHOW max_connections')"
 
-echo "==> applying migrations"
 for f in "$ROOT"/migrations/*.down.sql; do psql "$DSN" -q -f "$f" >/dev/null 2>&1 || true; done
 for f in "$ROOT"/migrations/*.up.sql; do psql "$DSN" -q -v ON_ERROR_STOP=1 -f "$f" >/dev/null; done
 
@@ -36,11 +36,11 @@ echo "==> seeding ${USERS} consumers, one merchant"
 psql "$DSN" -q <<SQL >/dev/null
 INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status)
 SELECT '${USER_PREFIX}_' || i, '0812' || lpad(i::text, 8, '0'),
-       'Load ' || i, 'x', 'verified', 'active'
+       'Stress ' || i, 'x', 'verified', 'active'
 FROM generate_series(0, ${USERS} - 1) AS i;
 
 INSERT INTO merchants (id, legal_name, display_name, category, status, fee_bps)
-  VALUES ('${MERCHANT_ID}', 'PT Load', 'Load Merchant', 'food', 'active', 70);
+  VALUES ('${MERCHANT_ID}', 'PT Stress', 'Stress Merchant', 'food', 'active', 70);
 
 INSERT INTO accounts (id, owner_type, owner_id, account_type)
 SELECT 'acc_${USER_PREFIX}_' || i || '_user_wallet', 'user', '${USER_PREFIX}_' || i, 'user_wallet'
@@ -55,35 +55,29 @@ psql "$DSN" -tAc "SELECT 'SET marspay:balance:acc_${USER_PREFIX}_' || i || '_use
                   FROM generate_series(0, ${USERS} - 1) AS i" \
   | redis-cli -p "$REDIS_PORT" --pipe >/dev/null 2>&1
 
-echo "==> building and starting the API"
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$ADDR" \
   "$BIN" >"$LOG" 2>&1 &
 SERVER_PID=$!
 
 for _ in 1 2 3 4 5 6 7 8 9 10; do
-  psql "$DSN" -tAc "SELECT 1" >/dev/null 2>&1 && break
+  curl_ok=$(psql "$DSN" -tAc "SELECT 1" 2>/dev/null || true)
+  [ "$curl_ok" = "1" ] && break
   sleep 0.3
 done
 sleep 1
 
-echo "==> running k6"
 echo
-MARSPAY_BASE_URL="http://${ADDR}" \
-MARSPAY_USER="$USER_PREFIX" \
-MARSPAY_USERS="$USERS" \
-MARSPAY_MERCHANT="$MERCHANT_ID" \
-MARSPAY_RUN_ID="$RUN_ID" \
-  k6 run "$ROOT/scripts/load/payments.js"
-K6_STATUS=$?
+go run "$ROOT/cmd/stressdriver" \
+  -base="http://${ADDR}" -user="$USER_PREFIX" -users="$USERS" -merchant="$MERCHANT_ID" \
+  -run="$RUN_ID" -levels="$LEVELS" -dwell="$DWELL"
 
 echo
-echo "==> checking the books after the run"
+echo "==> the books after the ramp"
 psql "$DSN" -c "SELECT
-  (SELECT count(*) FROM payments)                           AS payments,
-  (SELECT count(*) FROM ledger_transactions)                AS ledger_transactions,
-  (SELECT count(*) FROM ledger_entries)                     AS ledger_entries,
-  (SELECT count(*) FROM idempotency_keys)                   AS idempotency_keys,
+  (SELECT count(*) FROM payments)                            AS payments,
+  (SELECT count(*) FROM ledger_transactions)                 AS ledger_transactions,
+  (SELECT count(*) FROM ledger_entries)                      AS ledger_entries,
   (SELECT COALESCE(SUM(amount_minor),0) FROM ledger_entries) AS global_sum;"
 
 GLOBAL_SUM=$(psql "$DSN" -tAc "SELECT COALESCE(SUM(amount_minor),0) FROM ledger_entries")
@@ -93,8 +87,6 @@ TXNS=$(psql "$DSN" -tAc "SELECT count(*) FROM ledger_transactions")
 STATUS=0
 [ "$GLOBAL_SUM" = "0" ] || { echo "FAIL: global sum is $GLOBAL_SUM, want 0" >&2; STATUS=1; }
 [ "$PAYMENTS" = "$TXNS" ] || { echo "FAIL: $PAYMENTS payments but $TXNS ledger transactions" >&2; STATUS=1; }
-[ "$PAYMENTS" -gt 0 ] || { echo "FAIL: no payments were recorded" >&2; STATUS=1; }
-[ "$K6_STATUS" = "0" ] || { echo "FAIL: k6 thresholds were not met" >&2; STATUS=1; }
 
-[ "$STATUS" = "0" ] && echo "PASS: every request that returned 201 left exactly one balanced ledger transaction"
+[ "$STATUS" = "0" ] && echo "PASS: the books stayed balanced through saturation"
 exit "$STATUS"

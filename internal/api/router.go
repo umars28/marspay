@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
@@ -28,6 +30,7 @@ type Deps struct {
 	Outlets     *merchant.Outlets
 	Loyalty     *loyalty.Service
 	Scores      *risk.Store
+	Pool        *pgxpool.Pool
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -83,6 +86,10 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	if d.Pool != nil {
+		mux.HandleFunc("GET /internal/v1/saturation", poolStats(d.Pool))
+	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, httpx.Errorf(http.StatusNotFound, httpx.TypeNotFound,

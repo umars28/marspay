@@ -95,6 +95,7 @@ func run() error {
 		Outlets:  merchant.NewOutlets(pool, audit),
 		Loyalty:  loyalty.NewService(pool, loyalty.NewRedisQuota(rdb, "marspay:")),
 		Scores:   risk.NewStore(pool),
+		Pool:     pool,
 	})
 
 	srv := &http.Server{

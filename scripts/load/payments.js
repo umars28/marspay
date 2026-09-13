@@ -3,6 +3,7 @@ import { check } from 'k6';
 
 const BASE = __ENV.MARSPAY_BASE_URL || 'http://127.0.0.1:8099';
 const USER = __ENV.MARSPAY_USER || 'usr_load';
+const USERS = Number(__ENV.MARSPAY_USERS || 500);
 const MERCHANT = __ENV.MARSPAY_MERCHANT || 'merch_load';
 const RUN = __ENV.MARSPAY_RUN_ID || 'run';
 
@@ -35,10 +36,12 @@ const payload = JSON.stringify({
 });
 
 export default function () {
+  const user = `${USER}_${__ITER % USERS}`;
+
   const res = http.post(`${BASE}/v1/payments`, payload, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${USER}`,
+      Authorization: `Bearer ${user}`,
       'Idempotency-Key': `${RUN}-${__VU}-${__ITER}`,
     },
     tags: { name: 'POST /v1/payments' },

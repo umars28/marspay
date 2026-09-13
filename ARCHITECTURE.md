@@ -256,6 +256,23 @@ durable, the feature is designed wrong.
 | Provider callback lost | ledger and provider disagree | reconciler flags it next run |
 | Float above 85% | too much of our money is out | instant payout degrades to batch automatically |
 | Merchant fraud | payout already sent, holdback insufficient | platform absorbs the loss; this is the real cost of the differentiator |
+| More clients than pooled connections | every request queues; throughput falls while latency climbs | **not handled yet** — see below |
+
+### 9a. The saturation point is a queue, not a limit
+
+`scripts/stress-test.sh` ramps concurrency and reads `GET /internal/v1/saturation`, which
+reports the pgx pool's own counters, between steps. The measured shape is consistent: the
+queue forms at roughly 16 concurrent clients against a default pool of 10, and past that point
+adding clients costs latency without buying throughput. At 384 clients, 97% of the mean
+request is spent waiting to borrow a connection — PostgreSQL itself is never the constraint.
+
+Two consequences are worth stating plainly. The pool size is a tuning knob with a measurable
+optimum rather than a number to guess at. And there is **no admission control**: the API queues
+excess load instead of shedding it, which for a payment system is the wrong trade. A caller
+that waits 114ms and then succeeds has usually already timed out and retried; the only reason
+this is currently survivable is that every money-moving endpoint requires an
+`Idempotency-Key`, so the retry is free. A bounded queue with early rejection belongs here and
+does not exist yet.
 
 ## 10. Deliberately out of scope
 

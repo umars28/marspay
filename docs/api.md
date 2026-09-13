@@ -262,6 +262,13 @@ is enforced at the API layer rather than merely prompted for in the UI.
 | `/merchants/{id}/score` | risk score with per-factor components |
 | `/accounts/{id}/block` · `/unblock` | reason required |
 | `/audit` | append-only, readable by everyone, writable by no one |
+| `/saturation` | connection pool counters and goroutine count, for load work |
+
+`/saturation` is the only one that returns no business data. It exposes what the pgx pool is
+doing — how many acquisitions found an empty pool, and how long callers spent waiting — so a
+load test can name the resource that queued instead of inferring it from latency. It reads
+counters and holds no lock, so it stays answerable while the pool is exhausted, which is
+exactly when it is worth asking.
 
 ## 11. What the API deliberately does not offer
 
