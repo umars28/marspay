@@ -55,17 +55,34 @@ psql "$DSN" -tAc "SELECT 'SET marspay:balance:acc_${USER_PREFIX}_' || i || '_use
                   FROM generate_series(0, ${USERS} - 1) AS i" \
   | redis-cli -p "$REDIS_PORT" --pipe >/dev/null 2>&1
 
+if lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "FAIL: something is already listening on ${ADDR}." >&2
+  echo "      Refusing to run: k6 would measure that process, not this build." >&2
+  lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >&2
+  exit 1
+fi
+
 echo "==> building and starting the API"
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$ADDR" \
   "$BIN" >"$LOG" 2>&1 &
 SERVER_PID=$!
 
-for _ in 1 2 3 4 5 6 7 8 9 10; do
-  psql "$DSN" -tAc "SELECT 1" >/dev/null 2>&1 && break
-  sleep 0.3
+STARTED=""
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+  if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "FAIL: the API exited during start-up:" >&2
+    cat "$LOG" >&2
+    exit 1
+  fi
+  if grep -q '"msg":"listening"' "$LOG" 2>/dev/null; then
+    STARTED=yes
+    break
+  fi
+  sleep 0.4
 done
-sleep 1
+
+[ -n "$STARTED" ] || { echo "FAIL: the API never reported listening:" >&2; cat "$LOG" >&2; exit 1; }
 
 echo "==> running k6"
 echo

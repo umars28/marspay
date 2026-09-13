@@ -28,6 +28,7 @@ const (
 	TypeKeyReused        = "idempotency_key_reused"
 	TypeKeyInProgress    = "idempotency_key_in_progress"
 	TypeRateLimited      = "rate_limited"
+	TypeOverloaded       = "service_overloaded"
 	TypeInternal         = "internal_error"
 	TypeServiceUnhealthy = "service_unavailable"
 )

@@ -33,6 +33,8 @@ type step struct {
 	Concurrency int
 	Completed   int64
 	Errors      int64
+	Shed        int64
+	ShedLatency []time.Duration
 	NonCreated  int64
 	Elapsed     time.Duration
 	Latencies   []time.Duration
@@ -49,6 +51,29 @@ func (s step) rate() float64 {
 		return 0
 	}
 	return float64(s.Completed) / s.Elapsed.Seconds()
+}
+
+func (s step) offered() float64 {
+	if s.Elapsed == 0 {
+		return 0
+	}
+	return float64(s.Completed+s.Shed) / s.Elapsed.Seconds()
+}
+
+func (s step) shedShare() float64 {
+	total := s.Completed + s.Shed
+	if total == 0 {
+		return 0
+	}
+	return float64(s.Shed) / float64(total) * 100
+}
+
+func (s step) shedPercentile(p float64) time.Duration {
+	if len(s.ShedLatency) == 0 {
+		return 0
+	}
+	idx := int(float64(len(s.ShedLatency)-1) * p)
+	return s.ShedLatency[idx]
 }
 
 func (s step) percentile(p float64) time.Duration {
@@ -86,6 +111,7 @@ func main() {
 	levels := flag.String("levels", "1,2,4,8,16,32,64,128,256,384", "concurrency steps")
 	dwell := flag.Duration("dwell", 6*time.Second, "measured time at each step")
 	warmup := flag.Duration("warmup", 1500*time.Millisecond, "unmeasured time at each step")
+	backoff := flag.Duration("backoff", 0, "how long a client waits after being refused with 503")
 	flag.Parse()
 
 	steps, err := parseLevels(*levels)
@@ -104,19 +130,22 @@ func main() {
 
 	fmt.Printf("==> %s per step after %s of warm-up, stepping %s across %d consumers\n",
 		dwell.Round(time.Millisecond), warmup.Round(time.Millisecond), *levels, *users)
+	if *backoff > 0 {
+		fmt.Printf("==> a refused client waits %s before trying again\n", *backoff)
+	}
 	fmt.Printf("==> the API holds a pool of %d connections on %d cores\n\n",
 		start.MaxConns, start.MaxProcs)
 
 	var results []step
 	for _, level := range steps {
-		r, err := runStep(*base, *user, *users, *merchant, *runID, level, *dwell, *warmup)
+		r, err := runStep(*base, *user, *users, *merchant, *runID, level, *dwell, *warmup, *backoff)
 		if err != nil {
 			fatal(err)
 		}
 		results = append(results, r)
 		printRow(r)
 
-		if r.Errors > r.Completed/10 && r.Completed > 0 {
+		if r.Errors > 0 && r.Errors > r.Completed/10 && r.Completed > 0 {
 			fmt.Printf("\n==> stopping: more than 10%% of requests failed at %d\n", level)
 			break
 		}
@@ -162,7 +191,7 @@ func client(concurrency int) *http.Client {
 	}
 }
 
-func runStep(base, userPrefix string, users int, merchantID, runID string, concurrency int, dwell, warmup time.Duration) (step, error) {
+func runStep(base, userPrefix string, users int, merchantID, runID string, concurrency int, dwell, warmup, backoff time.Duration) (step, error) {
 	hc := client(concurrency)
 	body, err := json.Marshal(map[string]any{
 		"merchant_id": merchantID,
@@ -213,6 +242,8 @@ func runStep(base, userPrefix string, users int, merchantID, runID string, concu
 			latencies []time.Duration
 			completed int64
 			failures  int64
+			shedded   int64
+			shedTook  []time.Duration
 			nonCreate int64
 			sample    string
 		)
@@ -239,6 +270,19 @@ func runStep(base, userPrefix string, users int, merchantID, runID string, concu
 						if record {
 							latencies = append(latencies, took)
 						}
+					case status == http.StatusServiceUnavailable:
+						shedded++
+						if record {
+							shedTook = append(shedTook, took)
+						}
+						mu.Unlock()
+						if backoff > 0 {
+							select {
+							case <-time.After(backoff):
+							case <-ctx.Done():
+							}
+						}
+						mu.Lock()
 					default:
 						nonCreate++
 						failures++
@@ -253,10 +297,13 @@ func runStep(base, userPrefix string, users int, merchantID, runID string, concu
 		wg.Wait()
 
 		sort.Slice(latencies, func(i, j int) bool { return latencies[i] < latencies[j] })
+		sort.Slice(shedTook, func(i, j int) bool { return shedTook[i] < shedTook[j] })
 		return step{
 			Concurrency: concurrency,
 			Completed:   completed,
 			Errors:      failures,
+			Shed:        shedded,
+			ShedLatency: shedTook,
 			NonCreated:  nonCreate,
 			Elapsed:     time.Since(start),
 			Latencies:   latencies,
@@ -313,21 +360,17 @@ var headerPrinted bool
 
 func printRow(s step) {
 	if !headerPrinted {
-		fmt.Printf("%7s %9s %9s %9s %9s %8s %11s %9s %7s\n",
-			"clients", "ops/s", "p50", "p95", "p99", "errors", "poolwait/req", "waited%", "gor")
-		fmt.Println(strings.Repeat("-", 88))
+		fmt.Printf("%7s %9s %9s %9s %9s %8s %7s %9s %11s %8s\n",
+			"clients", "ops/s", "p50", "p95", "p99", "offered", "shed%", "shed p99", "poolwait/req", "errors")
+		fmt.Println(strings.Repeat("-", 96))
 		headerPrinted = true
 	}
 
-	waited := 0.0
-	if s.PoolAcquire > 0 {
-		waited = float64(s.PoolEmpty) / float64(s.PoolAcquire) * 100
-	}
-
-	fmt.Printf("%7d %9.0f %9s %9s %9s %8d %11s %8.0f%% %7d\n",
+	fmt.Printf("%7d %9.0f %9s %9s %9s %8.0f %6.0f%% %9s %11s %8d\n",
 		s.Concurrency, s.rate(),
 		round(s.percentile(0.50)), round(s.percentile(0.95)), round(s.percentile(0.99)),
-		s.Errors, round(s.waitPerRequest()), waited, s.Goroutines)
+		s.offered(), s.shedShare(), round(s.shedPercentile(0.99)),
+		round(s.waitPerRequest()), s.Errors)
 
 	if s.Sample != "" {
 		fmt.Printf("        first failure: %s\n", strings.TrimSpace(s.Sample))
@@ -391,12 +434,50 @@ func analyse(results []step) {
 			float64(last.percentile(0.99))/float64(saturated.percentile(0.99)))
 	}
 
+	share := 0.0
+	if last.mean() > 0 {
+		share = float64(last.waitPerRequest()) / float64(last.mean()) * 100
+	}
+
 	fmt.Println("\nWhat saturated:")
 	fmt.Printf("  at %d clients the mean request takes %s, of which %s is spent waiting "+
 		"for a pooled connection (%.0f%%)\n",
-		last.Concurrency, round(last.mean()), round(last.waitPerRequest()),
-		float64(last.waitPerRequest())/float64(last.mean())*100)
-	fmt.Println("  the pool is the queue: the database is never asked to do more than it can")
+		last.Concurrency, round(last.mean()), round(last.waitPerRequest()), share)
+
+	if last.Shed > 0 {
+		fmt.Println("  admission control is holding that queue down; without it the wait grows " +
+			"with the client count")
+	} else {
+		fmt.Println("  the pool is the queue: the database is never asked to do more than it can")
+	}
+
+	reportShedding(results, best)
+}
+
+func reportShedding(results []step, best step) {
+	var shedding []step
+	for _, r := range results {
+		if r.Shed > 0 {
+			shedding = append(shedding, r)
+		}
+	}
+	if len(shedding) == 0 {
+		fmt.Println("\nAdmission control never engaged: nothing was shed at any level.")
+		return
+	}
+
+	first := shedding[0]
+	last := results[len(results)-1]
+
+	fmt.Println("\nAdmission control:")
+	fmt.Printf("  first sheds at    : %d clients, %.0f%% of offered load\n",
+		first.Concurrency, first.shedShare())
+	fmt.Printf("  at %d clients      : %.0f%% shed, admitted p99 %s, refusal p99 %s\n",
+		last.Concurrency, last.shedShare(),
+		round(last.percentile(0.99)), round(last.shedPercentile(0.99)))
+	fmt.Printf("  throughput kept   : %.0f ops/s against a peak of %.0f (%.0f%%)\n",
+		last.rate(), best.rate(), last.rate()/best.rate()*100)
+	fmt.Println("  a refused caller learns so quickly and retries with the same Idempotency-Key")
 }
 
 func round(d time.Duration) string {

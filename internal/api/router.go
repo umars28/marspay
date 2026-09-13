@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/umars28/marspay/internal/admission"
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
@@ -31,6 +32,7 @@ type Deps struct {
 	Loyalty     *loyalty.Service
 	Scores      *risk.Store
 	Pool        *pgxpool.Pool
+	Admission   *admission.Limiter
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -88,7 +90,7 @@ func NewRouter(d Deps) http.Handler {
 	})
 
 	if d.Pool != nil {
-		mux.HandleFunc("GET /internal/v1/saturation", poolStats(d.Pool))
+		mux.HandleFunc("GET /internal/v1/saturation", poolStats(d.Pool, d.Admission))
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -130,5 +132,14 @@ func NewRouter(d Deps) http.Handler {
 	if d.Keys != nil {
 		handler = merchant.APIKeyAuth(d.Keys)(handler)
 	}
-	return httpx.WithRequestID(auth.DevBearerAuth(handler))
+	handler = auth.DevBearerAuth(handler)
+
+	if d.Admission != nil {
+		handler = admission.Skip(alwaysAnswer, d.Admission.Middleware)(handler)
+	}
+	return httpx.WithRequestID(handler)
+}
+
+func alwaysAnswer(r *http.Request) bool {
+	return r.URL.Path == "/healthz" || r.URL.Path == "/internal/v1/saturation"
 }

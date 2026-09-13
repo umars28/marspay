@@ -55,22 +55,43 @@ psql "$DSN" -tAc "SELECT 'SET marspay:balance:acc_${USER_PREFIX}_' || i || '_use
                   FROM generate_series(0, ${USERS} - 1) AS i" \
   | redis-cli -p "$REDIS_PORT" --pipe >/dev/null 2>&1
 
+if lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "FAIL: something is already listening on ${ADDR}." >&2
+  echo "      Refusing to run: the ramp would measure that process, not this build." >&2
+  lsof -nP -iTCP:"${ADDR##*:}" -sTCP:LISTEN >&2
+  exit 1
+fi
+
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$ADDR" \
+MARSPAY_MAX_IN_FLIGHT="${MARSPAY_MAX_IN_FLIGHT:-}" \
+MARSPAY_ADMISSION_QUEUE="${MARSPAY_ADMISSION_QUEUE:-}" \
+MARSPAY_ADMISSION_MAX_WAIT="${MARSPAY_ADMISSION_MAX_WAIT:-}" \
   "$BIN" >"$LOG" 2>&1 &
 SERVER_PID=$!
 
-for _ in 1 2 3 4 5 6 7 8 9 10; do
-  curl_ok=$(psql "$DSN" -tAc "SELECT 1" 2>/dev/null || true)
-  [ "$curl_ok" = "1" ] && break
-  sleep 0.3
+STARTED=""
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+  if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "FAIL: the API exited during start-up:" >&2
+    cat "$LOG" >&2
+    exit 1
+  fi
+  if grep -q '"msg":"listening"' "$LOG" 2>/dev/null; then
+    STARTED=yes
+    break
+  fi
+  sleep 0.4
 done
-sleep 1
+
+[ -n "$STARTED" ] || { echo "FAIL: the API never reported listening:" >&2; cat "$LOG" >&2; exit 1; }
+
+echo "==> $(grep -o '"msg":"admission control"[^}]*' "$LOG" || echo 'admission control is not configured')"
 
 echo
 go run "$ROOT/cmd/stressdriver" \
   -base="http://${ADDR}" -user="$USER_PREFIX" -users="$USERS" -merchant="$MERCHANT_ID" \
-  -run="$RUN_ID" -levels="$LEVELS" -dwell="$DWELL"
+  -run="$RUN_ID" -levels="$LEVELS" -dwell="$DWELL" -backoff="${MARSPAY_STRESS_BACKOFF:-0s}"
 
 echo
 echo "==> the books after the ramp"

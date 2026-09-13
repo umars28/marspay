@@ -264,11 +264,27 @@ is enforced at the API layer rather than merely prompted for in the UI.
 | `/audit` | append-only, readable by everyone, writable by no one |
 | `/saturation` | connection pool counters and goroutine count, for load work |
 
-`/saturation` is the only one that returns no business data. It exposes what the pgx pool is
-doing — how many acquisitions found an empty pool, and how long callers spent waiting — so a
-load test can name the resource that queued instead of inferring it from latency. It reads
-counters and holds no lock, so it stays answerable while the pool is exhausted, which is
-exactly when it is worth asking.
+`/saturation` is the only one that returns no business data. It exposes what the pgx pool and
+the admission limiter are doing — how many acquisitions found an empty pool, how long callers
+spent waiting, how many requests were refused and why — so a load test can name the resource
+that queued instead of inferring it from latency. It reads counters and holds no lock, so it
+stays answerable while the pool is exhausted, which is exactly when it is worth asking. It and
+`/healthz` are the only two endpoints admission control never refuses.
+
+### Overload
+
+Any endpoint may answer `503 service_overloaded` when the API is past its bounded queue:
+
+```json
+{"error":{"type":"service_overloaded",
+          "message":"The service is at capacity.",
+          "request_id":"req_01M..."}}
+```
+
+It carries `Retry-After`. The request was **not started** — no ledger entry, no idempotency
+key claimed — so retrying with the same `Idempotency-Key` is both safe and expected. Honouring
+the header matters: measurements in the README show that a caller which retries immediately
+turns load shedding from a latency improvement into a throughput loss.
 
 ## 11. What the API deliberately does not offer
 

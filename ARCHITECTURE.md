@@ -256,7 +256,7 @@ durable, the feature is designed wrong.
 | Provider callback lost | ledger and provider disagree | reconciler flags it next run |
 | Float above 85% | too much of our money is out | instant payout degrades to batch automatically |
 | Merchant fraud | payout already sent, holdback insufficient | platform absorbs the loss; this is the real cost of the differentiator |
-| More clients than pooled connections | every request queues; throughput falls while latency climbs | **not handled yet** — see below |
+| More clients than pooled connections | every request queues; throughput falls while latency climbs | admission control refuses past a bounded queue — see below |
 
 ### 9a. The saturation point is a queue, not a limit
 
@@ -266,13 +266,22 @@ queue forms at roughly 16 concurrent clients against a default pool of 10, and p
 adding clients costs latency without buying throughput. At 384 clients, 97% of the mean
 request is spent waiting to borrow a connection — PostgreSQL itself is never the constraint.
 
-Two consequences are worth stating plainly. The pool size is a tuning knob with a measurable
-optimum rather than a number to guess at. And there is **no admission control**: the API queues
-excess load instead of shedding it, which for a payment system is the wrong trade. A caller
-that waits 114ms and then succeeds has usually already timed out and retried; the only reason
-this is currently survivable is that every money-moving endpoint requires an
-`Idempotency-Key`, so the retry is free. A bounded queue with early rejection belongs here and
-does not exist yet.
+Two consequences follow. The pool size is a tuning knob with a measurable optimum rather than a
+number to guess at. And an unbounded queue means unbounded latency, which for a payment system
+is the wrong trade — a caller that waits 114ms and then succeeds has usually already timed out
+and retried.
+
+`internal/admission` closes that. It bounds in-flight requests, bounds the queue behind them,
+and bounds how long anything may wait in that queue; past all three the API answers
+`503 service_overloaded` with `Retry-After`. `/healthz` and `/internal/v1/saturation` are
+exempt, because diagnostics must answer precisely when everything else is refusing to.
+
+The measured caveat matters more than the mechanism. Shedding only pays against a caller that
+honours `Retry-After`: with one that does, the p99 at 1,024 clients falls from 307ms to 207ms
+for 17% less throughput; with one that retries immediately, 42% of throughput is consumed by
+the act of refusing and the tail barely moves. The limiter therefore sits deliberately above
+the plateau — a backstop against unbounded queueing, not a throttle on normal traffic. The
+retry itself is safe because every money-moving endpoint requires an `Idempotency-Key`.
 
 ## 10. Deliberately out of scope
 

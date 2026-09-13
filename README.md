@@ -7,7 +7,7 @@ that differs — **get paid within seconds instead of the next business day**.
 The money is simulated. The system is not.
 
 > **Status: feature complete, pre-auth.** 41 endpoints across consumer, merchant, operations
-> and risk surfaces, backed by 252 tests across 12 packages including integration tests against
+> and risk surfaces, backed by 260 tests across 13 packages including integration tests against
 > real PostgreSQL, Redis and a Kafka broker. Merchant API keys are real; consumer
 > authentication is still a development stand-in, and device management waits on it.
 > Everything below states plainly what is proven and what is not.
@@ -62,6 +62,7 @@ Claims in this repo are meant to be checkable. The ones that matter:
 | Money survives a crash | `kill -9` the Postgres primary mid-payment | done |
 | Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | done |
 | The limit is known | ramp to saturation and name the resource that queues | done |
+| Overload is refused, not queued | shed past a bounded queue; measure whether it helps | done |
 
 None of these require a single real rupiah.
 
@@ -77,18 +78,18 @@ API, runs k6 against the real `POST /v1/payments` endpoint, then audits the book
 Measured on an M-series laptop, PostgreSQL 15, `synchronous_commit=on`, 50 virtual users:
 
 ```
-http_reqs .......... 224,164   5,604/s
-http_req_duration .. med=4.24ms  p(95)=11.11ms  p(99)=20.61ms  max=182ms
-http_req_failed .... 0.00%   0 out of 224,164
+http_reqs .......... 233,022   5,826/s
+http_req_duration .. med=4.81ms  p(95)=8.86ms  p(99)=16.44ms  max=225ms
+http_req_failed .... 0.00%   0 out of 233,022
 
  payments | ledger_transactions | ledger_entries | idempotency_keys | global_sum
-   224164 |              224164 |         672492 |           224164 |          0
+   233022 |              233022 |         699066 |           233022 |          0
 ```
 
 Three numbers matter more than the rate. `payments` equals `ledger_transactions` exactly, so
 no request produced a payment without a ledger transaction or the other way round.
 `ledger_entries` is exactly three times that, so every payment posted its full debit, credit
-and fee. And `global_sum` is zero after 220,000 concurrent writes.
+and fee. And `global_sum` is zero after 230,000 concurrent writes.
 
 **This test used to drive one consumer, and that was a bug in the test.** VR-08 caps outbound
 value at Rp 50,000,000 per user per hour, and each payment here is Rp 32,000 — so a single
@@ -97,7 +98,7 @@ account can make 1,562 payments and then every further request correctly returns
 engine existed and cannot be reproduced against this code; re-running it today yields exactly
 1,562 successes and half a million refusals. The fix is to drive a population of 500
 consumers, which is both what the product actually sees and what the rules are written for.
-The rate dropped from 6,294/s to 5,604/s in the process: 500 wallets mean 500 Redis keys and
+The rate dropped from 6,294/s to 5,826/s in the process: 500 wallets mean 500 Redis keys and
 500 velocity counters instead of one hot pair, which is the honest number.
 
 This is a single-node laptop figure, not a capacity claim for production. Run it yourself; the
@@ -141,7 +142,7 @@ to fail, and none of them left a trace.
 Do not read 886 as a throughput figure. The driver fsyncs its journal under a single mutex on
 every acknowledgement, so every commit is serialised behind one disk flush. That is the
 opposite of what the load test does, and the gap between the two numbers — roughly 180/s here
-against 5,604/s there — is entirely that serialisation, not the database.
+against 5,826/s there — is entirely that serialisation, not the database.
 
 ### The stress test: where it stops scaling, and why
 
@@ -154,66 +155,100 @@ concurrency level for ten seconds and asks the API what its own connection pool 
 between steps, so the answer to "what broke" is measured rather than guessed.
 
 ```
-==> 10s per step after 1.5s of warm-up, stepping 1,2,4,8,16,32,64,128,256,384 across 500 consumers
+==> 10s per step, stepping 1..1024 across 500 consumers
+==> a refused client waits 100ms before trying again
 ==> the API holds a pool of 10 connections on 10 cores
 
-clients     ops/s       p50       p95       p99   errors poolwait/req   waited%     gor
-----------------------------------------------------------------------------------------
-      1      1567     597µs     701µs       1ms        0         1µs        0%       9
-      2      2819     657µs     872µs     1.5ms        0          0s        0%      11
-      4      3051       1ms       2ms     3.9ms        0         1µs        0%      11
-      8      3864     1.4ms     2.7ms      16ms        0         2µs        0%      14
-     16      4851     2.4ms     5.1ms    17.4ms        0       658µs       65%      29
-     32      4006     5.7ms    16.4ms    47.6ms        0       4.6ms       99%      28
-     64      2478      20ms    58.4ms   122.8ms        0      19.2ms      100%      28
-    128      3472    35.7ms    45.6ms    68.7ms        0      33.2ms      100%      28
-    256      3291    72.4ms   108.6ms     150ms        0      73.9ms      100%      30
-    384      3235   110.9ms   154.6ms   187.7ms        0     114.3ms      100%      33
+clients     ops/s       p50       p95       p99  offered   shed%  shed p99 poolwait/req   errors
+------------------------------------------------------------------------------------------------
+      1      1477     604µs     880µs     1.7ms     1477      0%        0s          0s        0
+      2      2853     646µs     851µs     1.3ms     2853      0%        0s          0s        0
+      4      3623       1ms     1.5ms     2.7ms     3623      0%        0s         1µs        0
+      8      5436     1.4ms     1.7ms     2.1ms     5436      0%        0s         1µs        0
+     16      6861     2.2ms     2.9ms     4.7ms     6861      0%        0s       241µs        0
+     32      5019     5.7ms    10.3ms    16.9ms     5019      0%        0s       3.5ms        0
+     64      4962    11.2ms    22.2ms    26.2ms     4962      0%        0s      10.1ms        0
+    128      5489      22ms    35.1ms      41ms     5489      0%        0s      20.6ms        0
+    256      5628    41.3ms    75.2ms    92.3ms     5628      0%        0s      42.6ms        0
+    512      3953   132.2ms   156.7ms   469.9ms     3953      0%        0s     125.5ms        0
+   1024      5082   106.6ms   165.6ms   188.7ms     9052     44%    32.6ms      97.1ms        0
 
 Where it stops scaling (pool of 10 connections):
-  peak throughput   : 4851 ops/s at 16 clients
-  queue forms at    : 16 clients, where 65% of database acquisitions find an empty pool
-  past that         : 24x the clients buys 0.67x the throughput and costs 10.8x the p99
+  peak throughput   : 6861 ops/s at 16 clients
+  queue forms at    : 16 clients, where 51% of database acquisitions find an empty pool
 
 What saturated:
-  at 384 clients the mean request takes 117.9ms, of which 114.3ms is spent waiting for a
-  pooled connection (97%)
-  the pool is the queue: the database is never asked to do more than it can
+  at 1024 clients the mean request takes 115.1ms, of which 97.1ms is spent waiting for a
+  pooled connection (84%)
 
  payments | ledger_transactions | ledger_entries | global_sum
-   374477 |              374477 |        1123431 |          0
+   579668 |              579668 |        1739004 |          0
 
 PASS: the books stayed balanced through saturation
 ```
 
 The shape is the point. Up to eight clients, throughput rises and latency barely moves. At
-sixteen, the `waited%` column jumps from nothing to 65% — that is the moment requests start
-queueing for one of ten pooled connections rather than for the database. From there, adding
-clients buys nothing: 384 clients produce **less** throughput than 16 while paying 46× the
-p50. That is a queue, not a capacity limit, and Little's Law falls out of the numbers exactly:
-a mean of 117.9ms at 3,235 ops/s puts 381 requests in flight, and there are 384 clients. Every
-one of them is waiting almost all of the time.
+sixteen, the `waited%` reported by the pool jumps from nothing to 51% — that is the moment
+requests start queueing for one of ten pooled connections rather than for the database. From
+there, adding clients buys nothing: 1,024 clients produce less throughput than 16 while paying
+48× the p50.
 
-The `poolwait/req` column is what turns the observation into a diagnosis. At 384 clients the
-mean request takes 117.9ms and spends 114.3ms of it waiting to borrow a connection. **The
-database is not the bottleneck; the pool in front of it is.** PostgreSQL was configured for
-100 connections and pgx defaulted to 10, one per core, so nine tenths of the configured
-capacity sat unused while requests queued.
+The `poolwait/req` column turns the observation into a diagnosis. At 1,024 clients the mean
+request takes 115.1ms and spends 97.1ms of it waiting to borrow a connection. **The database is
+not the bottleneck; the pool in front of it is.** PostgreSQL was configured for 100 connections
+and pgx defaulted to 10, one per core, so nine tenths of the configured capacity sat unused
+while requests queued.
 
-Two things follow, and they pull in opposite directions:
+Read the 512-client row against the 1,024-client row. At 512 nothing is shed and the p99 is
+469.9ms — the worst in the whole ramp. At 1,024 admission control engages, 44% of offered load
+is refused in 32.6ms, and the p99 for everyone admitted falls back to 188.7ms. The queue stops
+growing because it is no longer allowed to.
 
-- Raising the pool would raise the plateau, up to the point where PostgreSQL's own context
-  switching costs more than it returns. The pool size is a tuning knob, and this graph is how
-  you would find its real value rather than guessing.
-- The plateau is where a real system should **shed load**, not queue it. A request that waits
-  114ms for a connection and then succeeds is worse for a payment API than one rejected in
-  1ms, because the caller has already timed out and will retry — which is why every
-  money-moving endpoint requires an `Idempotency-Key`. There is no admission control here yet;
-  that is a known gap, not an oversight.
-
-Run-to-run the peak lands anywhere between roughly 4,800 and 6,800 ops/s on this laptop, so
+Run-to-run the peak lands anywhere between roughly 4,800 and 7,300 ops/s on this laptop, so
 treat the rate as an order of magnitude. The concurrency at which the queue forms is stable
 across runs, and that is the number worth quoting.
+
+> **A correction.** The table published here previously was measured against the wrong process.
+> A server left running on port 8099 from an earlier debugging session meant `stress-test.sh`
+> silently failed to bind, and the ramp measured that stale binary instead of the one it had
+> just built. The script now refuses to start if anything is already listening, and aborts if
+> the API does not report `listening` in its own log. The numbers above come from a run that
+> was verified to be measuring the build under test.
+
+### Load shedding, and when it is worth having
+
+At the saturation point the API has a choice: queue the excess or refuse it. `internal/admission`
+bounds concurrency, bounds the queue behind it, and bounds how long anything may sit in that
+queue. Past all three it answers `503 service_overloaded` with a `Retry-After` header. The
+defaults are 512 in flight, 128 queued, 25ms of patience, all settable by environment variable.
+
+Whether that helps turned out to depend entirely on how the caller behaves. At 1,024 clients:
+
+| Admission control | Caller | ops/s | p50 | p99 | shed |
+|---|---|---|---|---|---|
+| off | retries immediately | 5,394 | 162.9ms | 370.8ms | 0% |
+| on | retries immediately | 3,121 | 177.7ms | 299.4ms | 97% |
+| off | waits 100ms first | 6,533 | 139.4ms | 307.7ms | 0% |
+| on | waits 100ms first | 5,452 | **93.9ms** | **207ms** | 43% |
+
+Against a caller that honours the `Retry-After`, shedding cuts the p99 by a third and the p50
+by a third, for 17% less throughput. Against a caller that hammers, it is a **bad trade**: 42%
+of the throughput disappears into the cost of refusing requests, and the tail barely improves.
+A refusal is cheap, but it is not free, and at 100,000 refusals per second the server spends
+more of itself saying no than doing work.
+
+That is why the 503 carries `Retry-After`, and why the load generator has a `-backoff` flag —
+a load test that models only the hostile client would have concluded this feature was harmful.
+The first four measurements did exactly that.
+
+The defaults sit deliberately above the plateau rather than inside it. An earlier default of 64
+in flight was measured and rejected: at 384 clients it cost 55% of throughput to gain 11% on
+the p99, because limiting concurrency below the level the system handles comfortably only
+starves it. The limiter is a backstop against unbounded queueing, not a throttle on normal
+traffic.
+
+`/healthz` and `/internal/v1/saturation` are never shed. Diagnostics have to answer precisely
+when everything else is refusing to.
 
 ### The comparison: an append-only ledger against a balance column
 
@@ -294,6 +329,7 @@ cmd/crashdriver/     load and verify phases for the crash test
 cmd/ledgerbench/     append-only ledger against a balance column
 cmd/stressdriver/    concurrency ramp that finds the saturation point
 internal/
+  admission/         bounded in-flight, bounded queue, bounded wait
   money/             minor units, fee rounding
   ledger/            double-entry postings, Postgres repository
   wallet/            balance reservation (Redis Lua, and an in-memory twin)

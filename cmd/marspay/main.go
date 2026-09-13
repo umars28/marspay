@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
+	"github.com/umars28/marspay/internal/admission"
 	"github.com/umars28/marspay/internal/api"
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/idempotency"
@@ -79,6 +81,18 @@ func run() error {
 
 	audit := compliance.NewAudit(pool)
 
+	inFlight := envInt("MARSPAY_MAX_IN_FLIGHT", 512)
+	limiter := admission.New(admission.Config{
+		InFlight: inFlight,
+		Queue:    envInt("MARSPAY_ADMISSION_QUEUE", 128),
+		MaxWait:  envDuration("MARSPAY_ADMISSION_MAX_WAIT", 25*time.Millisecond),
+	})
+	slog.Info("admission control",
+		"in_flight", inFlight,
+		"queue", limiter.Stats().QueueLimit,
+		"max_wait_ms", limiter.Stats().MaxWaitMillis,
+		"pool_max_conns", pool.Config().MaxConns)
+
 	router := api.NewRouter(api.Deps{
 		Payments:    payment.NewService(pool, ledgerRepo, balances),
 		Txn:         txn.NewService(pool, ledgerRepo, balances),
@@ -88,14 +102,15 @@ func run() error {
 			velocityStore),
 		Blocks: compliance.NewBlocks(pool,
 			compliance.NewRedisFlags(rdb, "marspay:"), audit),
-		Audit:    audit,
-		KYC:      compliance.NewKYC(pool, audit),
-		Disputes: compliance.NewDisputes(pool, ledgerRepo, balances, audit),
-		Keys:     merchant.NewKeys(pool, audit),
-		Outlets:  merchant.NewOutlets(pool, audit),
-		Loyalty:  loyalty.NewService(pool, loyalty.NewRedisQuota(rdb, "marspay:")),
-		Scores:   risk.NewStore(pool),
-		Pool:     pool,
+		Audit:     audit,
+		KYC:       compliance.NewKYC(pool, audit),
+		Disputes:  compliance.NewDisputes(pool, ledgerRepo, balances, audit),
+		Keys:      merchant.NewKeys(pool, audit),
+		Outlets:   merchant.NewOutlets(pool, audit),
+		Loyalty:   loyalty.NewService(pool, loyalty.NewRedisQuota(rdb, "marspay:")),
+		Scores:    risk.NewStore(pool),
+		Pool:      pool,
+		Admission: limiter,
 	})
 
 	srv := &http.Server{
@@ -132,4 +147,20 @@ func env(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func envInt(key string, fallback int) int {
+	v, err := strconv.Atoi(os.Getenv(key))
+	if err != nil || v < 1 {
+		return fallback
+	}
+	return v
+}
+
+func envDuration(key string, fallback time.Duration) time.Duration {
+	v, err := time.ParseDuration(os.Getenv(key))
+	if err != nil || v <= 0 {
+		return fallback
+	}
+	return v
 }

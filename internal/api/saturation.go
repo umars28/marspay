@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/umars28/marspay/internal/admission"
 	"github.com/umars28/marspay/internal/httpx"
 )
 
@@ -23,11 +24,20 @@ type Saturation struct {
 	MaxProcs            int   `json:"max_procs"`
 	ConstructingConns   int32 `json:"constructing_conns"`
 	MaxLifetimeDestroys int64 `json:"max_lifetime_destroy_count"`
+
+	Admission *admission.Stats `json:"admission,omitempty"`
 }
 
-func poolStats(pool *pgxpool.Pool) http.HandlerFunc {
+func poolStats(pool *pgxpool.Pool, limiter *admission.Limiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := pool.Stat()
+
+		var admissionStats *admission.Stats
+		if limiter != nil {
+			got := limiter.Stats()
+			admissionStats = &got
+		}
+
 		httpx.WriteJSON(w, http.StatusOK, Saturation{
 			MaxConns:            s.MaxConns(),
 			TotalConns:          s.TotalConns(),
@@ -42,6 +52,7 @@ func poolStats(pool *pgxpool.Pool) http.HandlerFunc {
 			MaxProcs:            runtime.GOMAXPROCS(0),
 			ConstructingConns:   s.ConstructingConns(),
 			MaxLifetimeDestroys: s.MaxLifetimeDestroyCount(),
+			Admission:           admissionStats,
 		})
 	}
 }
