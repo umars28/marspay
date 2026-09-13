@@ -201,14 +201,14 @@ func TestHistoryMergesEveryKindOfMovement(t *testing.T) {
 	f.post(t, id.ULID(), f.validBody(1_000_000))
 	f.postTo(t, "/v1/transfers", id.ULID(),
 		`{"to":"`+peerID+`","amount":500000,"currency":"IDR"}`, f.userID)
-	f.postTo(t, "/v1/topups", id.ULID(),
-		`{"source":"bank_va","provider_code":"BCA","amount":50000000,"currency":"IDR"}`, f.userID)
 	f.postTo(t, "/v1/withdrawals", id.ULID(),
 		`{"bank_code":"BCA","account_number":"4471","account_name":"T","amount":100000,"currency":"IDR"}`,
 		f.userID)
 	f.postTo(t, "/v1/bill-payments", id.ULID(),
 		`{"biller_code":"PLN_POSTPAID","customer_ref":"512201884471","amount":100000,"currency":"IDR"}`,
 		f.userID)
+	f.postTo(t, "/v1/topups", id.ULID(),
+		`{"source":"bank_va","provider_code":"BCA","amount":50000000,"currency":"IDR"}`, f.userID)
 
 	rec := f.get(t, "/v1/transactions")
 	if rec.Code != http.StatusOK {
