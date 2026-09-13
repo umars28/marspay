@@ -23,10 +23,10 @@ const (
 )
 
 var (
-	ErrUnbalanced   = errors.New("ledger: entries do not sum to zero")
-	ErrZeroEntry    = errors.New("ledger: entry amount must not be zero")
-	ErrTooFewEntry  = errors.New("ledger: a posting needs at least two entries")
-	ErrNoAccount    = errors.New("ledger: entry must reference an account")
+	ErrUnbalanced    = errors.New("ledger: entries do not sum to zero")
+	ErrZeroEntry     = errors.New("ledger: entry amount must not be zero")
+	ErrTooFewEntry   = errors.New("ledger: a posting needs at least two entries")
+	ErrNoAccount     = errors.New("ledger: entry must reference an account")
 	ErrNoTransaction = errors.New("ledger: posting must have a transaction id")
 )
 
