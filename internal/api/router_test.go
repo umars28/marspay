@@ -17,6 +17,7 @@ import (
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/testdb"
 	"github.com/umars28/marspay/internal/txn"
+	"github.com/umars28/marspay/internal/velocity"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -25,6 +26,7 @@ type fixture struct {
 	pool       *pgxpool.Pool
 	wallet     *wallet.Memory
 	ledger     *ledger.Repo
+	counter    *velocity.MemoryCounter
 	userID     string
 	merchantID string
 }
@@ -44,15 +46,24 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 		t.Fatalf("warm: %v", err)
 	}
 
+	store := velocity.NewStore(pool)
+	if err := store.SyncRules(ctx, velocity.DefaultRules()); err != nil {
+		t.Fatalf("sync velocity rules: %v", err)
+	}
+	counter := velocity.NewMemoryCounter()
+
 	return &fixture{
 		router: NewRouter(Deps{
 			Payments:    payment.NewService(pool, repo, mem),
 			Txn:         txn.NewService(pool, repo, mem),
 			Idempotency: idempotency.NewStore(pool),
+			Velocity: velocity.NewGuard(
+				velocity.NewEngine(counter, velocity.DefaultRules()), store),
 		}),
 		pool:       pool,
 		wallet:     mem,
 		ledger:     repo,
+		counter:    counter,
 		userID:     userID,
 		merchantID: merchantID,
 	}, ctx
@@ -64,7 +75,7 @@ func seed(t *testing.T, ctx context.Context, pool *pgxpool.Pool, userID, merchan
 	_, err := pool.Exec(ctx,
 		`INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status)
 		 VALUES ($1, $2, 'Test User', 'x', 'verified', 'active')`,
-		userID, "0812"+id.ULID()[:8])
+		userID, "0812"+id.ULID()[16:24])
 	if err != nil {
 		t.Fatalf("seed user: %v", err)
 	}

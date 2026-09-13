@@ -15,6 +15,7 @@ import (
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
 	"github.com/umars28/marspay/internal/rail"
+	"github.com/umars28/marspay/internal/velocity"
 )
 
 type Biller struct {
@@ -137,6 +138,12 @@ func (s *Service) PayBill(ctx context.Context, userID string, req BillPaymentReq
 		return nil, err
 	}
 	if err := overLimit(amount, limit); err != nil {
+		return nil, err
+	}
+
+	if err := s.checkVelocity(ctx, velocity.Subject{
+		UserID: userID, Kind: velocity.KindBill, Amount: amount,
+	}); err != nil {
 		return nil, err
 	}
 

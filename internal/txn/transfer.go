@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
+	"github.com/umars28/marspay/internal/velocity"
 )
 
 type TransferRequest struct {
@@ -67,6 +68,17 @@ func (s *Service) CreateTransfer(ctx context.Context, userID string, req Transfe
 	if payee.ID == userID {
 		return nil, httpx.Errorf(http.StatusUnprocessableEntity, httpx.TypeInvalidRequest,
 			"You cannot transfer to yourself.")
+	}
+
+	newRecipient, err := s.isNewRecipient(ctx, userID, payee.ID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.checkVelocity(ctx, velocity.Subject{
+		UserID: userID, Kind: velocity.KindTransfer,
+		Amount: amount, NewRecipient: newRecipient,
+	}); err != nil {
+		return nil, err
 	}
 
 	payerAccount := ledger.UserWallet(userID)
@@ -125,6 +137,18 @@ func (s *Service) CreateTransfer(ctx context.Context, userID string, req Transfe
 		return nil, fmt.Errorf("txn: transfer committed but the payee cache is stale: %w", err)
 	}
 	return result, nil
+}
+
+func (s *Service) isNewRecipient(ctx context.Context, payerID, payeeID string) (bool, error) {
+	var seen int
+	err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM transfers
+		 WHERE payer_user_id = $1 AND payee_user_id = $2 AND status = 'succeeded'`,
+		payerID, payeeID).Scan(&seen)
+	if err != nil {
+		return false, fmt.Errorf("txn: recipient history: %w", err)
+	}
+	return seen == 0, nil
 }
 
 func (s *Service) findPayee(ctx context.Context, to string) (UserRef, error) {

@@ -16,6 +16,7 @@ import (
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
 	"github.com/umars28/marspay/internal/rail"
+	"github.com/umars28/marspay/internal/velocity"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -24,6 +25,7 @@ type Service struct {
 	ledger     *ledger.Repo
 	wallet     wallet.Reserver
 	billerRail rail.Rail
+	guard      *velocity.Guard
 }
 
 func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service {
@@ -33,6 +35,18 @@ func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service 
 func (s *Service) WithBillerRail(r rail.Rail) *Service {
 	s.billerRail = r
 	return s
+}
+
+func (s *Service) WithVelocity(g *velocity.Guard) *Service {
+	s.guard = g
+	return s
+}
+
+func (s *Service) checkVelocity(ctx context.Context, subj velocity.Subject) error {
+	if s.guard == nil {
+		return nil
+	}
+	return s.guard.Check(ctx, subj)
 }
 
 func (s *Service) reserve(ctx context.Context, account string, amount money.Minor) (money.Minor, error) {

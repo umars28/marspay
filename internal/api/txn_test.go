@@ -38,7 +38,7 @@ func (f *fixture) seedPeer(t *testing.T, ctx context.Context) string {
 	_, err := f.pool.Exec(ctx,
 		`INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status)
 		 VALUES ($1, $2, 'Rani Wulandari', 'x', 'verified', 'active')`,
-		peerID, "0813"+id.ULID()[:8])
+		peerID, "0813"+id.ULID()[16:24])
 	if err != nil {
 		t.Fatalf("seed peer: %v", err)
 	}

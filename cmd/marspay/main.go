@@ -18,6 +18,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
+	"github.com/umars28/marspay/internal/velocity"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -63,10 +64,22 @@ func run() error {
 	ledgerRepo := ledger.NewRepo(pool)
 	balances := wallet.NewRedis(rdb, "marspay:", 12*time.Hour)
 
+	velocityStore := velocity.NewStore(pool)
+	if err := velocityStore.SyncRules(ctx, velocity.DefaultRules()); err != nil {
+		return err
+	}
+	rules, err := velocityStore.Load(ctx)
+	if err != nil {
+		return err
+	}
+
 	router := api.NewRouter(api.Deps{
 		Payments:    payment.NewService(pool, ledgerRepo, balances),
 		Txn:         txn.NewService(pool, ledgerRepo, balances),
 		Idempotency: idempotency.NewStore(pool),
+		Velocity: velocity.NewGuard(
+			velocity.NewEngine(velocity.NewRedisCounter(rdb, "marspay:"), rules),
+			velocityStore),
 	})
 
 	srv := &http.Server{

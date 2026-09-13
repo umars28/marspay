@@ -12,6 +12,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
+	"github.com/umars28/marspay/internal/velocity"
 )
 
 const WithdrawalAdminFee = money.Minor(250_000)
@@ -84,6 +85,12 @@ func (s *Service) CreateWithdrawal(ctx context.Context, userID string, req Withd
 		return nil, err
 	}
 	if err := overLimit(amount, limit); err != nil {
+		return nil, err
+	}
+
+	if err := s.checkVelocity(ctx, velocity.Subject{
+		UserID: userID, Kind: velocity.KindWithdrawal, Amount: amount,
+	}); err != nil {
 		return nil, err
 	}
 

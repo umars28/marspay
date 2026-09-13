@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/outbox"
+	"github.com/umars28/marspay/internal/velocity"
 )
 
 const (
@@ -77,6 +78,12 @@ func (s *Service) CreateTopup(ctx context.Context, userID string, req TopupReque
 				"minimum": int64(MinTopup),
 				"maximum": int64(MaxTopup),
 			})
+	}
+
+	if err := s.checkVelocity(ctx, velocity.Subject{
+		UserID: userID, Kind: velocity.KindTopup, Amount: amount,
+	}); err != nil {
+		return nil, err
 	}
 
 	topupID := id.New("tup")

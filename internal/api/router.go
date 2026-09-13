@@ -8,16 +8,23 @@ import (
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
+	"github.com/umars28/marspay/internal/velocity"
 )
 
 type Deps struct {
 	Payments    *payment.Service
 	Txn         *txn.Service
 	Idempotency *idempotency.Store
+	Velocity    *velocity.Guard
 }
 
 func NewRouter(d Deps) http.Handler {
 	mux := http.NewServeMux()
+
+	if d.Velocity != nil {
+		d.Payments = d.Payments.WithVelocity(d.Velocity)
+		d.Txn = d.Txn.WithVelocity(d.Velocity)
+	}
 
 	payments := payment.NewHandler(d.Payments)
 	movements := txn.NewHandler(d.Txn)
