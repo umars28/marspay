@@ -10,6 +10,7 @@ import (
 	"github.com/umars28/marspay/internal/loyalty"
 	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/payment"
+	"github.com/umars28/marspay/internal/risk"
 	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/velocity"
 )
@@ -26,6 +27,7 @@ type Deps struct {
 	Keys        *merchant.Keys
 	Outlets     *merchant.Outlets
 	Loyalty     *loyalty.Service
+	Scores      *risk.Store
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -109,6 +111,12 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /v1/money-requests", l.Incoming)
 		mux.HandleFunc("POST /v1/money-requests/{id}/decline", l.Decline)
 		mux.HandleFunc("POST /v1/bill-splits", l.CreateSplit)
+	}
+
+	if d.Scores != nil {
+		scores := risk.NewHandler(d.Scores)
+		mux.HandleFunc("GET /v1/payouts/config", scores.PayoutConfig)
+		mux.HandleFunc("GET /internal/v1/merchants/{id}/score", scores.MerchantScore)
 	}
 
 	handler := http.Handler(mux)

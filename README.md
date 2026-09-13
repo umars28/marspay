@@ -6,11 +6,11 @@ that differs — **get paid within seconds instead of the next business day**.
 
 The money is simulated. The system is not.
 
-> **Status: in progress.** The ledger, payments API, risk scoring, instant payout, webhook
-> dispatcher, reconciler, transactional outbox and its Kafka relay are built and tested — 113
-> tests across 11 packages, including integration tests against real PostgreSQL, Redis and a
-> Kafka broker. Authentication is a development stand-in. Everything below states plainly what
-> is proven and what is not.
+> **Status: feature complete, pre-auth.** 41 endpoints across consumer, merchant, operations
+> and risk surfaces, backed by 252 tests across 12 packages including integration tests against
+> real PostgreSQL, Redis and a Kafka broker. Merchant API keys are real; consumer
+> authentication is still a development stand-in, and device management waits on it.
+> Everything below states plainly what is proven and what is not.
 
 ## Why this exists
 
@@ -151,6 +151,11 @@ internal/
   rail/              bank rail interface and the fault-injecting simulator
   payout/            instant payout, float guard, rail selection
   reconcile/         internal books vs provider statement
+  txn/               transfers, top ups, withdrawals, bills, refunds
+  compliance/        audit log, account blocks, KYC queue, disputes
+  merchant/          API keys, outlets, staff
+  loyalty/           points, offers, money requests, bill splits
+  velocity/          hot-path rule engine
   webhook/           signing, backoff schedule, dispatcher with dead letter queue
   outbox/            transactional outbox, ordered relay, Kafka publisher
   api/               router and wiring

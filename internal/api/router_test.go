@@ -18,6 +18,7 @@ import (
 	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/payment"
+	"github.com/umars28/marspay/internal/risk"
 	"github.com/umars28/marspay/internal/testdb"
 	"github.com/umars28/marspay/internal/txn"
 	"github.com/umars28/marspay/internal/velocity"
@@ -76,6 +77,7 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 			Keys:     merchant.NewKeys(pool, audit),
 			Outlets:  merchant.NewOutlets(pool, audit),
 			Loyalty:  loyalty.NewService(pool, quota),
+			Scores:   risk.NewStore(pool),
 		}),
 		pool:       pool,
 		wallet:     mem,

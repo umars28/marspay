@@ -46,6 +46,7 @@ type Service struct {
 	float  *Float
 	rails  []rail.Rail
 	health map[rail.Name]rail.Health
+	scores *risk.Store
 	now    func() time.Time
 }
 
@@ -56,6 +57,7 @@ func NewService(pool *pgxpool.Pool, l *ledger.Repo, f *Float, rails []rail.Rail)
 		float:  f,
 		rails:  rails,
 		health: map[rail.Name]rail.Health{},
+		scores: risk.NewStore(pool),
 		now:    time.Now,
 	}
 }
@@ -71,6 +73,9 @@ func (s *Service) Settle(ctx context.Context, paymentID, merchantID string, gros
 
 	score, err := risk.Evaluate(factors)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := s.scores.Record(ctx, merchantID, score); err != nil {
 		return nil, err
 	}
 
