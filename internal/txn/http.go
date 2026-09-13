@@ -2,6 +2,7 @@ package txn
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/httpx"
@@ -145,6 +146,68 @@ func (h *Handler) ProviderCallback(w http.ResponseWriter, r *http.Request) {
 		Amount:       money.Minor(req.Amount),
 		Outcome:      req.Outcome,
 	})
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) CreateRefund(w http.ResponseWriter, r *http.Request) {
+	if _, ok := caller(w, r); !ok {
+		return
+	}
+
+	var req RefundRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.service.CreateRefund(r.Context(), req)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
+	userID, ok := caller(w, r)
+	if !ok {
+		return
+	}
+
+	result, err := h.service.Balance(r.Context(), userID)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) History(w http.ResponseWriter, r *http.Request) {
+	userID, ok := caller(w, r)
+	if !ok {
+		return
+	}
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	result, err := h.service.History(r.Context(), userID, limit)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
+	userID, ok := caller(w, r)
+	if !ok {
+		return
+	}
+
+	result, err := h.service.Profile(r.Context(), userID)
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return

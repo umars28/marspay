@@ -30,7 +30,12 @@ func NewRouter(d Deps) http.Handler {
 	mux.Handle("POST /v1/bill-payments", guard(http.HandlerFunc(movements.PayBill)))
 	mux.HandleFunc("GET /v1/billers", movements.ListBillers)
 	mux.HandleFunc("POST /v1/billers/{code}/inquire", movements.Inquire)
+	mux.Handle("POST /v1/refunds", guard(http.HandlerFunc(movements.CreateRefund)))
 	mux.HandleFunc("POST /v1/callbacks/{provider}", movements.ProviderCallback)
+
+	mux.HandleFunc("GET /v1/balance", movements.Balance)
+	mux.HandleFunc("GET /v1/transactions", movements.History)
+	mux.HandleFunc("GET /v1/me", movements.Profile)
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
