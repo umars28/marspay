@@ -181,7 +181,7 @@ CREATE TABLE idempotency_keys (
   request_hash   TEXT NOT NULL,
   status         TEXT NOT NULL CHECK (status IN ('in_progress','completed')),
   response_code  INT,
-  response_body  JSONB,
+  response_body  BYTEA,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at     TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (scope, key)
@@ -195,6 +195,12 @@ and must return `422`, not silently replay the first response.
 The completed response body is stored so a replay returns the original answer byte for byte,
 including the original `id`. Retention is 24 hours; the row is not the source of truth, the
 ledger is.
+
+`response_body` is `BYTEA`, not `JSONB`, and the difference is not cosmetic. `JSONB` is a
+parsed representation: it reorders object keys and normalises whitespace, so what comes back
+out is semantically equal to what went in but not byte-identical. That silently breaks the
+"byte for byte" promise in the API contract, and it breaks HMAC signatures computed over a
+response body. If the column exists to replay bytes, it has to store bytes.
 
 ## 4. Instant payout — the tables the differentiator needs
 

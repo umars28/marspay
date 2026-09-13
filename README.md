@@ -66,11 +66,37 @@ ARCHITECTURE.md      service map, consistency models, failure modes
 docs/
   database.md        schema design and rationale
   api.md             HTTP contract, idempotency, webhooks
+cmd/marspay/         API server entrypoint
+internal/
+  money/             minor units, fee rounding
+  ledger/            double-entry postings, Postgres repository
+  wallet/            balance reservation (Redis Lua, and an in-memory twin)
+  idempotency/       key store and middleware
+  payment/           payment service and handler
+  api/               router and wiring
+  httpx/             error envelope, request ids, strict JSON decoding
+  id/                prefixed ULIDs
+  testdb/            per-package throwaway database for tests
+migrations/          numbered SQL, up and down
+scripts/             test infrastructure, ledger invariant check
 mockup/              clickable UI prototype, 38 screens, no backend
 ```
 
-Backend directories (`cmd/`, `internal/`, `migrations/`, `deploy/`) arrive with the
-implementation.
+## Running the API locally
+
+```sh
+./scripts/test-db.sh up                # PostgreSQL and Redis on non-default ports
+for f in migrations/*.up.sql; do psql "$(./scripts/test-db.sh dsn)" -f "$f"; done
+
+MARSPAY_DATABASE_URL="$(./scripts/test-db.sh dsn)" \
+MARSPAY_REDIS_ADDR="$(./scripts/test-db.sh redis-addr)" \
+MARSPAY_ADDR=127.0.0.1:8099 \
+  go run ./cmd/marspay
+```
+
+`POST /v1/payments` is implemented. Authentication is a development stand-in: the bearer
+token is taken as the user id until the real auth service exists. It is named
+`DevBearerAuth` so nobody mistakes it for the real thing.
 
 ## Running the tests
 

@@ -29,6 +29,13 @@ func (r *Repo) Post(ctx context.Context, p Posting) error {
 	return r.post(ctx, p)
 }
 
+func (r *Repo) PostTx(ctx context.Context, tx pgx.Tx, p Posting) error {
+	if err := p.Validate(); err != nil {
+		return err
+	}
+	return writePosting(ctx, tx, p)
+}
+
 func (r *Repo) post(ctx context.Context, p Posting) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -36,7 +43,18 @@ func (r *Repo) post(ctx context.Context, p Posting) error {
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	_, err = tx.Exec(ctx,
+	if err := writePosting(ctx, tx, p); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return TranslateCommitError(err)
+	}
+	return nil
+}
+
+func writePosting(ctx context.Context, tx pgx.Tx, p Posting) error {
+	_, err := tx.Exec(ctx,
 		`INSERT INTO ledger_transactions (id, kind, reference_id, description)
 		 VALUES ($1, $2, NULLIF($3, ''), NULLIF($4, ''))`,
 		p.TransactionID, string(p.Kind), p.ReferenceID, p.Description)
@@ -54,14 +72,10 @@ func (r *Repo) post(ctx context.Context, p Posting) error {
 	if err := tx.SendBatch(ctx, batch).Close(); err != nil {
 		return fmt.Errorf("ledger: insert entries: %w", err)
 	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return translateCommitError(err)
-	}
 	return nil
 }
 
-func translateCommitError(err error) error {
+func TranslateCommitError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && strings.Contains(pgErr.Message, "is unbalanced") {
 		return fmt.Errorf("%w: rejected by database at commit: %s", ErrUnbalanced, pgErr.Message)

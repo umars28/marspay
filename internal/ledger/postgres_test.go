@@ -3,67 +3,18 @@ package ledger
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
-	"sort"
 	"sync"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/money"
+	"github.com/umars28/marspay/internal/testdb"
 )
 
 func testRepo(t *testing.T) (*Repo, context.Context) {
 	t.Helper()
-
-	dsn := os.Getenv("MARSPAY_TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("set MARSPAY_TEST_DATABASE_URL to run ledger integration tests")
-	}
-
-	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, dsn)
-	if err != nil {
-		t.Fatalf("connect: %v", err)
-	}
-	t.Cleanup(pool.Close)
-
-	applyMigrations(t, ctx, pool)
+	pool, ctx := testdb.New(t)
 	return NewRepo(pool), ctx
-}
-
-func applyMigrations(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
-	t.Helper()
-
-	down, err := filepath.Glob("../../migrations/*.down.sql")
-	if err != nil {
-		t.Fatalf("glob down migrations: %v", err)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(down)))
-	for _, f := range down {
-		sql, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatalf("read %s: %v", f, err)
-		}
-		_, _ = pool.Exec(ctx, string(sql))
-	}
-
-	up, err := filepath.Glob("../../migrations/*.up.sql")
-	if err != nil {
-		t.Fatalf("glob up migrations: %v", err)
-	}
-	sort.Strings(up)
-	for _, f := range up {
-		sql, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatalf("read %s: %v", f, err)
-		}
-		if _, err := pool.Exec(ctx, string(sql)); err != nil {
-			t.Fatalf("apply %s: %v", filepath.Base(f), err)
-		}
-	}
 }
 
 func seedAccounts(t *testing.T, ctx context.Context, r *Repo, specs map[string][2]string) {

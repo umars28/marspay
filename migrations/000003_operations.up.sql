@@ -4,7 +4,7 @@ CREATE TABLE idempotency_keys (
   request_hash  TEXT NOT NULL,
   status        TEXT NOT NULL CHECK (status IN ('in_progress','completed')),
   response_code INT,
-  response_body JSONB,
+  response_body BYTEA,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at    TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (scope, key)
