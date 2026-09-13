@@ -3,7 +3,7 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ADDR="${MARSPAY_UICHECK_ADDR:-127.0.0.1:8081}"
-ORIGIN="${MARSPAY_UICHECK_ORIGIN:-http://127.0.0.1:8932}"
+ORIGIN="${MARSPAY_UICHECK_ORIGIN:-http://127.0.0.1:3000}"
 BIN="${TMPDIR:-/tmp}/marspay-uicheck-server"
 LOG="${TMPDIR:-/tmp}/marspay-uicheck-server.log"
 

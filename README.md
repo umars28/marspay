@@ -399,7 +399,10 @@ internal/
   testdb/            per-package throwaway database for tests
 migrations/          numbered SQL, up and down
 scripts/             test infrastructure, ledger invariant check
-mockup/              38 screens; every role can run on the real API
+web/                 Next.js interface, its own build and its own process
+  src/lib/api.ts     typed client, refresh-on-401, error envelope
+  src/app/           one route per role
+mockup/              the static prototype the interface was ported from
 ```
 
 ## Running the API locally
@@ -451,9 +454,15 @@ the migration test. Three of them are the ones worth reading:
 ```
 
 Brings up PostgreSQL and Redis, migrates, seeds one consumer with a balance and one merchant
-with an API key, starts the API on `127.0.0.1:8080`, and serves the mockup on
-<http://127.0.0.1:8932>. It prints the credentials and a sequence of `curl` calls that signs
-in and spends money. Ctrl-C stops both.
+with an API key, starts the API on `127.0.0.1:8080`, and starts the web interface on
+<http://127.0.0.1:3000>. It prints the credentials and a sequence of `curl` calls that signs in
+and spends money. Ctrl-C stops both.
+
+**Two processes, deliberately.** The API is a Go binary. The interface is a Next.js app with its
+own `server.js`, built to `output: "standalone"` so it ships with its own dependencies and runs
+under plain `node` without the repository. They share nothing but HTTP, which is why the API
+carries a CORS allowlist and the interface holds its tokens in `sessionStorage` rather than in
+a session the API knows about. Deploying one does not deploy the other.
 
 Click **Sample data** in the top right to open the connection bar, then sign in. The consumer
 screens switch from fictional data to the real ledger: the balance is a `SUM()` over
@@ -489,15 +498,17 @@ failures were silent in the browser and obvious here.
 In demo mode the one-time code is returned in the `POST /v1/auth/otp` response, because there
 is no SMS provider. `MARSPAY_REVEAL_OTP` controls that and defaults to off everywhere else.
 
-The mockup alone, with no backend at all:
+The interface on its own, pointed at an API you started yourself:
 
 ```sh
-cd mockup
-python3 -m http.server 8932
+cd web
+npm install
+npm run dev          # or: npm run build && npm start
 ```
 
 Switch between the four roles — Consumer, Merchant, Admin/Ops, Risk/Compliance — using the tabs
-in the header.
+in the header. `mockup/` is the original static prototype the interface was ported from; it is
+kept as the design reference and is no longer what `demo.sh` serves.
 
 ## Design decisions worth knowing before reading the code
 

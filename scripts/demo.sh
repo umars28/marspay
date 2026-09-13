@@ -3,7 +3,7 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 API_ADDR="${MARSPAY_DEMO_ADDR:-127.0.0.1:8080}"
-UI_PORT="${MARSPAY_DEMO_UI_PORT:-8932}"
+UI_PORT="${MARSPAY_DEMO_UI_PORT:-3000}"
 BIN="${TMPDIR:-/tmp}/marspay-demo-server"
 LOG="${TMPDIR:-/tmp}/marspay-demo-server.log"
 
@@ -58,13 +58,34 @@ for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
 done
 [ -n "$STARTED" ] || { echo "FAIL: the API never reported listening:" >&2; cat "$LOG" >&2; exit 1; }
 
-(cd "$ROOT/mockup" && python3 -m http.server "$UI_PORT" >/dev/null 2>&1) &
+if [ ! -f "$ROOT/web/.next/standalone/server.js" ]; then
+  echo "==> building the web interface (first run only)"
+  (cd "$ROOT/web" && npm install --silent && npm run build >/dev/null) || {
+    echo "FAIL: the web build did not finish." >&2
+    exit 1
+  }
+fi
+
+PORT="$UI_PORT" node "$ROOT/web/.next/standalone/server.js" >"${LOG%.log}-web.log" 2>&1 &
 UI_PID=$!
-sleep 1
+
+UI_STARTED=""
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+  if lsof -nP -iTCP:"$UI_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    UI_STARTED=yes
+    break
+  fi
+  sleep 0.4
+done
+[ -n "$UI_STARTED" ] || {
+  echo "FAIL: the web interface never started:" >&2
+  cat "${LOG%.log}-web.log" >&2
+  exit 1
+}
 
 cat <<EOF
 
-  Mockup    http://127.0.0.1:${UI_PORT}      clickable, fictional data, not wired to the API
+  Web       http://127.0.0.1:${UI_PORT}         Next.js, its own process, talks to the API below
   API       http://${API_ADDR}         real ledger, real sessions, simulated bank rails
   Logs      ${LOG}
 

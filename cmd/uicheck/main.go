@@ -83,7 +83,7 @@ func check(label string, got int, want int, out map[string]any, fields ...string
 
 func main() {
 	flag.StringVar(&base, "base", "http://127.0.0.1:8080", "API base URL")
-	flag.StringVar(&origin, "origin", "http://127.0.0.1:8932", "origin the UI is served from")
+	flag.StringVar(&origin, "origin", "http://127.0.0.1:3000", "origin the UI is served from")
 	flag.StringVar(&consumer, "consumer", "081200000001", "demo consumer phone")
 	flag.StringVar(&friendNo, "friend", "081200000002", "a second consumer, used where velocity rules forbid reuse")
 	flag.StringVar(&pin, "pin", "294715", "demo PIN")
