@@ -19,6 +19,7 @@ import (
 	"github.com/umars28/marspay/internal/api"
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
+	"github.com/umars28/marspay/internal/console"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/loyalty"
@@ -117,6 +118,7 @@ func run() error {
 			WithCache(auth.NewRedisCache(rdb, "marspay:")),
 		RevealOTP:   env("MARSPAY_REVEAL_OTP", "false") == "true",
 		CORSOrigins: strings.Split(env("MARSPAY_CORS_ORIGINS", ""), ","),
+		Console:     console.NewStore(pool),
 	})
 
 	srv := &http.Server{

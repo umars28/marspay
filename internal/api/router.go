@@ -8,6 +8,7 @@ import (
 	"github.com/umars28/marspay/internal/admission"
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
+	"github.com/umars28/marspay/internal/console"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/loyalty"
@@ -36,6 +37,7 @@ type Deps struct {
 	Auth        *auth.Store
 	RevealOTP   bool
 	CORSOrigins []string
+	Console     *console.Store
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -137,6 +139,26 @@ func NewRouter(d Deps) http.Handler {
 		scores := risk.NewHandler(d.Scores)
 		mux.HandleFunc("GET /v1/payouts/config", scores.PayoutConfig)
 		mux.HandleFunc("GET /internal/v1/merchants/{id}/score", scores.MerchantScore)
+	}
+
+	if d.Console != nil {
+		c := console.NewHandler(d.Console)
+
+		mux.HandleFunc("GET /v1/payments", c.Payments)
+		mux.HandleFunc("GET /v1/payments/{id}", c.Payment)
+		mux.HandleFunc("GET /v1/payouts", c.Payouts)
+		mux.HandleFunc("GET /v1/settlements", c.Settlements)
+		mux.HandleFunc("GET /v1/webhook-endpoints", c.Endpoints)
+		mux.HandleFunc("GET /v1/webhook-deliveries", c.Deliveries)
+
+		mux.HandleFunc("GET /internal/v1/search", c.Search)
+		mux.HandleFunc("GET /internal/v1/float", c.Float)
+		mux.HandleFunc("GET /internal/v1/payouts", c.OpsPayouts)
+		mux.HandleFunc("GET /internal/v1/payouts/engine", c.Engine)
+		mux.HandleFunc("GET /internal/v1/reconciliation", c.Reconciliation)
+		mux.HandleFunc("GET /internal/v1/payments/{id}/ledger", c.Ledger)
+		mux.HandleFunc("GET /internal/v1/velocity/rules", c.Rules)
+		mux.HandleFunc("GET /internal/v1/velocity/alerts", c.Alerts)
 	}
 
 	if d.Auth != nil {

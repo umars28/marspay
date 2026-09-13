@@ -6,8 +6,8 @@ that differs — **get paid within seconds instead of the next business day**.
 
 The money is simulated. The system is not.
 
-> **Status: feature complete.** 47 endpoints across consumer, merchant, operations and risk
-> surfaces, backed by 277 tests across 14 packages including integration tests against real
+> **Status: feature complete.** 61 endpoints across consumer, merchant, operations and risk
+> surfaces, backed by 291 tests across 15 packages including integration tests against real
 > PostgreSQL, Redis and a Kafka broker. Both credential types are real: merchant API keys, and
 > consumer sessions from phone, one-time code and PIN, bound to a device. Everything below
 > states plainly what is proven and what is not.
@@ -375,6 +375,7 @@ cmd/stressdriver/    concurrency ramp that finds the saturation point
 internal/
   admission/         bounded in-flight, bounded queue, bounded wait
   auth/              consumer sessions, PIN hashing, devices, token rotation
+  console/           read-only projections behind the merchant and ops dashboards
   money/             minor units, fee rounding
   ledger/            double-entry postings, Postgres repository
   wallet/            balance reservation (Redis Lua, and an in-memory twin)
