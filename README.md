@@ -6,8 +6,11 @@ that differs — **get paid within seconds instead of the next business day**.
 
 The money is simulated. The system is not.
 
-> **Status: design phase.** The UI mockup and the design documents are complete. The backend
-> is not written yet. This README describes what is being built and marks what exists today.
+> **Status: in progress.** The ledger, payments API, risk scoring, instant payout, webhook
+> dispatcher, reconciler and transactional outbox are built and tested — 108 tests across 11
+> packages, including integration tests against real PostgreSQL and Redis. Kafka is designed
+> but not yet wired; the outbox that feeds it is. Authentication is a development stand-in.
+> Everything below states plainly what is proven and what is not.
 
 ## Why this exists
 
