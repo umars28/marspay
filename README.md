@@ -364,6 +364,7 @@ of the truth.
 ```
 ARCHITECTURE.md      service map, consistency models, failure modes
 docs/
+  stack.md           what actually runs, and the path a request takes through it
   database.md        schema design and rationale
   api.md             HTTP contract, idempotency, webhooks
 cmd/marspay/         API server entrypoint

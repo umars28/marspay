@@ -7,6 +7,10 @@ must never lose or invent money.
 This document describes the system as designed. Sections marked **planned** are not built
 yet. Nothing here claims to be running in production.
 
+For what is actually running — the two processes, the stack, the exact path a request takes,
+and the list of components that exist in code but are never started — see
+[docs/stack.md](docs/stack.md).
+
 ## 1. The one thing that makes this different
 
 Every major Indonesian wallet pays merchants on a T+1 or T+2 batch. Marspay pays them
