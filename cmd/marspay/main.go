@@ -17,6 +17,7 @@ import (
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
+	"github.com/umars28/marspay/internal/loyalty"
 	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
@@ -91,6 +92,7 @@ func run() error {
 		Disputes: compliance.NewDisputes(pool, ledgerRepo, balances, audit),
 		Keys:     merchant.NewKeys(pool, audit),
 		Outlets:  merchant.NewOutlets(pool, audit),
+		Loyalty:  loyalty.NewService(pool, loyalty.NewRedisQuota(rdb, "marspay:")),
 	})
 
 	srv := &http.Server{

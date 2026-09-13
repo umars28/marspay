@@ -14,6 +14,7 @@ import (
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/idempotency"
 	"github.com/umars28/marspay/internal/ledger"
+	"github.com/umars28/marspay/internal/loyalty"
 	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/money"
 	"github.com/umars28/marspay/internal/payment"
@@ -30,6 +31,7 @@ type fixture struct {
 	ledger     *ledger.Repo
 	counter    *velocity.MemoryCounter
 	flags      *compliance.MemoryFlags
+	quota      *loyalty.MemoryQuota
 	blocks     *compliance.Blocks
 	userID     string
 	merchantID string
@@ -55,6 +57,7 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 		t.Fatalf("sync velocity rules: %v", err)
 	}
 	counter := velocity.NewMemoryCounter()
+	quota := loyalty.NewMemoryQuota()
 	flags := compliance.NewMemoryFlags()
 	audit := compliance.NewAudit(pool)
 	blocks := compliance.NewBlocks(pool, flags, audit)
@@ -72,12 +75,14 @@ func newFixture(t *testing.T) (*fixture, context.Context) {
 			Disputes: compliance.NewDisputes(pool, repo, mem, audit),
 			Keys:     merchant.NewKeys(pool, audit),
 			Outlets:  merchant.NewOutlets(pool, audit),
+			Loyalty:  loyalty.NewService(pool, quota),
 		}),
 		pool:       pool,
 		wallet:     mem,
 		ledger:     repo,
 		counter:    counter,
 		flags:      flags,
+		quota:      quota,
 		blocks:     blocks,
 		userID:     userID,
 		merchantID: merchantID,

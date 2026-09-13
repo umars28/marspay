@@ -7,6 +7,7 @@ import (
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/httpx"
 	"github.com/umars28/marspay/internal/idempotency"
+	"github.com/umars28/marspay/internal/loyalty"
 	"github.com/umars28/marspay/internal/merchant"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/txn"
@@ -24,6 +25,7 @@ type Deps struct {
 	Disputes    *compliance.Disputes
 	Keys        *merchant.Keys
 	Outlets     *merchant.Outlets
+	Loyalty     *loyalty.Service
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -95,6 +97,18 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("POST /v1/staff", m.AddStaff)
 		mux.HandleFunc("GET /v1/staff", m.ListStaff)
 		mux.HandleFunc("POST /v1/staff/{id}/revoke", m.RevokeStaff)
+	}
+
+	if d.Loyalty != nil {
+		l := loyalty.NewHandler(d.Loyalty)
+		mux.HandleFunc("GET /v1/points", l.Points)
+		mux.HandleFunc("POST /v1/points/redeem", l.Redeem)
+		mux.HandleFunc("GET /v1/promos", l.Promos)
+		mux.HandleFunc("POST /v1/promos/apply", l.ApplyPromo)
+		mux.HandleFunc("POST /v1/money-requests", l.RequestMoney)
+		mux.HandleFunc("GET /v1/money-requests", l.Incoming)
+		mux.HandleFunc("POST /v1/money-requests/{id}/decline", l.Decline)
+		mux.HandleFunc("POST /v1/bill-splits", l.CreateSplit)
 	}
 
 	handler := http.Handler(mux)
