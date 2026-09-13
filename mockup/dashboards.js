@@ -52,7 +52,7 @@
     'm-outlets-rows', 'm-outlets-rows1', 'm-webhooks-rows',
     'm-instant-stat0', 'm-instant-stat1', 'm-instant-stat2', 'm-instant-latency',
     'm-instant-headline', 'm-holdback-headline', 'm-holdback-rate', 'm-holdback-meter',
-    'm-payout-stream', 'm-hourly',
+    'm-payout-stream', 'm-hourly', 'm-charges-rows',
   ];
 
   async function loadMerchant() {
@@ -200,6 +200,27 @@
       set('m-outlets-rows1', staffRows.length ? staffRows.join('') : noRows(6, 'No staff'));
     }
 
+    var charges = await MP.request('GET', '/v1/charges?limit=25', { role: 'merchant' });
+    if (charges.ok) {
+      var links = charges.data.data.map(function (ch) {
+        var status = ch.expired ? 'expired' : ch.status;
+        return row([
+          cell('<span class="mono">' + esc(ch.reference) + '</span>'),
+          cell(esc(ch.description)),
+          cell(MP.plain(ch.amount), 'r num'),
+          cell(esc(MP.clock(ch.expires_at))),
+          cell(badge(status)),
+          cell(ch.status === 'open'
+            ? '<button class="btn sm" data-charge-cancel="' + esc(ch.id) + '">Cancel</button>'
+            : (ch.payment_id
+              ? '<span class="mono small">' + esc(short(ch.payment_id)) + '</span>'
+              : '')),
+        ]);
+      });
+      set('m-charges-rows', links.length ? links.join('') :
+        noRows(6, 'No payment links; create one above'));
+    }
+
     var hourly = await MP.request('GET', '/v1/volume', { role: 'merchant' });
     if (hourly.ok) {
       var buckets = hourly.data.data || [];
@@ -241,6 +262,7 @@
     'r-merchant-stat0', 'r-merchant-stat1', 'r-merchant-stat2', 'r-merchant-stat3',
     'r-kyc-queue', 'r-kyc-stat0', 'r-kyc-stat1', 'r-kyc-stat2', 'r-kyc-stat3',
     'a-account-title', 'a-account-sub', 'a-account-balance', 'a-accounts-rows',
+    'a-jobs-rows', 'a-jobs-rows1', 'a-jobs-stat0', 'a-jobs-stat1', 'a-jobs-stat2', 'a-jobs-stat3',
   ];
 
   function reasonFrom(id) {
@@ -443,6 +465,46 @@
         noRows(7, 'Nothing is blocked'));
     }
 
+    var queues = await MP.request('GET', '/internal/v1/queues', { role: 'operator' });
+    if (queues.ok) {
+      var qs = queues.data.queues || [];
+      var jobs = queues.data.jobs || [];
+      var deepest = qs.reduce(function (a, q) { return Math.max(a, q.waiting); }, 0);
+      var dead = qs.reduce(function (a, q) { return a + q.failed; }, 0);
+      var duePending = jobs.reduce(function (a, j) { return a + j.pending; }, 0);
+      var worstLag = qs.reduce(function (a, q) {
+        return Math.max(a, q.lag_seconds || 0);
+      }, 0);
+
+      set('a-jobs-stat0', String(deepest));
+      set('a-jobs-stat1', String(dead));
+      set('a-jobs-stat2', String(duePending));
+      set('a-jobs-stat3', worstLag > 0 ? ms(Math.round(worstLag * 1000)) : '—');
+
+      set('a-jobs-rows', qs.length ? qs.map(function (q) {
+        return row([
+          cell('<span class="mono">' + esc(q.name) + '</span>'),
+          cell(esc(q.kind)),
+          cell(esc(q.detail)),
+          cell(String(q.waiting), 'r num'),
+          cell(String(q.done), 'r num'),
+          cell(badge(q.failed > 0 ? 'failed' : (q.waiting > 0 ? 'pending' : 'active'))),
+          cell(''),
+        ]);
+      }).join('') : noRows(7, 'No queues reporting'));
+
+      set('a-jobs-rows1', jobs.length ? jobs.map(function (j) {
+        return row([
+          cell(esc(j.name)),
+          cell(esc(j.schedule)),
+          cell(esc(j.last_run ? MP.clock(j.last_run) : 'never')),
+          cell('—', 'r num'),
+          cell(esc(j.outcome) + (j.pending ? ' · ' + j.pending + ' pending' : '')),
+          cell(''),
+        ]);
+      }).join('') : noRows(6, 'No jobs registered'));
+    }
+
     var kyc = await MP.request('GET', '/internal/v1/kyc', { role: 'operator' });
     if (kyc.ok) {
       var queue = kyc.data.data || [];
@@ -633,6 +695,52 @@
           return;
         }
         loadMerchant();
+      });
+      return;
+    }
+
+    var chargeCreate = e.target.closest('#charge-create');
+    if (chargeCreate && MPLive.isLive('merchant')) {
+      e.preventDefault();
+      var description = document.querySelector('#charge-description');
+      var amount = document.querySelector('#charge-amount');
+      if (!description.value.trim() || !MP.toMinor(amount.value)) {
+        description.placeholder = 'A description and an amount are both required';
+        return;
+      }
+
+      chargeCreate.disabled = true;
+      MP.request('POST', '/v1/charges', {
+        role: 'merchant',
+        body: {
+          description: description.value.trim(),
+          amount: MP.toMinor(amount.value),
+          currency: 'IDR',
+          expires_in: '24h',
+        },
+      }).then(function (result) {
+        chargeCreate.disabled = false;
+        if (!result.ok) {
+          description.value = '';
+          description.placeholder = MPLive.failure(result);
+          return;
+        }
+        description.value = '';
+        amount.value = '';
+        loadMerchant();
+      });
+      return;
+    }
+
+    var chargeCancel = e.target.closest('[data-charge-cancel]');
+    if (chargeCancel && MPLive.isLive('merchant')) {
+      e.preventDefault();
+      e.stopPropagation();
+      chargeCancel.disabled = true;
+      MP.request('POST', '/v1/charges/' + chargeCancel.dataset.chargeCancel + '/cancel',
+        { role: 'merchant' }).then(function (result) {
+        chargeCancel.disabled = false;
+        if (result.ok) loadMerchant();
       });
       return;
     }

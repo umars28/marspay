@@ -33,6 +33,12 @@ type CreateRequest struct {
 	Method     string `json:"method"`
 	Amount     int64  `json:"amount"`
 	Currency   string `json:"currency"`
+	ChargeID   string `json:"charge_id,omitempty"`
+}
+
+type ChargeBinder interface {
+	Lookup(ctx context.Context, chargeID string) (merchantID, outletID string, amount int64, err error)
+	MarkPaid(ctx context.Context, tx pgx.Tx, chargeID, paymentID, payerID string) error
 }
 
 type MerchantRef struct {
@@ -54,11 +60,12 @@ type Payment struct {
 }
 
 type Service struct {
-	pool   *pgxpool.Pool
-	ledger *ledger.Repo
-	wallet wallet.Reserver
-	guard  *velocity.Guard
-	blocks *compliance.Blocks
+	pool    *pgxpool.Pool
+	ledger  *ledger.Repo
+	wallet  wallet.Reserver
+	guard   *velocity.Guard
+	blocks  *compliance.Blocks
+	charges ChargeBinder
 }
 
 func NewService(pool *pgxpool.Pool, l *ledger.Repo, w wallet.Reserver) *Service {
@@ -82,7 +89,34 @@ func (s *Service) assertNotBlocked(ctx context.Context, userID string) error {
 	return s.blocks.Assert(ctx, compliance.SubjectUser, userID)
 }
 
+func (s *Service) WithCharges(c ChargeBinder) *Service {
+	clone := *s
+	clone.charges = c
+	return &clone
+}
+
 func (s *Service) Create(ctx context.Context, userID string, req CreateRequest) (*Payment, error) {
+	if req.ChargeID != "" {
+		if s.charges == nil {
+			return nil, httpx.Errorf(http.StatusUnprocessableEntity, httpx.TypeInvalidRequest,
+				"Payment links are not enabled on this deployment.")
+		}
+
+		merchantID, outletID, amount, err := s.charges.Lookup(ctx, req.ChargeID)
+		if err != nil {
+			return nil, err
+		}
+		req.MerchantID = merchantID
+		req.OutletID = outletID
+		req.Amount = amount
+		if req.Method == "" {
+			req.Method = "payment_link"
+		}
+		if req.Currency == "" {
+			req.Currency = "IDR"
+		}
+	}
+
 	if err := validate(req); err != nil {
 		return nil, err
 	}
@@ -205,6 +239,12 @@ func (s *Service) commit(ctx context.Context, userID string, m MerchantRef, req 
 		int64(amount), int64(fee), txID).Scan(&createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("payment: insert: %w", err)
+	}
+
+	if req.ChargeID != "" {
+		if err := s.charges.MarkPaid(ctx, tx, req.ChargeID, paymentID, userID); err != nil {
+			return nil, err
+		}
 	}
 
 	event := &Payment{

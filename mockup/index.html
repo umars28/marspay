@@ -381,12 +381,18 @@
             <h3>Split Bill</h3>
           </div>
           <div class="card mt3"><div class="body">
-            <div class="small muted">Bill being split</div>
-            <div class="num strong" style="font-size:22px">Rp 480,000</div>
-            <div class="small muted">Dinner · Sate Khas Senayan · 12 Sep</div>
+            <label class="field"><span class="lbl">What is being split</span>
+              <input class="input" id="split-title" value="Dinner at Sate Khas Senayan"></label>
+            <label class="field mt3"><span class="lbl">Total</span>
+              <input class="input num" id="split-total" value="480,000" inputmode="numeric"></label>
+            <label class="field mt3"><span class="lbl">Split with</span>
+              <input class="input" id="split-payers" value="081200000002,081200000003"
+                     placeholder="Phone numbers, separated by commas"></label>
+            <div class="note" data-live="split-result" hidden></div>
+            <button class="btn brand block mt3" id="split-submit">Create the split</button>
           </div></div>
-          <div class="sect"><h4>Split across 4 people</h4><a href="#" data-goto="request">Request manually</a></div>
-          <div class="queue">
+          <div class="sect"><h4>Who owes what</h4><a href="#" data-goto="request">Request manually</a></div>
+          <div class="queue" data-live="split-parts">
             <div class="qitem"><div class="av">US</div><div><div class="t">You</div><div class="s num">Rp 120,000</div></div><span class="badge ok">Paid</span></div>
             <div class="qitem"><div class="av">RW</div><div><div class="t">Rani Wulandari</div><div class="s num">Rp 120,000</div></div><span class="badge ok">Paid</span></div>
             <div class="qitem"><div class="av">AF</div><div><div class="t">Ahmad Fauzi</div><div class="s num">Rp 120,000</div></div><span class="badge pend">Waiting</span></div>
@@ -662,7 +668,11 @@
       <section class="screen" data-screen="m-charges">
         <div class="pagehead">
           <div><h2>Payment Link</h2><p>Single-use invoices with an expiry</p></div>
-          <div class="actions"><button class="btn primary"><svg><use href="#i-plus"/></svg>Create new</button></div>
+          <div class="actions">
+            <input class="input" id="charge-description" placeholder="What is this for" style="min-width:180px">
+            <input class="input num" id="charge-amount" placeholder="Amount" style="max-width:130px">
+            <button class="btn primary" id="charge-create"><svg><use href="#i-plus"/></svg>Create new</button>
+          </div>
         </div>
         <div class="grid g-main">
           <div class="card">
@@ -1111,15 +1121,15 @@
           <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Refresh</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Highest consumer lag</div><div class="v" data-live="a-jobs-stat0">1,204</div><div class="d">topic payment.events p3</div></div>
-          <div class="stat"><div class="k">Dead letter depth</div><div class="v" data-live="a-jobs-stat1">7</div><div class="d down">4 webhooks · 3 notifications</div></div>
-          <div class="stat"><div class="k">Failed jobs, 24h</div><div class="v" data-live="a-jobs-stat2">2</div><div class="d">both already retried</div></div>
-          <div class="stat"><div class="k">Postgres replication</div><div class="v" data-live="a-jobs-stat3">88 ms</div><div class="d up">standby healthy</div></div>
+          <div class="stat"><div class="k">Deepest queue</div><div class="v" data-live="a-jobs-stat0">1,204</div><div class="d">rows waiting to be carried</div></div>
+          <div class="stat"><div class="k">Failed or dead lettered</div><div class="v" data-live="a-jobs-stat1">7</div><div class="d down">retried, then parked</div></div>
+          <div class="stat"><div class="k">Scheduled work due</div><div class="v" data-live="a-jobs-stat2">2</div><div class="d">across every job</div></div>
+          <div class="stat"><div class="k">Oldest thing waiting</div><div class="v" data-live="a-jobs-stat3">88 ms</div><div class="d">age of the head of the queue</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Consumers</h3></header>
           <div class="tablewrap"><table>
-            <thead><tr><th>Consumer group</th><th>Topic</th><th class="r">Partitions</th><th class="r">Lag</th><th class="r">Throughput</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Queue</th><th>Kind</th><th>What it carries</th><th class="r">Waiting</th><th class="r">Done</th><th>Status</th><th></th></tr></thead>
             <tbody data-live="a-jobs-rows">
               <tr><td class="mono">settlement-worker</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">12</td><td class="r num">840/s</td><td><span class="badge ok">Healthy</span></td><td></td></tr>
               <tr><td class="mono">webhook-dispatcher</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">1,204</td><td class="r num">310/s</td><td><span class="badge pend">Falling behind</span></td><td><button class="btn sm">Add workers</button></td></tr>

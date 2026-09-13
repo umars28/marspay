@@ -279,3 +279,16 @@ func (h *Handler) Hourly(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": hours})
 }
+
+func (h *Handler) Queues(w http.ResponseWriter, r *http.Request) {
+	if !operatorOf(w, r) {
+		return
+	}
+
+	view, err := h.store.Queues(r.Context())
+	if err != nil {
+		fail(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, view)
+}

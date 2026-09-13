@@ -458,3 +458,172 @@ func (s *Store) Hourly(ctx context.Context, merchantID string) ([]Hour, error) {
 	}
 	return out, rows.Err()
 }
+
+type Queue struct {
+	Name     string     `json:"name"`
+	Kind     string     `json:"kind"`
+	Waiting  int64      `json:"waiting"`
+	Failed   int64      `json:"failed"`
+	Oldest   *time.Time `json:"oldest_waiting,omitempty"`
+	LagSec   *float64   `json:"lag_seconds,omitempty"`
+	Done     int64      `json:"done"`
+	Detail   string     `json:"detail,omitempty"`
+	Attempts int64      `json:"max_attempts,omitempty"`
+}
+
+type Job struct {
+	Name     string     `json:"name"`
+	Schedule string     `json:"schedule"`
+	LastRun  *time.Time `json:"last_run,omitempty"`
+	Outcome  string     `json:"outcome"`
+	Pending  int64      `json:"pending"`
+}
+
+type Queues struct {
+	Queues []Queue `json:"queues"`
+	Jobs   []Job   `json:"jobs"`
+}
+
+func (s *Store) Queues(ctx context.Context) (*Queues, error) {
+	out := &Queues{Queues: []Queue{}, Jobs: []Job{}}
+
+	var outbox Queue
+	outbox.Name = "outbox relay"
+	outbox.Kind = "relay"
+	err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FILTER (WHERE published_at IS NULL),
+		        count(*) FILTER (WHERE published_at IS NULL AND attempts > 0),
+		        count(*) FILTER (WHERE published_at IS NOT NULL),
+		        min(created_at) FILTER (WHERE published_at IS NULL),
+		        COALESCE(max(attempts), 0)
+		 FROM outbox`).
+		Scan(&outbox.Waiting, &outbox.Failed, &outbox.Done, &outbox.Oldest, &outbox.Attempts)
+	if err != nil {
+		return nil, err
+	}
+	if outbox.Oldest != nil {
+		lag := time.Since(*outbox.Oldest).Seconds()
+		outbox.LagSec = &lag
+	}
+	outbox.Detail = "events written with the ledger, published to Kafka by the relay"
+	out.Queues = append(out.Queues, outbox)
+
+	var hooks Queue
+	hooks.Name = "webhook dispatcher"
+	hooks.Kind = "delivery"
+	err = s.pool.QueryRow(ctx,
+		`SELECT count(*) FILTER (WHERE status IN ('pending', 'retrying')),
+		        count(*) FILTER (WHERE status = 'dead_letter'),
+		        count(*) FILTER (WHERE status = 'delivered'),
+		        min(created_at) FILTER (WHERE status IN ('pending', 'retrying')),
+		        COALESCE(max(attempt), 0)
+		 FROM webhook_deliveries`).
+		Scan(&hooks.Waiting, &hooks.Failed, &hooks.Done, &hooks.Oldest, &hooks.Attempts)
+	if err != nil {
+		return nil, err
+	}
+	if hooks.Oldest != nil {
+		lag := time.Since(*hooks.Oldest).Seconds()
+		hooks.LagSec = &lag
+	}
+	hooks.Detail = "at-least-once delivery; nine attempts then the dead letter queue"
+	out.Queues = append(out.Queues, hooks)
+
+	var rails Queue
+	rails.Name = "payout rails"
+	rails.Kind = "external"
+	err = s.pool.QueryRow(ctx,
+		`SELECT count(*) FILTER (WHERE status = 'sending'),
+		        count(*) FILTER (WHERE status = 'failed'),
+		        count(*) FILTER (WHERE status = 'settled'),
+		        min(created_at) FILTER (WHERE status = 'sending'),
+		        COALESCE(max(attempts), 0)
+		 FROM payouts`).
+		Scan(&rails.Waiting, &rails.Failed, &rails.Done, &rails.Oldest, &rails.Attempts)
+	if err != nil {
+		return nil, err
+	}
+	if rails.Oldest != nil {
+		lag := time.Since(*rails.Oldest).Seconds()
+		rails.LagSec = &lag
+	}
+	rails.Detail = "money in flight at a bank; ambiguous timeouts sit here until the rail answers"
+	out.Queues = append(out.Queues, rails)
+
+	var holdbackDue int64
+	var holdbackOldest *time.Time
+	err = s.pool.QueryRow(ctx,
+		`SELECT count(*) FILTER (WHERE released_at IS NULL AND release_at <= now()),
+		        min(release_at) FILTER (WHERE released_at IS NULL)
+		 FROM holdbacks`).Scan(&holdbackDue, &holdbackOldest)
+	if err != nil {
+		return nil, err
+	}
+	out.Jobs = append(out.Jobs, Job{
+		Name:     "holdback release",
+		Schedule: "every 5 minutes",
+		LastRun:  holdbackOldest,
+		Outcome:  outcomeFor(holdbackDue),
+		Pending:  holdbackDue,
+	})
+
+	var lastRecon *time.Time
+	var reconStatus string
+	err = s.pool.QueryRow(ctx,
+		`SELECT max(finished_at),
+		        COALESCE((SELECT status FROM reconciliation_runs
+		                  ORDER BY started_at DESC LIMIT 1), 'never run')
+		 FROM reconciliation_runs`).Scan(&lastRecon, &reconStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	var openDifferences int64
+	if err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM reconciliation_discrepancies
+		 WHERE resolution IS NULL OR resolution = 'pending'`).Scan(&openDifferences); err != nil {
+		return nil, err
+	}
+	out.Jobs = append(out.Jobs, Job{
+		Name:     "daily reconciliation",
+		Schedule: "03:00 WIB",
+		LastRun:  lastRecon,
+		Outcome:  reconStatus,
+		Pending:  openDifferences,
+	})
+
+	var staleSessions int64
+	if err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM sessions
+		 WHERE revoked_at IS NULL AND refresh_expires_at < now()`).Scan(&staleSessions); err != nil {
+		return nil, err
+	}
+	out.Jobs = append(out.Jobs, Job{
+		Name:     "session expiry sweep",
+		Schedule: "hourly",
+		Outcome:  outcomeFor(staleSessions),
+		Pending:  staleSessions,
+	})
+
+	var expiredChallenges int64
+	if err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM otp_challenges
+		 WHERE consumed_at IS NULL AND expires_at < now()`).Scan(&expiredChallenges); err != nil {
+		return nil, err
+	}
+	out.Jobs = append(out.Jobs, Job{
+		Name:     "one-time code cleanup",
+		Schedule: "hourly",
+		Outcome:  outcomeFor(expiredChallenges),
+		Pending:  expiredChallenges,
+	})
+
+	return out, nil
+}
+
+func outcomeFor(pending int64) string {
+	if pending == 0 {
+		return "nothing waiting"
+	}
+	return "work is due"
+}

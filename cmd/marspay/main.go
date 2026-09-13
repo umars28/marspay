@@ -119,6 +119,7 @@ func run() error {
 		RevealOTP:   env("MARSPAY_REVEAL_OTP", "false") == "true",
 		CORSOrigins: strings.Split(env("MARSPAY_CORS_ORIGINS", ""), ","),
 		Console:     console.NewStore(pool),
+		Charges:     merchant.NewCharges(pool),
 	})
 
 	srv := &http.Server{

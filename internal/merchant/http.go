@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/umars28/marspay/internal/auth"
@@ -235,4 +236,87 @@ func translate(err error) error {
 	default:
 		return err
 	}
+}
+
+type ChargeHandler struct {
+	charges *Charges
+}
+
+func NewChargeHandler(charges *Charges) *ChargeHandler {
+	return &ChargeHandler{charges: charges}
+}
+
+func (h *ChargeHandler) Create(w http.ResponseWriter, r *http.Request) {
+	merchantID, _, ok := caller(w, r, ScopeWrite)
+	if !ok {
+		return
+	}
+
+	var req CreateChargeRequest
+	if err := httpx.DecodeStrict(r, &req); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+
+	charge, err := h.charges.Create(r.Context(), merchantID, req)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusCreated, charge)
+}
+
+func (h *ChargeHandler) List(w http.ResponseWriter, r *http.Request) {
+	merchantID, _, ok := caller(w, r, ScopeRead)
+	if !ok {
+		return
+	}
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	charges, err := h.charges.List(r.Context(), merchantID, r.URL.Query().Get("status"), limit)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": charges})
+}
+
+func (h *ChargeHandler) Cancel(w http.ResponseWriter, r *http.Request) {
+	merchantID, _, ok := caller(w, r, ScopeWrite)
+	if !ok {
+		return
+	}
+
+	charge, err := h.charges.Cancel(r.Context(), merchantID, r.PathValue("id"))
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, charge)
+}
+
+func (h *ChargeHandler) Show(w http.ResponseWriter, r *http.Request) {
+	if auth.UserID(r.Context()) == "" && auth.MerchantID(r.Context()) == "" {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusUnauthorized,
+			httpx.TypeUnauthorized, "A payment link is only readable by a signed-in payer."))
+		return
+	}
+
+	scope := auth.MerchantID(r.Context())
+	charge, err := h.charges.Get(r.Context(), scope, r.PathValue("id"))
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	charge.PaidBy = ""
+	httpx.WriteJSON(w, http.StatusOK, charge)
+}
+
+func (h *ChargeHandler) fail(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, ErrChargeNotFound) {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusNotFound, httpx.TypeNotFound,
+			"No payment link with that id."))
+		return
+	}
+	httpx.WriteError(w, r, err)
 }

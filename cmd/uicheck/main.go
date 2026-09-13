@@ -21,6 +21,7 @@ var (
 	operator string
 	apiKey   string
 	run      = fmt.Sprint(time.Now().UnixNano())
+	seq      int
 	failures int
 )
 
@@ -39,7 +40,8 @@ func call(method, path, token string, body any) (int, map[string]any, http.Heade
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 	if method != "GET" {
-		req.Header.Set("Idempotency-Key", fmt.Sprintf("uicheck-%s-%s", run, path))
+		seq++
+		req.Header.Set("Idempotency-Key", fmt.Sprintf("uicheck-%s-%d", run, seq))
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -213,6 +215,11 @@ func checkWallet(access string) {
 		"payer_id": friendNo, "amount": 1200000, "currency": "IDR", "note": "uicheck"})
 	check("POST /v1/money-requests", code, 201, out, "amount", "status")
 
+	code, out, _ = call("POST", "/v1/bill-splits", access, map[string]any{
+		"title": "uicheck dinner", "total": 4800000, "currency": "IDR",
+		"payers": []string{friendNo}})
+	check("POST /v1/bill-splits", code, 201, out, "total", "participants")
+
 	code, out, _ = call("GET", "/v1/notifications", access, nil)
 	check("GET  /v1/notifications", code, 200, out, "data", "unread")
 }
@@ -257,6 +264,33 @@ func checkMerchant() {
 
 	code, out, _ = call("GET", "/v1/volume", apiKey, nil)
 	check("GET  /v1/volume", code, 200, out, "data")
+
+	code, out, _ = call("POST", "/v1/charges", apiKey, map[string]any{
+		"description": "uicheck invoice", "amount": 1240000, "currency": "IDR",
+		"expires_in": "2h"})
+	check("POST /v1/charges", code, 201, out, "id", "reference", "expires_at")
+	chargeID, _ := out["id"].(string)
+
+	code, out, _ = call("GET", "/v1/charges", apiKey, nil)
+	check("GET  /v1/charges", code, 200, out, "data")
+
+	if chargeID != "" {
+		code, out, _ = call("GET", "/v1/charges/"+chargeID, lastConsumerToken, nil)
+		check("GET  /v1/charges/{id} (payer)", code, 200, out, "amount", "description")
+
+		code, out, _ = call("POST", "/v1/payments", lastConsumerToken,
+			map[string]any{"charge_id": chargeID})
+		check("POST /v1/payments (link)", code, 201, out, "amount", "ledger_transaction_id")
+
+		code, _, _ = call("POST", "/v1/payments", lastConsumerToken,
+			map[string]any{"charge_id": chargeID})
+		if code != 409 {
+			fmt.Printf("FAIL a paid link was payable again: %d, want 409\n", code)
+			failures++
+		} else {
+			fmt.Println("ok   a paid link cannot be paid twice             409")
+		}
+	}
 
 	code, out, _ = call("POST", "/v1/api-keys", apiKey, map[string]any{
 		"name": "uicheck", "mode": "test", "scopes": []string{"read"}})
@@ -314,6 +348,9 @@ func checkOperator() {
 
 	code, out, _ = call("GET", "/internal/v1/accounts/acc_usr_demo_user_wallet", token, nil)
 	check("GET  /internal/v1/accounts/{id}", code, 200, out, "balance", "entries")
+
+	code, out, _ = call("GET", "/internal/v1/queues", token, nil)
+	check("GET  /internal/v1/queues", code, 200, out, "queues", "jobs")
 
 	checkOpsActions(token)
 

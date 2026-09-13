@@ -405,3 +405,85 @@ func TestHourlyVolumeAlwaysCoversTwentyFourHours(t *testing.T) {
 		t.Error("every bucket is empty although a payment was seeded in the last 24 hours")
 	}
 }
+
+func TestQueuesReportRealDepthNotAGuess(t *testing.T) {
+	store, pool, ctx := seed(t)
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO outbox (topic, partition_key, event_type, payload, published_at, attempts)
+		 VALUES ('payment.events', 'merch_console', 'payment.succeeded', '{}'::bytea, NULL, 2),
+		        ('payment.events', 'merch_console', 'payment.succeeded', '{}'::bytea, now(), 0)`); err != nil {
+		t.Fatalf("seed outbox: %v", err)
+	}
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO holdbacks (id, merchant_id, payout_id, amount_minor, release_at)
+		 VALUES ('hb_console', $1, 'po_console', 127104, now() - interval '1 hour')`,
+		merchantID); err != nil {
+		t.Fatalf("seed holdback: %v", err)
+	}
+
+	view, err := store.Queues(ctx)
+	if err != nil {
+		t.Fatalf("queues: %v", err)
+	}
+
+	var relay *Queue
+	for i := range view.Queues {
+		if view.Queues[i].Name == "outbox relay" {
+			relay = &view.Queues[i]
+		}
+	}
+	if relay == nil {
+		t.Fatal("the outbox relay is missing from the queue list")
+	}
+	if relay.Waiting != 1 {
+		t.Errorf("waiting = %d, want 1", relay.Waiting)
+	}
+	if relay.Done != 1 {
+		t.Errorf("done = %d, want 1", relay.Done)
+	}
+	if relay.Failed != 1 {
+		t.Errorf("failed = %d, want 1: an unpublished row with attempts is a retry, not a fresh one",
+			relay.Failed)
+	}
+	if relay.LagSec == nil || *relay.LagSec <= 0 {
+		t.Error("a waiting row produced no lag figure")
+	}
+
+	var release *Job
+	for i := range view.Jobs {
+		if view.Jobs[i].Name == "holdback release" {
+			release = &view.Jobs[i]
+		}
+	}
+	if release == nil {
+		t.Fatal("the holdback release job is missing")
+	}
+	if release.Pending != 1 {
+		t.Errorf("pending holdbacks = %d, want 1", release.Pending)
+	}
+	if release.Outcome != "work is due" {
+		t.Errorf("outcome = %q with work pending", release.Outcome)
+	}
+}
+
+func TestAnIdleSystemReportsEmptyQueuesRatherThanNothing(t *testing.T) {
+	store, _, ctx := seed(t)
+
+	view, err := store.Queues(ctx)
+	if err != nil {
+		t.Fatalf("queues: %v", err)
+	}
+	if len(view.Queues) != 3 {
+		t.Errorf("queues = %d, want 3 even when they are empty", len(view.Queues))
+	}
+	if len(view.Jobs) != 4 {
+		t.Errorf("jobs = %d, want 4 even when there is nothing to do", len(view.Jobs))
+	}
+	for _, q := range view.Queues {
+		if q.Detail == "" {
+			t.Errorf("queue %q does not say what it is", q.Name)
+		}
+	}
+}

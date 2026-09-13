@@ -355,7 +355,8 @@
         'me-name', 'me-phone', 'me-initials', 'me-tier', 'me-tier-long',
         'me-max-balance', 'me-max-month', 'me-used', 'devices',
         'bills-list', 'bill-codes', 'bill-inquiry', 'promo-list', 'points-total',
-        'points-meta', 'points-history', 'requests-incoming', 'inbox-list'].forEach(restore);
+        'points-meta', 'points-history', 'requests-incoming', 'inbox-list',
+        'split-parts'].forEach(restore);
       $('#cons-note').textContent = 'Signed out. Showing sample data again.';
       $('#cons-note').className = 'cbnote';
       $('#cons-signout').hidden = true;
@@ -576,6 +577,47 @@
       note('bill-result', result.data.status === 'pending' ? 'info' : 'ok',
         'Bill payment is ' + result.data.status + '.');
       await loadConsumer();
+    });
+
+    submit($('#split-submit'), async function () {
+      clearNote('split-result');
+      var payers = $('#split-payers').value.split(',').map(function (p) {
+        return p.trim();
+      }).filter(Boolean);
+
+      if (payers.length < 1) {
+        note('split-result', 'warn', 'Name at least one other person to split with.');
+        return;
+      }
+
+      var result = await MP.request('POST', '/v1/bill-splits', {
+        role: 'user',
+        body: {
+          title: $('#split-title').value.trim(),
+          total: MP.toMinor($('#split-total').value),
+          currency: 'IDR',
+          payers: payers,
+        },
+      });
+
+      if (!result.ok) {
+        note('split-result', 'warn', failure(result));
+        return;
+      }
+
+      var split = result.data;
+      note('split-result', 'ok', 'Split ' + MP.rupiah(split.total) + ' across ' +
+        split.participants + ' people. Each request stands on its own.');
+
+      set('split-parts', (split.requests || []).map(function (r) {
+        var initials = (r.payer_id || '').slice(-2).toUpperCase();
+        return '<div class="qitem"><div class="av">' + MP.escape(initials) + '</div>' +
+          '<div><div class="t">' + MP.escape(r.payer_id) + '</div>' +
+          '<div class="s num">' + MP.rupiah(r.amount) + '</div></div>' +
+          '<span class="badge pend">' + MP.escape(r.status) + '</span></div>';
+      }).join('') || '<div class="qitem"><div><div class="t">No requests were created</div></div></div>');
+
+      await loadWallet();
     });
 
     submit($('#request-submit'), async function () {

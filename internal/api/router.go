@@ -38,6 +38,7 @@ type Deps struct {
 	RevealOTP   bool
 	CORSOrigins []string
 	Console     *console.Store
+	Charges     *merchant.Charges
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -51,6 +52,10 @@ func NewRouter(d Deps) http.Handler {
 			d.Txn = d.Txn.WithVelocity(d.Velocity)
 		}
 	}
+	if d.Charges != nil && d.Payments != nil {
+		d.Payments = d.Payments.WithCharges(d.Charges)
+	}
+
 	if d.Blocks != nil {
 		if d.Payments != nil {
 			d.Payments = d.Payments.WithBlocks(d.Blocks)
@@ -142,6 +147,14 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /internal/v1/merchants/{id}/score", scores.MerchantScore)
 	}
 
+	if d.Charges != nil {
+		ch := merchant.NewChargeHandler(d.Charges)
+		mux.HandleFunc("POST /v1/charges", ch.Create)
+		mux.HandleFunc("GET /v1/charges", ch.List)
+		mux.HandleFunc("GET /v1/charges/{id}", ch.Show)
+		mux.HandleFunc("POST /v1/charges/{id}/cancel", ch.Cancel)
+	}
+
 	if d.Console != nil {
 		c := console.NewHandler(d.Console)
 
@@ -160,6 +173,7 @@ func NewRouter(d Deps) http.Handler {
 		mux.HandleFunc("GET /internal/v1/reconciliation", c.Reconciliation)
 		mux.HandleFunc("GET /internal/v1/payments/{id}/ledger", c.Ledger)
 		mux.HandleFunc("GET /internal/v1/accounts/{id}", c.Account)
+		mux.HandleFunc("GET /internal/v1/queues", c.Queues)
 		mux.HandleFunc("GET /internal/v1/velocity/rules", c.Rules)
 		mux.HandleFunc("GET /internal/v1/velocity/alerts", c.Alerts)
 	}
