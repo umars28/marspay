@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/umars28/marspay/internal/id"
+	"github.com/umars28/marspay/internal/money"
 )
 
 type Outcome string
@@ -42,12 +43,20 @@ type Callback struct {
 	At            time.Time
 }
 
+type Settlement struct {
+	PayoutID      string
+	BankReference string
+	Amount        money.Minor
+	At            time.Time
+}
+
 type Sim struct {
-	cfg       Config
-	mu        sync.Mutex
-	rng       *rand.Rand
-	callbacks []Callback
-	now       func() time.Time
+	cfg         Config
+	mu          sync.Mutex
+	rng         *rand.Rand
+	callbacks   []Callback
+	settlements []Settlement
+	now         func() time.Time
 }
 
 func NewSim(cfg Config) (*Sim, error) {
@@ -90,6 +99,11 @@ func (s *Sim) Send(ctx context.Context, req Request) (Result, error) {
 
 	ref := id.New("bank")
 	result := Result{Rail: s.cfg.Rail, BankReference: ref, Latency: latency}
+
+	if moved(outcome) {
+		s.settle(Settlement{PayoutID: req.PayoutID, BankReference: ref,
+			Amount: req.Amount, At: s.now()})
+	}
 
 	switch outcome {
 	case OutcomeRejected:
@@ -153,10 +167,33 @@ func (s *Sim) latency() time.Duration {
 	return s.cfg.Latency.P50
 }
 
+func moved(o Outcome) bool {
+	switch o {
+	case OutcomeRejected, OutcomeRailDown, OutcomeTimeout:
+		return false
+	default:
+		return true
+	}
+}
+
 func (s *Sim) record(cb Callback) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.callbacks = append(s.callbacks, cb)
+}
+
+func (s *Sim) settle(st Settlement) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.settlements = append(s.settlements, st)
+}
+
+func (s *Sim) Statement() []Settlement {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make([]Settlement, len(s.settlements))
+	copy(out, s.settlements)
+	return out
 }
 
 func (s *Sim) Callbacks() []Callback {

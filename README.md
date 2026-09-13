@@ -49,13 +49,15 @@ duplicates, and reorder events.
 
 Claims in this repo are meant to be checkable. The ones that matter:
 
-| Claim | How it is proven |
-|---|---|
-| The ledger balances | 100k concurrent transfers, then `SUM(amount_minor) = 0` |
-| Money survives a crash | `kill -9` the Postgres primary mid-payment; nothing lost or duplicated |
-| Redis is disposable | flush the cache; balances rebuild from the ledger |
-| Reconciliation works | inject lost callbacks via `provider-sim`; they appear as discrepancies |
-| Throughput is real | k6 run with p50/p95/p99, published alongside the numbers |
+| Claim | How it is proven | Status |
+|---|---|---|
+| The ledger balances | concurrent postings, then `SUM(amount_minor) = 0` | done |
+| The database refuses an unbalanced commit | post one bypassing the Go check | done |
+| Redis is disposable | drop the cache; balances rebuild from the ledger | done |
+| Reconciliation works | inject lost callbacks via `provider-sim`; they appear as differences | done |
+| Instant payout degrades, never fails | push float past 85%; everyone drops to batch | done |
+| Money survives a crash | `kill -9` the Postgres primary mid-payment | not yet |
+| Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | not yet |
 
 None of these require a single real rupiah.
 
@@ -73,6 +75,10 @@ internal/
   wallet/            balance reservation (Redis Lua, and an in-memory twin)
   idempotency/       key store and middleware
   payment/           payment service and handler
+  risk/              merchant scoring and the holdback formula
+  rail/              bank rail interface and the fault-injecting simulator
+  payout/            instant payout, float guard, rail selection
+  reconcile/         internal books vs provider statement
   api/               router and wiring
   httpx/             error envelope, request ids, strict JSON decoding
   id/                prefixed ULIDs
