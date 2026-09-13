@@ -26,7 +26,8 @@ trap cleanup EXIT
 for f in "$ROOT"/migrations/*.down.sql; do psql "$DSN" -q -f "$f" >/dev/null 2>&1 || true; done
 for f in "$ROOT"/migrations/*.up.sql; do psql "$DSN" -q -v ON_ERROR_STOP=1 -f "$f" >/dev/null; done
 
-go run "$ROOT/cmd/demoseed" -dsn="$DSN" -redis="$REDIS" >/dev/null
+SEED=$(go run "$ROOT/cmd/demoseed" -dsn="$DSN" -redis="$REDIS")
+API_KEY=$(printf '%s\n' "$SEED" | awk '/API key/ {print $NF}')
 
 go build -o "$BIN" "$ROOT/cmd/marspay"
 MARSPAY_DATABASE_URL="$DSN" MARSPAY_REDIS_ADDR="$REDIS" MARSPAY_ADDR="$ADDR" \
@@ -50,4 +51,4 @@ done
 [ -n "$STARTED" ] || { echo "FAIL: the API never reported listening:" >&2; cat "$LOG" >&2; exit 1; }
 
 echo
-go run "$ROOT/cmd/uicheck" -base="http://${ADDR}" -origin="$ORIGIN"
+go run "$ROOT/cmd/uicheck" -base="http://${ADDR}" -origin="$ORIGIN" -merchant-key="$API_KEY"

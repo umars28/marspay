@@ -18,6 +18,8 @@ var (
 	friendNo string
 	pin      string
 	merchant string
+	operator string
+	apiKey   string
 	run      = fmt.Sprint(time.Now().UnixNano())
 	failures int
 )
@@ -84,6 +86,8 @@ func main() {
 	flag.StringVar(&friendNo, "friend", "081200000002", "a second consumer, used where velocity rules forbid reuse")
 	flag.StringVar(&pin, "pin", "294715", "demo PIN")
 	flag.StringVar(&merchant, "merchant", "merch_demo", "demo merchant id")
+	flag.StringVar(&operator, "operator", "081200000009", "demo operator phone")
+	flag.StringVar(&apiKey, "merchant-key", "", "merchant API key; skips the merchant checks when empty")
 	flag.Parse()
 
 	fmt.Printf("==> checking what the consumer UI calls, from origin %s\n\n", origin)
@@ -118,6 +122,7 @@ func main() {
 		failures++
 	}
 	access, _ := tok["access_token"].(string)
+	lastConsumerToken = access
 
 	code, out, _ := call("GET", "/v1/balance", access, nil)
 	check("GET  /v1/balance", code, 200, out, "available", "held", "cache_agreed")
@@ -157,11 +162,107 @@ func main() {
 		"source": "bank_va", "provider_code": "bca", "amount": 50000000, "currency": "IDR"})
 	check("POST /v1/topups", code, 201, out, "virtual_account", "status")
 
+	checkMerchant()
+	checkOperator()
+
 	fmt.Println()
 	if failures == 0 {
-		fmt.Println("every call the consumer UI makes works against the running API")
+		fmt.Println("every call the UI makes works against the running API")
 		return
 	}
 	fmt.Printf("%d problems the UI would hit\n", failures)
 	os.Exit(1)
 }
+
+func checkMerchant() {
+	fmt.Println()
+	if apiKey == "" {
+		fmt.Println("--   merchant screens skipped: pass -merchant-key")
+		return
+	}
+
+	code, out, _ := call("GET", "/v1/payments?limit=50", apiKey, nil)
+	check("GET  /v1/payments", code, 200, out, "data", "totals")
+
+	code, out, _ = call("GET", "/v1/payouts?limit=50", apiKey, nil)
+	check("GET  /v1/payouts", code, 200, out, "data", "summary")
+
+	code, out, _ = call("GET", "/v1/payouts/config", apiKey, nil)
+	if code == 404 {
+		fmt.Println("ok   GET  /v1/payouts/config          404  no score recorded yet, the UI keeps its sample")
+	} else {
+		check("GET  /v1/payouts/config", code, 200, out, "holdback_bps", "score")
+	}
+
+	code, out, _ = call("GET", "/v1/settlements", apiKey, nil)
+	check("GET  /v1/settlements", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/api-keys", apiKey, nil)
+	check("GET  /v1/api-keys", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/outlets", apiKey, nil)
+	check("GET  /v1/outlets", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/staff", apiKey, nil)
+	check("GET  /v1/staff", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/webhook-endpoints", apiKey, nil)
+	check("GET  /v1/webhook-endpoints", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/v1/webhook-deliveries", apiKey, nil)
+	check("GET  /v1/webhook-deliveries", code, 200, out, "data")
+}
+
+func checkOperator() {
+	fmt.Println()
+
+	_, ch, _ := call("POST", "/v1/auth/otp", "", map[string]any{"phone": operator})
+	codeValue, _ := ch["code"].(string)
+	challengeID, _ := ch["id"].(string)
+
+	code, tok, _ := call("POST", "/v1/auth/token", "", map[string]any{
+		"challenge_id": challengeID, "code": codeValue, "pin": pin,
+		"platform": "web", "model": "Mockup browser"})
+	check("POST /v1/auth/token (operator)", code, 201, tok, "access_token")
+	token, _ := tok["access_token"].(string)
+
+	code, out, _ := call("GET", "/internal/v1/float", token, nil)
+	check("GET  /internal/v1/float", code, 200, out, "position", "top_exposure")
+
+	code, out, _ = call("GET", "/internal/v1/payouts/engine", token, nil)
+	check("GET  /internal/v1/payouts/engine", code, 200, out, "rails", "needing_attention")
+
+	code, out, _ = call("GET", "/internal/v1/reconciliation", token, nil)
+	check("GET  /internal/v1/reconciliation", code, 200, out, "runs", "open")
+
+	code, out, _ = call("GET", "/internal/v1/audit?limit=40", token, nil)
+	check("GET  /internal/v1/audit", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/blocks", token, nil)
+	check("GET  /internal/v1/blocks", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/disputes", token, nil)
+	check("GET  /internal/v1/disputes", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/velocity/rules", token, nil)
+	check("GET  /internal/v1/velocity/rules", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/velocity/alerts", token, nil)
+	check("GET  /internal/v1/velocity/alerts", code, 200, out, "data")
+
+	code, out, _ = call("GET", "/internal/v1/search?q="+merchant, token, nil)
+	check("GET  /internal/v1/search", code, 200, out, "data")
+
+	consumerToken := lastConsumerToken
+	if consumerToken != "" {
+		code, _, _ = call("GET", "/internal/v1/audit", consumerToken, nil)
+		if code != 403 {
+			fmt.Printf("FAIL a consumer token reached the audit log: %d, want 403\n", code)
+			failures++
+		} else {
+			fmt.Println("ok   a consumer token is refused by the ops endpoints  403")
+		}
+	}
+}
+
+var lastConsumerToken string

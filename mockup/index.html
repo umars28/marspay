@@ -568,17 +568,17 @@
           <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Export</button><button class="btn primary"><svg><use href="#i-plus"/></svg>Create invoice</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Volume today</div><div class="v">Rp 18.4m</div><div class="d up">+12.4% vs yesterday</div></div>
-          <div class="stat"><div class="k">Transactions</div><div class="v">612</div><div class="d up">+41 vs yesterday</div></div>
-          <div class="stat"><div class="k">Success rate</div><div class="v">99.2%</div><div class="d">5 failed · 3 expired</div></div>
-          <div class="stat"><div class="k">Paid out today</div><div class="v">Rp 16.1m</div><div class="d up">instant · average 6.2 seconds</div></div>
+          <div class="stat"><div class="k">Volume today</div><div class="v" data-live="m-overview-stat0">Rp 18.4m</div><div class="d up">+12.4% vs yesterday</div></div>
+          <div class="stat"><div class="k">Transactions</div><div class="v" data-live="m-overview-stat1">612</div><div class="d up">+41 vs yesterday</div></div>
+          <div class="stat"><div class="k">Success rate</div><div class="v" data-live="m-overview-stat2">99.2%</div><div class="d">5 failed · 3 expired</div></div>
+          <div class="stat"><div class="k">Paid out today</div><div class="v" data-live="m-overview-stat3">Rp 16.1m</div><div class="d up">instant · average 6.2 seconds</div></div>
         </div>
         <div class="keyband mt4">
           <div class="txt">
             <h3>Instant Payout is on</h3>
             <p>Money reaches your bank account within seconds of the customer paying, not tomorrow morning. A 4% holdback is kept briefly to cover dispute risk and released automatically 24 hours later.</p>
           </div>
-          <div class="big">6.2s<span>p95 payment → funds in account</span></div>
+          <div class="big" data-live="m-instant-headline">6.2s<span>p95 payment → funds in account</span></div>
         </div>
         <div class="grid g-main mt4">
           <div class="card">
@@ -612,7 +612,7 @@
           <header><h3>Recent transactions</h3><div class="actions"><button class="btn sm" data-screen="m-tx">View all</button></div></header>
           <div class="tablewrap"><table>
             <thead><tr><th>ID</th><th>Time</th><th>Method</th><th>Customer</th><th class="r">Amount</th><th class="r">Fee</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody data-live="m-overview-rows">
               <tr><td class="mono">txn_01J7QF3K2M</td><td>09:12:04</td><td>QRIS</td><td>Umar S.</td><td class="r num">32,000</td><td class="r num">224</td><td><span class="badge ok">Succeeded</span></td></tr>
               <tr><td class="mono">txn_01J7QF1X9B</td><td>09:11:38</td><td>QRIS</td><td>Dewi A.</td><td class="r num">48,000</td><td class="r num">336</td><td><span class="badge ok">Succeeded</span></td></tr>
               <tr><td class="mono">txn_01J7QEZZ04</td><td>09:10:52</td><td>Payment link</td><td>PT Sinar Jaya</td><td class="r num">1,240,000</td><td class="r num">8,680</td><td><span class="badge pend">Awaiting payment</span></td></tr>
@@ -639,7 +639,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>ID</th><th>Time</th><th>Method</th><th>Customer</th><th class="r">Amount</th><th class="r">Fee</th><th class="r">Net</th><th>Status</th><th>Settlement</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="m-tx-rows">
               <tr><td class="mono">txn_01J7QF3K2M</td><td>13 Sep 09:12</td><td>QRIS</td><td>Umar S.</td><td class="r num">32,000</td><td class="r num">224</td><td class="r num">31,776</td><td><span class="badge ok">Succeeded</span></td><td><span class="badge mute">Tomorrow's batch</span></td><td><button class="btn sm">Refund</button></td></tr>
               <tr><td class="mono">txn_01J7QF1X9B</td><td>13 Sep 09:11</td><td>QRIS</td><td>Dewi A.</td><td class="r num">48,000</td><td class="r num">336</td><td class="r num">47,664</td><td><span class="badge ok">Succeeded</span></td><td><span class="badge mute">Tomorrow's batch</span></td><td><button class="btn sm">Refund</button></td></tr>
               <tr><td class="mono">txn_01J7QEZZ04</td><td>13 Sep 09:10</td><td>Link</td><td>PT Sinar Jaya</td><td class="r num">1,240,000</td><td class="r num">8,680</td><td class="r num">1,231,320</td><td><span class="badge pend">Awaiting payment</span></td><td class="muted">—</td><td><button class="btn sm">Cancel</button></td></tr>
@@ -663,7 +663,7 @@
             <header><h3>Active links</h3></header>
             <div class="tablewrap"><table>
               <thead><tr><th>Reference</th><th>For</th><th class="r">Amount</th><th>Expires</th><th>Status</th><th></th></tr></thead>
-              <tbody>
+              <tbody data-live="m-charges-rows">
                 <tr><td class="mono">inv-2026-0912</td><td>PT Sinar Jaya</td><td class="r num">1,240,000</td><td>13 Sep 21:10</td><td><span class="badge pend">Unpaid</span></td><td><button class="btn sm">Copy</button></td></tr>
                 <tr><td class="mono">inv-2026-0911</td><td>CV Abadi</td><td class="r num">780,000</td><td>14 Sep 08:00</td><td><span class="badge pend">Unpaid</span></td><td><button class="btn sm">Copy</button></td></tr>
                 <tr><td class="mono">inv-2026-0908</td><td>PT Maju Terus</td><td class="r num">3,500,000</td><td>—</td><td><span class="badge ok">Paid</span></td><td></td></tr>
@@ -700,17 +700,17 @@
             <h3>Why this is different</h3>
             <p>Other wallets pay out on T+1 or T+2 because they wait for risk to settle. We do not wait — we <em>measure</em>  the risk per merchant, hold back a small share, and release the rest right now.</p>
           </div>
-          <div class="big">4.0%<span>your current holdback</span></div>
+          <div class="big" data-live="m-holdback-headline">4.0%<span>your current holdback</span></div>
         </div>
         <div class="grid g4 mt4">
-          <div class="stat"><div class="k">Paid out today</div><div class="v">Rp 16.1m</div><div class="d">418 payouts</div></div>
+          <div class="stat"><div class="k">Paid out today</div><div class="v" data-live="m-instant-stat0">Rp 16.1m</div><div class="d">418 payouts</div></div>
           <div class="stat"><div class="k">p50 / p95 latency</div><div class="v" style="font-size:19px">3.1 / 6.2s</div><div class="d up">10 second SLA</div></div>
-          <div class="stat"><div class="k">Held back</div><div class="v">Rp 671k</div><div class="d">released over 24 hours</div></div>
-          <div class="stat"><div class="k">Failed at the bank</div><div class="v">3</div><div class="d down">retried automatically</div></div>
+          <div class="stat"><div class="k">Held back</div><div class="v" data-live="m-instant-stat1">Rp 671k</div><div class="d">released over 24 hours</div></div>
+          <div class="stat"><div class="k">Failed at the bank</div><div class="v" data-live="m-instant-stat2">3</div><div class="d down">retried automatically</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Live payout stream</h3><span class="hint">updating in real time</span></header>
-          <div class="live">
+          <div class="live" data-live="m-payout-stream">
             <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QF3K2M · Umar S.</span><span class="num">Rp 32,000</span><span class="num muted">− Rp 1,280</span><span class="lat">landed in 2.9s · <span class="badge ok">BCA</span></span></div>
             <div class="liverow"><span class="pulse"></span><span class="who">txn_01J7QF1X9B · Dewi A.</span><span class="num">Rp 48,000</span><span class="num muted">− Rp 1,920</span><span class="lat">landed in 3.4s · <span class="badge ok">BCA</span></span></div>
             <div class="liverow"><span class="pulse slow"></span><span class="who">txn_01J7QEW2KD · Rani W.</span><span class="num">Rp 55,000</span><span class="num muted">− Rp 2,200</span><span class="lat">waiting on the bank 11s · <span class="badge pend">BI-FAST</span></span></div>
@@ -720,8 +720,8 @@
         </div>
         <div class="grid g2 mt4">
           <div class="card"><header><h3>Your holdback</h3><span class="hint">recomputed every 5 minutes</span></header><div class="body">
-            <div class="meterrow"><span>Holdback rate</span><span class="n">4.0%</span></div>
-            <div class="meter ok"><i style="width:8%"></i></div>
+            <div class="meterrow"><span>Holdback rate</span><span class="n" data-live="m-holdback-rate">4.0%</span></div>
+            <div class="meter ok" data-live="m-holdback-meter"><i style="width:8%"></i></div>
             <p class="small muted mt3">New merchants start at 20%. Yours fell to 4% after six months with no disputes and refunds below 0.5%. The lowest possible rate is 1.5%.</p>
             <dl class="kv mt4" style="grid-template-columns:160px minmax(0,1fr)">
               <dt>Merchant age</dt><dd>6 months 11 days</dd>
@@ -750,7 +750,7 @@
           <header><h3>Outlet</h3></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Outlet</th><th>NMID</th><th class="r">Staff</th><th class="r">Transactions today</th><th class="r">Volume</th><th>Payout account</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody data-live="m-outlets-rows">
               <tr><td>Senopati</td><td class="mono">ID2023xxxx0912</td><td class="r num">4</td><td class="r num">318</td><td class="r num">9,420,000</td><td class="mono">BCA ····2013</td><td><span class="badge ok">Active</span></td></tr>
               <tr><td>Kemang</td><td class="mono">ID2023xxxx1144</td><td class="r num">3</td><td class="r num">201</td><td class="r num">6,180,000</td><td class="mono">BCA ····2013</td><td><span class="badge ok">Active</span></td></tr>
               <tr><td>Bintaro</td><td class="mono">ID2023xxxx1780</td><td class="r num">1</td><td class="r num">93</td><td class="r num">2,800,000</td><td class="mono">Mandiri ····8891</td><td><span class="badge pend">Verifying account</span></td></tr>
@@ -761,7 +761,7 @@
           <header><h3>Staff</h3><span class="hint">limited access: only their own outlet's transactions</span></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Name</th><th>Outlet</th><th>Role</th><th>Last active</th><th class="r">Transactions today</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="m-outlets-rows1">
               <tr><td>Yuda Pratama</td><td>Senopati</td><td><span class="badge mute flat">Staff</span></td><td>3 minutes ago</td><td class="r num">112</td><td><button class="btn sm danger">Revoke access</button></td></tr>
               <tr><td>Intan Permata</td><td>Senopati</td><td><span class="badge info flat">Supervisor</span></td><td>18 minutes ago</td><td class="r num">86</td><td><button class="btn sm danger">Revoke access</button></td></tr>
               <tr><td>Fajar Nugroho</td><td>Kemang</td><td><span class="badge mute flat">Staff</span></td><td>1 hours ago</td><td class="r num">74</td><td><button class="btn sm danger">Revoke access</button></td></tr>
@@ -778,10 +778,10 @@
           <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Resend failed</button><button class="btn primary">Send test</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Delivered in 24h</div><div class="v">1,834</div><div class="d">from 1,889 attempts</div></div>
-          <div class="stat"><div class="k">First-attempt success</div><div class="v">97.1%</div><div class="d down">down from 99.4%</div></div>
-          <div class="stat"><div class="k">Queued for retry</div><div class="v">3</div><div class="d">backoff 2s → 4s → 8s</div></div>
-          <div class="stat"><div class="k">Dead letter</div><div class="v">1</div><div class="d down">needs manual action</div></div>
+          <div class="stat"><div class="k">Delivered in 24h</div><div class="v" data-live="m-webhooks-stat0">1,834</div><div class="d">from 1,889 attempts</div></div>
+          <div class="stat"><div class="k">First-attempt success</div><div class="v" data-live="m-webhooks-stat1">97.1%</div><div class="d down">down from 99.4%</div></div>
+          <div class="stat"><div class="k">Queued for retry</div><div class="v" data-live="m-webhooks-stat2">3</div><div class="d">backoff 2s → 4s → 8s</div></div>
+          <div class="stat"><div class="k">Dead letter</div><div class="v" data-live="m-webhooks-stat3">1</div><div class="d down">needs manual action</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Endpoint</h3><div class="actions"><button class="btn sm">Edit</button></div></header>
@@ -799,7 +799,7 @@
           <header><h3>Delivery log</h3><span class="hint">Kept for 30 days</span></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Event ID</th><th>Type</th><th>Time</th><th class="r">Attempts</th><th class="r">Latency</th><th>Response</th><th>Status</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="m-webhooks-rows">
               <tr><td class="mono">evt_9K2M4Q</td><td>payment.succeeded</td><td>09:12:05</td><td class="r num">1</td><td class="r num">212 ms</td><td class="mono">200</td><td><span class="badge ok">Delivered</span></td><td></td></tr>
               <tr><td class="mono">evt_9K2M1B</td><td>payment.succeeded</td><td>09:11:39</td><td class="r num">1</td><td class="r num">304 ms</td><td class="mono">200</td><td><span class="badge ok">Delivered</span></td><td></td></tr>
               <tr><td class="mono">evt_9K2LZ0</td><td>payment.failed</td><td>09:09:12</td><td class="r num">2</td><td class="r num">5,000 ms</td><td class="mono">timeout</td><td><span class="badge pend">Queued for retry</span></td><td><button class="btn sm">Resend</button></td></tr>
@@ -817,15 +817,15 @@
           <div class="actions"><button class="btn"><svg><use href="#i-download"/></svg>Download report</button></div>
         </div>
         <div class="grid g3">
-          <div class="stat"><div class="k">Merchant balance</div><div class="v">Rp 41.2m</div><div class="d">not yet paid out</div></div>
-          <div class="stat"><div class="k">Next batch</div><div class="v">14 Sep 10:00</div><div class="d">612 transactions</div></div>
+          <div class="stat"><div class="k">Merchant balance</div><div class="v" data-live="m-settlement-stat0">Rp 41.2m</div><div class="d">not yet paid out</div></div>
+          <div class="stat"><div class="k">Next batch</div><div class="v" data-live="m-settlement-stat1">14 Sep 10:00</div><div class="d">612 transactions</div></div>
           <div class="stat"><div class="k">Destination account</div><div class="v" style="font-size:16px">BCA ····2013</div><div class="d">a.n. PT Tuku Kopi Nusantara</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Batch history</h3></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Batch</th><th>Period</th><th class="r">Transactions</th><th class="r">Gross</th><th class="r">Fee</th><th class="r">Net paid out</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody data-live="m-settlement-rows">
               <tr><td class="mono">stl_20260913</td><td>12 Sep 00:00 – 23:59</td><td class="r num">589</td><td class="r num">38,910,000</td><td class="r num">272,370</td><td class="r num">38,637,630</td><td><span class="badge ok">Paid 10:04</span></td></tr>
               <tr><td class="mono">stl_20260912</td><td>11 Sep 00:00 – 23:59</td><td class="r num">604</td><td class="r num">41,220,000</td><td class="r num">288,540</td><td class="r num">40,931,460</td><td><span class="badge ok">Paid 10:02</span></td></tr>
               <tr><td class="mono">stl_20260911</td><td>10 Sep 00:00 – 23:59</td><td class="r num">551</td><td class="r num">35,740,000</td><td class="r num">250,180</td><td class="r num">35,489,820</td><td><span class="badge pend">Paid 14:38 · late</span></td></tr>
@@ -844,7 +844,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Name</th><th>Prefix</th><th>Mode</th><th>Created</th><th>Last used</th><th>Scopes</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="m-keys-rows">
               <tr><td>Production backend</td><td class="mono">mp_live_8kQ2···</td><td><span class="badge fail">Live</span></td><td>02 Mar 2026</td><td>12 seconds ago</td><td><span class="badge mute flat">read + write</span></td><td><button class="btn sm danger">Revoke</button></td></tr>
               <tr><td>Dashboard internal</td><td class="mono">mp_live_3mX7···</td><td><span class="badge fail">Live</span></td><td>02 Mar 2026</td><td>4 hours ago</td><td><span class="badge mute flat">read only</span></td><td><button class="btn sm danger">Revoke</button></td></tr>
               <tr><td>Staging</td><td class="mono">mp_test_9pL1···</td><td><span class="badge info">Sandbox</span></td><td>18 Jul 2026</td><td>2 days ago</td><td><span class="badge mute flat">read + write</span></td><td><button class="btn sm">Revoke</button></td></tr>
@@ -888,15 +888,15 @@
         <div class="card">
           <div class="body">
             <div class="filters" style="margin:0">
-              <input class="input mono" value="txn_01J7QF3K2M" style="flex:1;min-width:280px">
-              <button class="btn brand"><svg><use href="#i-search"/></svg>Search</button>
+              <input class="input mono" id="ops-search" value="merch_demo" style="flex:1;min-width:280px">
+              <button class="btn brand" id="ops-search-go"><svg><use href="#i-search"/></svg>Search</button>
             </div>
             <p class="small muted mt3">Recognised as a transaction ID. Other accepted formats: phone number, email, <span class="mono">merch_*</span>, <span class="mono">evt_*</span>, <span class="mono">stl_*</span>, bank reference number.</p>
           </div>
         </div>
         <div class="card mt4">
-          <header><h3>Results</h3><span class="hint">1 transaction · 2 ledger entries · 1 webhook event</span></header>
-          <div class="queue body">
+          <header><h3>Results</h3><span class="hint" data-live="a-search-hint">1 transaction · 2 ledger entries · 1 webhook event</span></header>
+          <div class="queue body" data-live="a-search-results">
             <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-card"/></svg></div><div><div class="t">txn_01J7QF3K2M · Rp 32,000</div><div class="s">QRIS · Umar Sabirin → Kopi Tuku Senopati · 13 Sep 09:12:04</div></div><div class="ops"><span class="badge ok">Succeeded</span><button class="btn sm" data-screen="a-txdetail">Open</button></div></div>
             <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-user"/></svg></div><div><div class="t">Umar Sabirin · usr_44182</div><div class="s">0812-9903-1155 · Verified tier · balance Rp 2,480,500</div></div><div class="ops"><span class="badge ok">Active</span><button class="btn sm" data-screen="a-accounts">Open</button></div></div>
             <div class="qitem"><div class="av"><svg width="18" height="18"><use href="#i-store"/></svg></div><div><div class="t">Kopi Tuku Senopati · merch_8812</div><div class="s">Live since 02 Mar 2026 · balance Rp 41,200,000</div></div><div class="ops"><span class="badge ok">Active</span><button class="btn sm">Open</button></div></div>
@@ -914,7 +914,7 @@
             <header><h3>Ledger entries</h3><span class="hint">double-entry · append-only</span></header>
             <div class="tablewrap"><table class="ledger">
               <thead><tr><th>Entry ID</th><th>Account</th><th>Owner</th><th class="r">Debit</th><th class="r">Credit</th><th>Time</th></tr></thead>
-              <tbody>
+              <tbody data-live="a-txdetail-rows">
                 <tr><td>led_7712004</td><td>user_wallet</td><td>usr_44182</td><td class="r dr">32,000</td><td class="r muted">—</td><td>09:12:04,118</td></tr>
                 <tr><td>led_7712005</td><td>merchant_payable</td><td>merch_8812</td><td class="r muted">—</td><td class="r cr">31,776</td><td>09:12:04,118</td></tr>
                 <tr><td>led_7712006</td><td>platform_fee_revenue</td><td>marspay</td><td class="r muted">—</td><td class="r cr">224</td><td>09:12:04,118</td></tr>
@@ -963,13 +963,13 @@
             <h3>Current float position</h3>
             <p>Our own money, lent to merchants while we wait for funds to arrive from the QRIS switch and the banks. If this crosses the limit, Instant Payout degrades to batch mode automatically — it does not stop.</p>
           </div>
-          <div class="big">Rp 2.84bn<span>used of a limit of Rp 5bn</span></div>
+          <div class="big" data-live="a-float-headline">Rp 2.84bn<span>used of a limit of Rp 5bn</span></div>
         </div>
         <div class="card mt4">
           <header><h3>Float utilisation</h3><span class="hint">automatic threshold at 85%</span></header>
           <div class="body">
-            <div class="meterrow"><span>Used</span><span class="n">56.8% · Rp 2.84bn of Rp 5bn</span></div>
-            <div class="meter ok"><i style="width:56.8%"></i></div>
+            <div class="meterrow"><span>Used</span><span class="n" data-live="a-float-used">56.8% · Rp 2.84bn of Rp 5bn</span></div>
+            <div class="meter ok" data-live="a-float-meter"><i style="width:56.8%"></i></div>
             <div class="grid g4 mt5">
               <div><div class="small muted">Peak today</div><div class="num strong">Rp 3.41bn</div></div>
               <div><div class="small muted">Peak, 30 days</div><div class="num strong">Rp 4.12bn</div></div>
@@ -983,7 +983,7 @@
             <header><h3>Exposure per merchant</h3><span class="hint">money we have paid out but not yet collected</span></header>
             <div class="tablewrap"><table>
               <thead><tr><th>Merchant</th><th class="r">Exposure</th><th class="r">Limit</th><th class="r">Holdback</th><th class="r">Oldest</th><th>Status</th><th></th></tr></thead>
-              <tbody>
+              <tbody data-live="a-float-rows">
                 <tr><td>Tokopedia Official</td><td class="r num">412,800,000</td><td class="r num">600,000,000</td><td class="r num">1.5%</td><td class="r num">3.1 hour</td><td><span class="badge ok">Safe</span></td><td></td></tr>
                 <tr><td>Alfamart Group</td><td class="r num">318,200,000</td><td class="r num">500,000,000</td><td class="r num">1.5%</td><td class="r num">2.4 hours</td><td><span class="badge ok">Safe</span></td><td></td></tr>
                 <tr class="diffrow"><td>Toko Elektronik Jaya</td><td class="r num">88,400,000</td><td class="r num">90,000,000</td><td class="r num">12.0%</td><td class="r num">19.8 hours</td><td><span class="badge fail">Near the limit</span></td><td><button class="btn sm danger">Degrade to batch</button></td></tr>
@@ -1015,10 +1015,10 @@
           <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Refresh</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Current throughput</div><div class="v">1,840/s</div><div class="d up">peak today 3,210/s</div></div>
+          <div class="stat"><div class="k">Current throughput</div><div class="v" data-live="a-instant-stat0">1,840/s</div><div class="d up">peak today 3,210/s</div></div>
           <div class="stat"><div class="k">p50 / p95 / p99</div><div class="v" style="font-size:17px">3.1 / 6.2 / 9.4</div><div class="d">seconds · SLA 10</div></div>
-          <div class="stat"><div class="k">Outside SLA, 24h</div><div class="v">0.08%</div><div class="d up">error budget 0.5%</div></div>
-          <div class="stat"><div class="k">Degraded to batch</div><div class="v">14</div><div class="d">merchants · float rule</div></div>
+          <div class="stat"><div class="k">Outside SLA, 24h</div><div class="v" data-live="a-instant-stat1">0.08%</div><div class="d up">error budget 0.5%</div></div>
+          <div class="stat"><div class="k">Degraded to batch</div><div class="v" data-live="a-instant-stat2">14</div><div class="d">merchants · float rule</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Latency breakdown</h3><span class="hint">where those 6.2 seconds go</span></header>
@@ -1045,7 +1045,7 @@
         <div class="grid g2 mt4">
           <div class="card"><header><h3>Bank rail health</h3></header><div class="tablewrap"><table>
             <thead><tr><th>Rail</th><th class="r">Share</th><th class="r">p95</th><th class="r">Success</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody data-live="a-instant-rows">
               <tr><td>BI-FAST</td><td class="r num">71%</td><td class="r num">5.9s</td><td class="r num">99.7%</td><td><span class="badge ok">Healthy</span></td></tr>
               <tr><td>BCA internal transfer</td><td class="r num">22%</td><td class="r num">1.8s</td><td class="r num">99.9%</td><td><span class="badge ok">Healthy</span></td></tr>
               <tr class="diffrow"><td>SKNBI</td><td class="r num">7%</td><td class="r num">41min</td><td class="r num">98.1%</td><td><span class="badge pend">Slow</span></td></tr>
@@ -1053,7 +1053,7 @@
           </table></div></div>
           <div class="card"><header><h3>Failed payouts</h3><div class="actions"><button class="btn sm">Retry all</button></div></header><div class="tablewrap"><table>
             <thead><tr><th>Payout</th><th>Merchant</th><th class="r">Amount</th><th>Cause</th><th class="r">Attempts</th></tr></thead>
-            <tbody>
+            <tbody data-live="a-instant-rows1">
               <tr><td class="mono">po_01J7QF88</td><td>Warung Bu Tini</td><td class="r num">340,000</td><td>Destination account inactive</td><td class="r num">3</td></tr>
               <tr><td class="mono">po_01J7QF41</td><td>Kopi Tuku Kemang</td><td class="r num">1,240,000</td><td>Bank timeout</td><td class="r num">2</td></tr>
               <tr><td class="mono">po_01J7QEM9</td><td>Toko Elektronik Jaya</td><td class="r num">4,800,000</td><td>Exposure limit exceeded</td><td class="r num">1</td></tr>
@@ -1068,16 +1068,16 @@
           <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Run again</button><button class="btn"><svg><use href="#i-download"/></svg>Download differences</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Rows compared</div><div class="v">48,221</div><div class="d">finished 02:14 · 6m 41s</div></div>
-          <div class="stat"><div class="k">Matched</div><div class="v">48,219</div><div class="d up">99,996%</div></div>
-          <div class="stat"><div class="k">Differences</div><div class="v">2</div><div class="d down">need action</div></div>
-          <div class="stat"><div class="k">Value at stake</div><div class="v">Rp 91,000</div><div class="d">in both directions</div></div>
+          <div class="stat"><div class="k">Rows compared</div><div class="v" data-live="a-recon-stat0">48,221</div><div class="d">finished 02:14 · 6m 41s</div></div>
+          <div class="stat"><div class="k">Matched</div><div class="v" data-live="a-recon-stat1">48,219</div><div class="d up">99,996%</div></div>
+          <div class="stat"><div class="k">Differences</div><div class="v" data-live="a-recon-stat2">2</div><div class="d down">need action</div></div>
+          <div class="stat"><div class="k">Value at stake</div><div class="v" data-live="a-recon-stat3">Rp 91,000</div><div class="d">in both directions</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Rows that did not match</h3><span class="hint">only differences are shown</span></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Reference</th><th>Source</th><th class="r">Internal</th><th class="r">Provider</th><th class="r">Delta</th><th>Suspected cause</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="a-recon-rows">
               <tr class="diffrow"><td class="mono">wd_01J7P8X22K</td><td>Bank BCA</td><td class="r num">1,000,000</td><td class="r muted">missing</td><td class="r num">+1,000,000</td><td>Withdrawal pending, the bank has not posted it</td><td><button class="btn sm">Defer 1 day</button></td></tr>
               <tr class="diffrow"><td class="mono">qr-8791-1c04</td><td>QRIS switch</td><td class="r num">0</td><td class="r num">91,000</td><td class="r num">−91,000</td><td>Callback lost, the transaction never arrived</td><td><button class="btn sm danger">Post manually</button></td></tr>
             </tbody>
@@ -1105,16 +1105,16 @@
           <div class="actions"><button class="btn"><svg><use href="#i-refresh"/></svg>Refresh</button></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Highest consumer lag</div><div class="v">1,204</div><div class="d">topic payment.events p3</div></div>
-          <div class="stat"><div class="k">Dead letter depth</div><div class="v">7</div><div class="d down">4 webhooks · 3 notifications</div></div>
-          <div class="stat"><div class="k">Failed jobs, 24h</div><div class="v">2</div><div class="d">both already retried</div></div>
-          <div class="stat"><div class="k">Postgres replication</div><div class="v">88 ms</div><div class="d up">standby healthy</div></div>
+          <div class="stat"><div class="k">Highest consumer lag</div><div class="v" data-live="a-jobs-stat0">1,204</div><div class="d">topic payment.events p3</div></div>
+          <div class="stat"><div class="k">Dead letter depth</div><div class="v" data-live="a-jobs-stat1">7</div><div class="d down">4 webhooks · 3 notifications</div></div>
+          <div class="stat"><div class="k">Failed jobs, 24h</div><div class="v" data-live="a-jobs-stat2">2</div><div class="d">both already retried</div></div>
+          <div class="stat"><div class="k">Postgres replication</div><div class="v" data-live="a-jobs-stat3">88 ms</div><div class="d up">standby healthy</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Consumers</h3></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Consumer group</th><th>Topic</th><th class="r">Partitions</th><th class="r">Lag</th><th class="r">Throughput</th><th>Status</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="a-jobs-rows">
               <tr><td class="mono">settlement-worker</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">12</td><td class="r num">840/s</td><td><span class="badge ok">Healthy</span></td><td></td></tr>
               <tr><td class="mono">webhook-dispatcher</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">1,204</td><td class="r num">310/s</td><td><span class="badge pend">Falling behind</span></td><td><button class="btn sm">Add workers</button></td></tr>
               <tr><td class="mono">notification-worker</td><td class="mono">payment.events</td><td class="r num">6</td><td class="r num">31</td><td class="r num">790/s</td><td><span class="badge ok">Healthy</span></td><td></td></tr>
@@ -1127,7 +1127,7 @@
           <header><h3>Scheduled jobs</h3></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Job</th><th>Schedule</th><th>Last run</th><th class="r">Duration</th><th>Results</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="a-jobs-rows1">
               <tr><td>Daily reconciliation</td><td class="mono">0 2 * * *</td><td>13 Sep 02:14</td><td class="r num">6m 41s</td><td><span class="badge pend">2 differences</span></td><td><button class="btn sm" data-screen="a-recon">View</button></td></tr>
               <tr><td>Settlement batch</td><td class="mono">0 10 * * *</td><td>13 Sep 10:04</td><td class="r num">3m 12s</td><td><span class="badge ok">Success</span></td><td></td></tr>
               <tr><td>Invoice expiry</td><td class="mono">*/5 * * * *</td><td>09:15:00</td><td class="r num">1.2s</td><td><span class="badge ok">14 released</span></td><td></td></tr>
@@ -1155,7 +1155,7 @@
             </div></div>
             <div class="card"><header><h3>Recent transactions</h3></header><div class="tablewrap"><table>
               <thead><tr><th>ID</th><th>Type</th><th>Time</th><th class="r">Amount</th><th>Status</th></tr></thead>
-              <tbody>
+              <tbody data-live="a-accounts-rows">
                 <tr><td class="mono">txn_01J7QF3K2M</td><td>Payment</td><td>13 Sep 09:12</td><td class="r num">−32,000</td><td><span class="badge ok">Succeeded</span></td></tr>
                 <tr><td class="mono">tup_01J7QEM4W8</td><td>Top up</td><td>13 Sep 08:40</td><td class="r num">+500,000</td><td><span class="badge ok">Succeeded</span></td></tr>
                 <tr><td class="mono">trf_01J7PZQ71A</td><td>Transfer out</td><td>12 Sep 19:03</td><td class="r num">−150,000</td><td><span class="badge ok">Succeeded</span></td></tr>
@@ -1193,7 +1193,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Object</th><th>Before → After</th><th>Reason</th><th>IP</th></tr></thead>
-            <tbody>
+            <tbody data-live="a-audit-rows">
               <tr><td>13 Sep 09:44</td><td>umar@marspay</td><td>change_limit</td><td class="mono">usr_44182</td><td class="mono">10jt → 20jt</td><td>Upgraded to Verified tier</td><td class="mono">10.0.4.18</td></tr>
               <tr><td>13 Sep 08:02</td><td>rani@marspay</td><td>manual_posting</td><td class="mono">qr-8791-1c04</td><td class="mono">— → Rp 91,000</td><td>QRIS callback lost</td><td class="mono">10.0.4.22</td></tr>
               <tr><td>12 Sep 22:15</td><td>system</td><td>freeze_account</td><td class="mono">usr_91027</td><td class="mono">active → frozen</td><td>Velocity rule VR-03</td><td class="mono">—</td></tr>
@@ -1243,10 +1243,10 @@
           <div class="actions"><select class="input"><option>Oldest first</option><option>Highest amount</option><option>Closest to SLA</option></select></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Waiting</div><div class="v">18</div><div class="d">4 close to SLA</div></div>
-          <div class="stat"><div class="k">Approved today</div><div class="v">41</div><div class="d up">average 3h 12m</div></div>
-          <div class="stat"><div class="k">Rejected today</div><div class="v">6</div><div class="d">3 blurry documents</div></div>
-          <div class="stat"><div class="k">Auto-approved</div><div class="v">72%</div><div class="d">the rest come to this queue</div></div>
+          <div class="stat"><div class="k">Waiting</div><div class="v" data-live="r-kyc-stat0">18</div><div class="d">4 close to SLA</div></div>
+          <div class="stat"><div class="k">Approved today</div><div class="v" data-live="r-kyc-stat1">41</div><div class="d up">average 3h 12m</div></div>
+          <div class="stat"><div class="k">Rejected today</div><div class="v" data-live="r-kyc-stat2">6</div><div class="d">3 blurry documents</div></div>
+          <div class="stat"><div class="k">Auto-approved</div><div class="v" data-live="r-kyc-stat3">72%</div><div class="d">the rest come to this queue</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Queue</h3><span class="hint">click to compare the ID card and the selfie</span></header>
@@ -1268,7 +1268,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Time</th><th>Account</th><th>Rule</th><th>What was detected</th><th class="r">Value</th><th>Severity</th><th>Automatic action</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="r-alerts-rows">
               <tr class="diffrow"><td>09:41</td><td class="mono">usr_91027</td><td class="mono">VR-03</td><td>12 transfers in 4 minutes to 12 new recipients</td><td class="r num">Rp 11.4m</td><td><span class="badge fail">High</span></td><td><span class="badge fail flat">Frozen</span></td><td><button class="btn sm">Review</button></td></tr>
               <tr><td>09:12</td><td class="mono">usr_88410</td><td class="mono">VR-07</td><td>Topped up then withdrew everything within 90 seconds</td><td class="r num">Rp 4.8m</td><td><span class="badge pend">Medium</span></td><td><span class="badge pend flat">Withdrawal held</span></td><td><button class="btn sm">Review</button></td></tr>
               <tr><td>08:55</td><td class="mono">usr_90112</td><td class="mono">VR-01</td><td>Logins from 3 countries within an hour</td><td class="r num">—</td><td><span class="badge pend">Medium</span></td><td><span class="badge pend flat">Require OTP</span></td><td><button class="btn sm">Review</button></td></tr>
@@ -1293,16 +1293,16 @@
           <div class="big">3.8%<span>weighted average holdback</span></div>
         </div>
         <div class="grid g4 mt4">
-          <div class="stat"><div class="k">Instant merchants</div><div class="v">1,284</div><div class="d up">92% of all active merchants</div></div>
-          <div class="stat"><div class="k">Forced to batch</div><div class="v">108</div><div class="d">score below 40</div></div>
-          <div class="stat"><div class="k">Losses, 90 days</div><div class="v">Rp 4.1m</div><div class="d up">0.0009% of volume</div></div>
-          <div class="stat"><div class="k">Holdback collected</div><div class="v">Rp 812m</div><div class="d">covers losses 198 times over</div></div>
+          <div class="stat"><div class="k">Instant merchants</div><div class="v" data-live="r-merchant-stat0">1,284</div><div class="d up">92% of all active merchants</div></div>
+          <div class="stat"><div class="k">Forced to batch</div><div class="v" data-live="r-merchant-stat1">108</div><div class="d">score below 40</div></div>
+          <div class="stat"><div class="k">Losses, 90 days</div><div class="v" data-live="r-merchant-stat2">Rp 4.1m</div><div class="d up">0.0009% of volume</div></div>
+          <div class="stat"><div class="k">Holdback collected</div><div class="v" data-live="r-merchant-stat3">Rp 812m</div><div class="d">covers losses 198 times over</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Merchants by score</h3><span class="hint">score 0–100 · instant threshold at 40</span></header>
           <div class="tablewrap"><table>
             <thead><tr><th>Merchant</th><th class="r">Score</th><th class="r">Age</th><th class="r">Refunds 90d</th><th class="r">Disputes</th><th class="r">Holdback</th><th>Mode</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="r-merchant-rows">
               <tr><td>Tokopedia Official</td><td class="r num">96</td><td class="r num">4.2y</td><td class="r num">0.08%</td><td class="r num">0</td><td class="r num">1.5%</td><td><span class="badge ok">Instant</span></td><td></td></tr>
               <tr><td>Alfamart Group</td><td class="r num">94</td><td class="r num">3.8y</td><td class="r num">0.11%</td><td class="r num">1</td><td class="r num">1.5%</td><td><span class="badge ok">Instant</span></td><td></td></tr>
               <tr><td>Kopi Tuku Senopati</td><td class="r num">78</td><td class="r num">6.4mo</td><td class="r num">0.31%</td><td class="r num">0</td><td class="r num">4.0%</td><td><span class="badge ok">Instant</span></td><td></td></tr>
@@ -1343,16 +1343,16 @@
           <div class="actions"><select class="input"><option>All statuses</option><option>Open</option><option>Awaiting merchant</option><option>Resolved</option></select></div>
         </div>
         <div class="grid g4">
-          <div class="stat"><div class="k">Open</div><div class="v">3</div><div class="d">1 close to SLA</div></div>
-          <div class="stat"><div class="k">Amount disputed</div><div class="v">Rp 8.4m</div><div class="d">covered by holdback</div></div>
-          <div class="stat"><div class="k">Decided for the user</div><div class="v">68%</div><div class="d">last 90 days</div></div>
-          <div class="stat"><div class="k">Average resolution</div><div class="v">3.1 days</div><div class="d up">7 day SLA</div></div>
+          <div class="stat"><div class="k">Open</div><div class="v" data-live="r-dispute-stat0">3</div><div class="d">1 close to SLA</div></div>
+          <div class="stat"><div class="k">Amount disputed</div><div class="v" data-live="r-dispute-stat1">Rp 8.4m</div><div class="d">covered by holdback</div></div>
+          <div class="stat"><div class="k">Decided for the user</div><div class="v" data-live="r-dispute-stat2">68%</div><div class="d">last 90 days</div></div>
+          <div class="stat"><div class="k">Average resolution</div><div class="v" data-live="r-dispute-stat3">3.1 days</div><div class="d up">7 day SLA</div></div>
         </div>
         <div class="card mt4">
           <header><h3>Dispute queue</h3></header>
           <div class="tablewrap"><table>
             <thead><tr><th>ID</th><th>Transactions</th><th>User</th><th>Merchant</th><th class="r">Amount</th><th>Reason</th><th>Covered by holdback?</th><th>Status</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="r-dispute-rows">
               <tr><td class="mono">dsp_4471</td><td class="mono">txn_01J7NX22K</td><td>Sari M.</td><td>Gadget Murah ID</td><td class="r num">4,200,000</td><td>Goods never shipped</td><td><span class="badge ok">Yes · Rp 1.9m</span></td><td><span class="badge pend">Awaiting merchant</span></td><td><button class="btn sm">Open</button></td></tr>
               <tr><td class="mono">dsp_4468</td><td class="mono">txn_01J7MK09F</td><td>Bagus P.</td><td>Toko Elektronik Jaya</td><td class="r num">3,100,000</td><td>Goods not as described</td><td><span class="badge ok">Yes · Rp 372k</span></td><td><span class="badge pend">Reviewing evidence</span></td><td><button class="btn sm">Open</button></td></tr>
               <tr class="diffrow"><td class="mono">dsp_4460</td><td class="mono">txn_01J7J118B</td><td>Nadia K.</td><td>Gadget Murah ID</td><td class="r num">1,100,000</td><td>Transaction not recognised</td><td><span class="badge fail">No · merchant is empty</span></td><td><span class="badge fail">SLA in 8 hours</span></td><td><button class="btn sm danger">Escalate</button></td></tr>
@@ -1369,7 +1369,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Account</th><th>Blocked</th><th>By</th><th>Reason</th><th class="r">Balance held</th><th>Appeal</th><th></th></tr></thead>
-            <tbody>
+            <tbody data-live="r-blocked-rows">
               <tr><td class="mono">usr_91027</td><td>13 Sep 09:41</td><td>system · VR-03</td><td>Structuring pattern</td><td class="r num">11,402,000</td><td><span class="badge pend">Submitted</span></td><td><button class="btn sm brand">Unblock</button></td></tr>
               <tr><td class="mono">usr_79233</td><td>13 Sep 08:31</td><td>system · VR-05</td><td>Amounts just under the threshold</td><td class="r num">2,180,000</td><td><span class="badge mute">None</span></td><td><button class="btn sm">Review</button></td></tr>
               <tr><td class="mono">usr_66781</td><td>11 Sep 14:20</td><td>dewi@marspay</td><td>Forged KYC documents</td><td class="r num">0</td><td><span class="badge fail">Rejected</span></td><td><button class="btn sm">Review</button></td></tr>
@@ -1388,7 +1388,7 @@
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Code</th><th>Condition</th><th class="r">Window</th><th class="r">Threshold</th><th>Action</th><th class="r">Hits, 7 days</th><th class="r">False positive</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody data-live="r-rules-rows">
               <tr><td class="mono">VR-01</td><td>Logins from different countries</td><td class="r num">1 hour</td><td class="r num">3</td><td>Require OTP</td><td class="r num">28</td><td class="r num">21%</td><td><span class="badge ok">Active</span></td></tr>
               <tr><td class="mono">VR-02</td><td>New device + new bank account</td><td class="r num">24 hours</td><td class="r num">1</td><td>Flag</td><td class="r num">143</td><td class="r num">62%</td><td><span class="badge pend">Monitor mode</span></td></tr>
               <tr><td class="mono">VR-03</td><td>Transfers to new recipients</td><td class="r num">5 minutes</td><td class="r num">10</td><td>Freeze</td><td class="r num">7</td><td class="r num">4%</td><td><span class="badge ok">Active</span></td></tr>
@@ -1419,6 +1419,7 @@
 
 <script src="api.js"></script>
 <script src="app.js"></script>
+<script src="dashboards.js"></script>
 <script src="live.js"></script>
 </body>
 </html>

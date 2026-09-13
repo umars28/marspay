@@ -398,7 +398,7 @@ internal/
   testdb/            per-package throwaway database for tests
 migrations/          numbered SQL, up and down
 scripts/             test infrastructure, ledger invariant check
-mockup/              38 screens; the consumer role talks to the real API
+mockup/              38 screens; every role can run on the real API
 ```
 
 ## Running the API locally
@@ -459,16 +459,27 @@ screens switch from fictional data to the real ledger: the balance is a `SUM()` 
 `ledger_entries`, the history is the real activity feed, and Pay, Transfer, Top Up and Withdraw
 move real money through the real velocity rules. Sign out and the sample data comes back.
 
-Merchant, Admin/Ops and Risk still show sample data. Roughly half the screens in those roles
-have no endpoint behind them yet — the payout engine, float position, reconciliation runs and
-webhook delivery log all exist as tested Go packages but are not exposed over HTTP.
+Sign in as the operator, and paste the merchant API key, to bring the other three roles up the
+same way. What is live in each:
+
+| Role | Live | Still sample |
+|---|---|---|
+| Consumer | balance, history, points, profile, devices, pay, transfer, top up, withdraw | bills, promos, split bill, inbox |
+| Merchant | payments, payouts, holdback and its rate, settlements, API keys, outlets, staff, webhook deliveries | payment links, the hourly volume chart |
+| Admin / Ops | search, float and exposure, payout engine and rail health, reconciliation, audit log, the ledger behind any payment | Kafka consumer lag, scheduled jobs |
+| Risk | alerts, rule catalogue with trip counts, disputes, blocks, merchant score | KYC queue |
+
+What is still sample data is what has no endpoint behind it. Kafka lag needs a consumer that
+does not exist yet; payment links and the KYC queue have tables but no read route. Nothing
+shown as live is invented, and nothing invented is shown as live.
 
 ```sh
 ./scripts/check-ui.sh
 ```
 
-Starts a throwaway stack and replays every call the consumer UI makes, checking the status and
-the fields the UI reads. It exists because the first version of the wiring asked for
+Starts a throwaway stack and replays all 33 calls the UI makes across the four roles, checking
+the status, the fields the UI reads, the CORS preflight, and that a consumer token is refused
+by the operator endpoints. It exists because the first version of the wiring asked for
 `full_name` where the API returns `name`, and sent `bca` where the API wants `BCA`; both
 failures were silent in the browser and obvious here.
 

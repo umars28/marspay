@@ -6,13 +6,19 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
+	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/merchant"
+	"github.com/umars28/marspay/internal/money"
+	"github.com/umars28/marspay/internal/payout"
+	"github.com/umars28/marspay/internal/rail"
+	"github.com/umars28/marspay/internal/risk"
 )
 
 const (
@@ -138,6 +144,10 @@ func main() {
 		fatal(err)
 	}
 
+	if err := settleDemoPayout(ctx, pool); err != nil {
+		fatal(err)
+	}
+
 	fmt.Printf(`
   Consumer
     phone            %s
@@ -156,6 +166,70 @@ func main() {
   in any other mode that field is empty and the code would go out by SMS.
 `, consumerPhone, consumerPin, rupiah(openingMinor),
 		operatorPhone, consumerPin, merchantID, key.Secret)
+}
+
+func settleDemoPayout(ctx context.Context, pool *pgxpool.Pool) error {
+	var existing int
+	if err := pool.QueryRow(ctx,
+		`SELECT count(*) FROM payouts WHERE merchant_id = $1`, merchantID).Scan(&existing); err != nil {
+		return err
+	}
+	if existing > 0 {
+		return nil
+	}
+
+	repo := ledger.NewRepo(pool)
+	accounts := []struct {
+		id        string
+		ownerType string
+		ownerID   string
+		kind      string
+	}{
+		{ledger.MerchantPayable(merchantID), ledger.OwnerMerchant, merchantID, ledger.TypeMerchantPayable},
+		{ledger.MerchantHoldback(merchantID), ledger.OwnerMerchant, merchantID, ledger.TypeMerchantHoldback},
+		{ledger.AccountID(ledger.OwnerProvider, string(rail.BIFast), ledger.TypeClearing),
+			ledger.OwnerProvider, string(rail.BIFast), ledger.TypeClearing},
+		{ledger.AccountID(ledger.OwnerPlatform, "", ledger.TypeFloat),
+			ledger.OwnerPlatform, "", ledger.TypeFloat},
+	}
+	for _, a := range accounts {
+		if err := repo.EnsureAccount(ctx, a.id, a.ownerType, a.ownerID, a.kind); err != nil {
+			return err
+		}
+	}
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO ledger_transactions (id, kind, description)
+		 VALUES ('txn_demo_collected', 'payment', 'demo merchant receivable')
+		 ON CONFLICT (id) DO NOTHING`); err != nil {
+		return err
+	}
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO ledger_entries (id, transaction_id, account_id, amount_minor) VALUES
+		   ('led_demo_payable', 'txn_demo_collected', $1, 3177600),
+		   ('led_demo_float', 'txn_demo_collected', $2, -3177600)
+		 ON CONFLICT DO NOTHING`,
+		ledger.MerchantPayable(merchantID),
+		ledger.AccountID(ledger.OwnerPlatform, "", ledger.TypeFloat)); err != nil {
+		return err
+	}
+
+	sim, err := rail.NewSim(rail.Config{
+		Rail:    rail.BIFast,
+		Latency: rail.Latency{P50: 3 * time.Second, P99: 11 * time.Second},
+		Seed:    7,
+	})
+	if err != nil {
+		return err
+	}
+
+	service := payout.NewService(pool, repo, payout.NewFloat(pool, money.Minor(5_000_000_000)),
+		[]rail.Rail{sim})
+
+	_, err = service.Settle(ctx, "", merchantID, money.Minor(3_177_600),
+		risk.Factors{AgeDays: 400, RefundRateBps: 31, DisputeRateBps: 4, VolumeStability: 20},
+		payout.Destination{BankCode: "BCA", AccountNo: "1234567890", AccountName: "PT Kopi Demo"})
+	return err
 }
 
 func openBalance(ctx context.Context, pool *pgxpool.Pool, account string, amount int64) error {
