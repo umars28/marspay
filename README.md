@@ -56,10 +56,46 @@ Claims in this repo are meant to be checkable. The ones that matter:
 | Redis is disposable | drop the cache; balances rebuild from the ledger | done |
 | Reconciliation works | inject lost callbacks via `provider-sim`; they appear as differences | done |
 | Instant payout degrades, never fails | push float past 85%; everyone drops to batch | done |
-| Money survives a crash | `kill -9` the Postgres primary mid-payment | not yet |
+| Money survives a crash | `kill -9` the Postgres primary mid-payment | done |
 | Throughput is real | k6 run with p50/p95/p99 published alongside the numbers | not yet |
 
 None of these require a single real rupiah.
+
+### The crash test
+
+```sh
+./scripts/crash-test.sh
+```
+
+It builds a dedicated cluster, runs 16 concurrent writers, `kill -9`s the postmaster
+mid-flight, restarts it so PostgreSQL replays its write-ahead log, and then checks the books.
+The driver keeps its own fsynced journal of every commit the database acknowledged, so the
+question it answers is precise: **did anything the database said was committed fail to come
+back?**
+
+A real run:
+
+```
+==> synchronous_commit is on
+==> writing for 12s with 16 concurrent writers
+==> kill -9 98352 (the postmaster) mid-flight
+acknowledged=886 rejected=800
+==> confirmed: the server performed crash recovery
+
+acknowledged by the driver  : 886
+transactions after recovery : 886
+acknowledged but missing    : 0
+recovered unbalanced        : 0
+transactions without entries: 0
+entries without transaction : 0
+global sum                  : 0
+
+PASS: every acknowledged commit survived, nothing partial, nothing invented
+```
+
+The 800 rejected writes are the in-flight ones that met a dead database. Those are supposed
+to fail, and none of them left a trace. This is a durability test, not a throughput test — the
+journal is fsynced on every acknowledgement, which caps the write rate by design.
 
 ## Repository layout
 
@@ -69,6 +105,7 @@ docs/
   database.md        schema design and rationale
   api.md             HTTP contract, idempotency, webhooks
 cmd/marspay/         API server entrypoint
+cmd/crashdriver/     load and verify phases for the crash test
 internal/
   money/             minor units, fee rounding
   ledger/            double-entry postings, Postgres repository
