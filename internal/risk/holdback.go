@@ -12,6 +12,9 @@ const (
 	CoverageMultiple = 200
 	CentiBpsPerBps   = 100
 
+	DisputeWeight = 0.25
+	RefundWeight  = 0.02
+
 	InstantScoreFloor = 40
 )
 
@@ -73,7 +76,7 @@ func HoldbackBps(expectedLossCentiBps int) int {
 }
 
 func expectedLossCentiBps(f Factors) int {
-	loss := float64(f.DisputeRateBps)*0.8 + float64(f.RefundRateBps)*0.05
+	loss := float64(f.DisputeRateBps)*DisputeWeight + float64(f.RefundRateBps)*RefundWeight
 
 	switch {
 	case f.AgeDays < 30:

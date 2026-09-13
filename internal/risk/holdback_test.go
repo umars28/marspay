@@ -113,6 +113,57 @@ func TestComponentsAreAlwaysReported(t *testing.T) {
 	}
 }
 
+func TestCalibrationPointsAcrossTheRange(t *testing.T) {
+	cases := []struct {
+		name    string
+		factors Factors
+		wantBps int
+	}{
+		{"large established merchant", Factors{AgeDays: 1533, RefundRateBps: 8, VolumeStability: 25, VerifiedBusiness: true}, MinHoldbackBps},
+		{"healthy small merchant under a year old", Factors{AgeDays: 195, RefundRateBps: 31, VolumeStability: 20}, 324},
+		{"same merchant past its first year", Factors{AgeDays: 400, RefundRateBps: 31, VolumeStability: 20}, MinHoldbackBps},
+		{"brand new, clean record", Factors{AgeDays: 36, VolumeStability: 12}, 800},
+		{"elevated refunds", Factors{AgeDays: 120, RefundRateBps: 400, DisputeRateBps: 40, VolumeStability: 15}, 3800},
+		{"fraudulent pattern", Factors{AgeDays: 11, RefundRateBps: 1890, DisputeRateBps: 900, VolumeStability: 2}, MaxHoldbackBps},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			score, err := Evaluate(c.factors)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if score.HoldbackBps != c.wantBps {
+				t.Errorf("holdback = %d bps, want %d", score.HoldbackBps, c.wantBps)
+			}
+		})
+	}
+}
+
+func TestMidRangeIsReachable(t *testing.T) {
+	seen := map[int]bool{}
+	for refund := 0; refund <= 2000; refund += 25 {
+		for _, dispute := range []int{0, 10, 40, 120} {
+			score, err := Evaluate(Factors{AgeDays: 200, RefundRateBps: refund,
+				DisputeRateBps: dispute, VolumeStability: 15})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			seen[score.HoldbackBps] = true
+		}
+	}
+
+	distinct := 0
+	for bps := range seen {
+		if bps > MinHoldbackBps && bps < MaxHoldbackBps {
+			distinct++
+		}
+	}
+	if distinct < 20 {
+		t.Errorf("only %d distinct mid-range rates reachable; the curve saturates too fast", distinct)
+	}
+}
+
 func TestEvaluateRejectsImpossibleInput(t *testing.T) {
 	if _, err := Evaluate(Factors{RefundRateBps: -1}); err == nil {
 		t.Error("negative refund rate was accepted")

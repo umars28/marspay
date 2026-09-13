@@ -223,8 +223,25 @@ fraud model, and real bank integration. Each of these adds surface area without 
 distributed systems problem. The holdback formula stays deliberately explainable:
 
 ```
-holdback = clamp(1.5%, 45%, expected_loss_rate * 200)
+expected_loss = dispute_rate * 0.25 + refund_rate * 0.02 + age_penalty
+holdback      = clamp(1.5%, 45%, expected_loss * 200)
 ```
 
 A merchant is entitled to know why their money is being held. A model that cannot explain
 itself is not acceptable here, regardless of how much better it might score.
+
+Calibration points, pinned by tests in `internal/risk`:
+
+| Merchant | Holdback |
+|---|---|
+| 4 years old, 0.08% refunds, no disputes | 1.5% (floor) |
+| 6 months old, 0.31% refunds, no disputes | 3.24% |
+| 1 month old, clean record | 8% |
+| 4 months old, 4% refunds, 0.4% disputes | 38% |
+| 11 days old, 18.9% refunds, 9% disputes | 45% (ceiling) |
+
+The weights exist because the first calibration was wrong: with a dispute weight of 0.8 almost
+every merchant with any dispute history saturated at the 45% ceiling, which made the whole
+holdback dimension decorative. `TestMidRangeIsReachable` now fails if the curve saturates that
+fast again. Illustrative numbers in `mockup/` predate this calibration and will be reconciled
+when the front end is rebuilt.
