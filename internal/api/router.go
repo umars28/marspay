@@ -76,6 +76,7 @@ func NewRouter(d Deps) http.Handler {
 
 	mux.HandleFunc("GET /v1/balance", movements.Balance)
 	mux.HandleFunc("GET /v1/transactions", movements.History)
+	mux.HandleFunc("GET /v1/notifications", movements.Notifications)
 	mux.HandleFunc("GET /v1/me", movements.Profile)
 
 	if d.Blocks != nil && d.Audit != nil {

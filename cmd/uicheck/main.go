@@ -162,6 +162,7 @@ func main() {
 		"source": "bank_va", "provider_code": "bca", "amount": 50000000, "currency": "IDR"})
 	check("POST /v1/topups", code, 201, out, "virtual_account", "status")
 
+	checkWallet(access)
 	checkMerchant()
 	checkOperator()
 
@@ -172,6 +173,47 @@ func main() {
 	}
 	fmt.Printf("%d problems the UI would hit\n", failures)
 	os.Exit(1)
+}
+
+func checkWallet(access string) {
+	fmt.Println()
+
+	code, out, _ := call("GET", "/v1/billers", access, nil)
+	check("GET  /v1/billers", code, 200, out, "data")
+
+	code, out, _ = call("POST", "/v1/billers/PLN_POSTPAID/inquire", access,
+		map[string]any{"customer_ref": "512201884471"})
+	check("POST /v1/billers/{code}/inquire", code, 200, out, "amount", "total_payable")
+
+	quoted, _ := out["amount"].(float64)
+	code, out, _ = call("POST", "/v1/bill-payments", access, map[string]any{
+		"biller_code": "PLN_POSTPAID", "customer_ref": "512201884471",
+		"amount": int64(quoted), "currency": "IDR"})
+	check("POST /v1/bill-payments", code, 201, out, "status")
+
+	code, out, _ = call("GET", "/v1/promos", access, nil)
+	check("GET  /v1/promos", code, 200, out, "data")
+	if list, ok := out["data"].([]any); !ok || len(list) == 0 {
+		fmt.Println("FAIL the promo screen would be empty: no active offer is seeded")
+		failures++
+	}
+
+	code, out, _ = call("POST", "/v1/promos/apply", access, map[string]any{
+		"code": "COFFEE30", "spend": 3200000})
+	check("POST /v1/promos/apply", code, 201, out, "value", "points")
+
+	code, out, _ = call("GET", "/v1/points", access, nil)
+	check("GET  /v1/points", code, 200, out, "balance")
+
+	code, out, _ = call("GET", "/v1/money-requests", access, nil)
+	check("GET  /v1/money-requests", code, 200, out, "data")
+
+	code, out, _ = call("POST", "/v1/money-requests", access, map[string]any{
+		"payer_id": friendNo, "amount": 1200000, "currency": "IDR", "note": "uicheck"})
+	check("POST /v1/money-requests", code, 201, out, "amount", "status")
+
+	code, out, _ = call("GET", "/v1/notifications", access, nil)
+	check("GET  /v1/notifications", code, 200, out, "data", "unread")
 }
 
 func checkMerchant() {

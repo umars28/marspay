@@ -144,6 +144,24 @@ func main() {
 		fatal(err)
 	}
 
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO promos (id, code, name, kind, value_bps, max_benefit_minor,
+		                     min_spend_minor, total_quota, per_user_quota,
+		                     starts_at, ends_at, status)
+		 VALUES
+		   ('promo_demo_coffee', 'COFFEE30', 'Coffee cashback', 'cashback', 3000, 1500000,
+		    1000000, 500, 3, now() - interval '1 day', now() + interval '30 days', 'active'),
+		   ('promo_demo_bill', 'BILL25K', 'Electricity bill discount', 'discount', NULL, 2500000,
+		    10000000, 200, 1, now() - interval '1 day', now() + interval '30 days', 'active')
+		 ON CONFLICT (id) DO NOTHING`); err != nil {
+		fatal(err)
+	}
+
+	if _, err := pool.Exec(ctx,
+		`UPDATE promos SET value_minor = 2500000 WHERE id = 'promo_demo_bill'`); err != nil {
+		fatal(err)
+	}
+
 	if err := settleDemoPayout(ctx, pool); err != nil {
 		fatal(err)
 	}

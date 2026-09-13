@@ -330,7 +330,7 @@
           </div>
           <input class="input mt3" placeholder="Search services" style="width:100%">
           <div class="sect"><h4>You pay these often</h4></div>
-          <div class="txlist">
+          <div class="txlist" data-live="bills-list">
             <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-zap"/></svg></div><div><div class="t">PLN Postpaid</div><div class="s">ID 512201884471 · home</div></div><div class="amt">Rp 412,300<span class="st">Due 20 Sep</span></div></div>
             <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-phone"/></svg></div><div><div class="t">Telkomsel</div><div class="s">0812-9903-1155</div></div><div class="amt"><span class="st">Top up</span></div></div>
             <div class="txrow" data-goto="billform"><div class="ic out"><svg><use href="#i-wifi"/></svg></div><div><div class="t">IndiHome</div><div class="s">ID 1220118842</div></div><div class="amt">Rp 385,000<span class="st">Paid</span></div></div>
@@ -354,9 +354,11 @@
             <button class="back" data-goto="bills" aria-label="Back"><svg><use href="#i-back"/></svg></button>
             <h3>Electricity PLN</h3>
           </div>
-          <label class="field mt4"><span class="lbl">Customer ID</span><input class="input mono" value="512201884471"></label>
+          <label class="field mt4"><span class="lbl">Biller</span><select class="input" id="bill-code" data-live="bill-codes"><option value="PLN_POSTPAID">PLN Postpaid</option></select></label>
+          <label class="field mt4"><span class="lbl">Customer ID</span><input class="input mono" id="bill-ref" value="512201884471"></label>
+          <button class="btn block mt3" id="bill-inquire">Check the bill</button>
           <div class="card mt4"><div class="body">
-            <dl class="kv" style="grid-template-columns:110px minmax(0,1fr)">
+            <dl class="kv" style="grid-template-columns:110px minmax(0,1fr)" data-live="bill-inquiry">
               <dt>Name</dt><dd>UMAR SABIRIN</dd>
               <dt>Tariff / Power</dt><dd>R1 / 2200 VA</dd>
               <dt>Period</dt><dd>August 2026</dd>
@@ -369,7 +371,8 @@
           </div></div>
           <div class="note ok mt4"><svg><use href="#i-gift"/></svg><div>Use the <strong>Rp 25,000 electricity discount</strong> offer? You would pay Rp 387,300.</div></div>
           <div class="note warn mt4"><svg><use href="#i-alert"/></svg><div>If PLN times out after your balance is debited, the transaction enters <strong>pending</strong>  — not failed. A worker keeps asking for the status until it is certain, and only then decides to complete or reverse.</div></div>
-          <button class="btn brand block mt4" data-goto="pin">Pay</button>
+          <div class="note" data-live="bill-result" hidden></div>
+          <button class="btn brand block mt4" id="bill-pay" data-goto="pin">Pay</button>
         </section>
 
         <section class="pscreen" data-pscreen="split">
@@ -398,14 +401,15 @@
             <button class="back" data-goto="split" aria-label="Back"><svg><use href="#i-back"/></svg></button>
             <h3>Request Money</h3>
           </div>
-          <label class="field mt4"><span class="lbl">Request from</span><input class="input" value="Ahmad Fauzi" placeholder="Phone number or username"></label>
-          <label class="field mt4"><span class="lbl">Amount</span><input class="input num" value="120,000"></label>
-          <label class="field mt4"><span class="lbl">What for</span><input class="input" value="Splitting the sate"></label>
+          <label class="field mt4"><span class="lbl">Request from</span><input class="input" id="request-from" value="081200000002" placeholder="Phone number or user id"></label>
+          <label class="field mt4"><span class="lbl">Amount</span><input class="input num" id="request-amount" value="120,000"></label>
+          <label class="field mt4"><span class="lbl">What for</span><input class="input" id="request-note" value="Splitting the sate"></label>
           <label class="field mt4"><span class="lbl">Expires</span><select class="input"><option>3 days</option><option>7 days</option><option>Never</option></select>
             <span class="help">Once it lapses, the expiry worker closes the request automatically.</span></label>
-          <button class="btn brand block mt4" data-goto="split">Send request</button>
+          <div class="note" data-live="request-result" hidden></div>
+          <button class="btn brand block mt4" id="request-submit" data-goto="split">Send request</button>
           <div class="sect"><h4>Incoming requests</h4></div>
-          <div class="queue">
+          <div class="queue" data-live="requests-incoming">
             <div class="qitem"><div class="av">RW</div><div><div class="t">Rani Wulandari is requesting</div><div class="s num">Rp 85,000 · fuel</div></div><div class="ops"><button class="btn sm">Decline</button><button class="btn sm brand">Pay</button></div></div>
           </div>
         </section>
@@ -417,17 +421,18 @@
           </div>
           <div class="balance" style="background:linear-gradient(145deg,#A16207 0%,#C98A1E 100%)">
             <div class="k">Total points</div>
-            <div class="v">12,480</div>
-            <div class="meta"><span>2,400 expire 30 Sep</span><span>·</span><span>1 point = Rp 1</span></div>
+            <div class="v" data-live="points-total">12,480</div>
+            <div class="meta" data-live="points-meta"><span>2,400 expire 30 Sep</span><span>·</span><span>1 point = Rp 1</span></div>
           </div>
           <div class="sect"><h4>Redeem points</h4></div>
+          <div class="note" data-live="points-result" hidden></div>
           <div class="txlist">
-            <div class="txrow"><div class="ic out"><svg><use href="#i-wallet"/></svg></div><div><div class="t">Convert to balance</div><div class="s">Minimum 10,000 points</div></div><div class="amt"><span class="badge info flat">Redeem</span></div></div>
+            <div class="txrow"><div class="ic out"><svg><use href="#i-wallet"/></svg></div><div><div class="t">Convert to balance</div><div class="s">Minimum 10,000 points</div></div><div class="amt"><button class="btn sm" data-redeem="10000">Redeem</button></div></div>
             <div class="txrow"><div class="ic out"><svg><use href="#i-gift"/></svg></div><div><div class="t">Alfamart voucher Rp 50,000</div><div class="s">5,000 points</div></div><div class="amt"><span class="badge info flat">Redeem</span></div></div>
             <div class="txrow"><div class="ic out"><svg><use href="#i-zap"/></svg></div><div><div class="t">Electricity token Rp 20,000</div><div class="s">2,000 points</div></div><div class="amt"><span class="badge info flat">Redeem</span></div></div>
           </div>
           <div class="sect"><h4>Points history</h4></div>
-          <div class="txlist">
+          <div class="txlist" data-live="points-history">
             <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Cashback at Kopi Tuku</div><div class="s">13 Sep · 30% of Rp 32,000</div></div><div class="amt in">+9,600</div></div>
             <div class="txrow"><div class="ic in"><svg><use href="#i-in"/></svg></div><div><div class="t">Double points at the weekend</div><div class="s">12 Sep · Tokopedia</div></div><div class="amt in">+5,780</div></div>
             <div class="txrow"><div class="ic out"><svg><use href="#i-out"/></svg></div><div><div class="t">Redeemed for balance</div><div class="s">10 Sep</div></div><div class="amt">−10,000</div></div>
@@ -443,7 +448,7 @@
           <div class="filters mt3">
             <select class="input" style="flex:1"><option>All categories</option><option>Food &amp; drink</option><option>Bill</option><option>Shopping</option></select>
           </div>
-          <div class="queue">
+          <div class="queue" data-live="promo-list">
             <div class="qitem"><div class="av" style="background:var(--brand-soft);color:var(--brand)">30%</div><div><div class="t">Coffee cashback</div><div class="s">Max Rp 15,000 · 42 merchants · until 20 Sep</div></div><button class="btn sm brand">Activate</button></div>
             <div class="qitem"><div class="av" style="background:var(--accent-soft);color:var(--accent)">25k</div><div><div class="t">Electricity bill discount</div><div class="s">Min. Rp 100,000 · once per user · until 30 Sep</div></div><button class="btn sm brand">Activate</button></div>
             <div class="qitem"><div class="av" style="background:var(--success-soft);color:var(--success)">2×</div><div><div class="t">Double points at the weekend</div><div class="s">Saturday &amp; Sunday · automatic</div></div><span class="badge ok">Active</span></div>
@@ -457,7 +462,7 @@
             <button class="back" data-goto="profile" aria-label="Back"><svg><use href="#i-back"/></svg></button>
             <h3>Notifications</h3>
           </div>
-          <div class="txlist mt3">
+          <div class="txlist mt3" data-live="inbox-list">
             <div class="txrow"><div class="ic in"><svg><use href="#i-check"/></svg></div><div><div class="t">Payment succeeded</div><div class="s">Rp 32,000 ke Kopi Tuku · 09:12</div></div><div class="amt"><span class="badge info flat">New</span></div></div>
             <div class="txrow"><div class="ic"><svg><use href="#i-star"/></svg></div><div><div class="t">You earned 9,600 points</div><div class="s">Cashback 30% · 09:12</div></div><div class="amt"><span class="badge info flat">New</span></div></div>
             <div class="txrow"><div class="ic"><svg><use href="#i-users"/></svg></div><div><div class="t">Rani requested Rp 85,000</div><div class="s">Fuel · 08:30</div></div><div class="amt"></div></div>

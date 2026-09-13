@@ -215,6 +215,21 @@ func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, result)
 }
 
+func (h *Handler) Notifications(w http.ResponseWriter, r *http.Request) {
+	userID, ok := caller(w, r)
+	if !ok {
+		return
+	}
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	inbox, err := h.service.Notifications(r.Context(), userID, limit)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, inbox)
+}
+
 func caller(w http.ResponseWriter, r *http.Request) (string, bool) {
 	userID := auth.UserID(r.Context())
 	if userID == "" {
