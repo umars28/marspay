@@ -1254,9 +1254,10 @@
           <div class="stat"><div class="k">Rejected today</div><div class="v" data-live="r-kyc-stat2">6</div><div class="d">3 blurry documents</div></div>
           <div class="stat"><div class="k">Auto-approved</div><div class="v" data-live="r-kyc-stat3">72%</div><div class="d">the rest come to this queue</div></div>
         </div>
+        <div class="note info mt4" data-reason-bar><div>Privileged actions need a written reason. It is stored in the audit log beside the actor and cannot be edited later.<input class="input mt3" id="kyc-reason" placeholder="Why this decision" style="width:100%"></div></div>
         <div class="card mt4">
           <header><h3>Queue</h3><span class="hint">click to compare the ID card and the selfie</span></header>
-          <div class="queue body">
+          <div class="queue body" data-live="r-kyc-queue">
             <div class="qitem"><div class="av">BP</div><div><div class="t">Bagus Prakoso · usr_91288</div><div class="s">Upgrade to Verified · submitted 22 hours ago · <span class="badge pend flat">SLA in 2 hours</span></div></div><div class="ops"><button class="btn sm danger">Decline</button><button class="btn sm brand">Approve</button></div></div>
             <div class="qitem"><div class="av">SM</div><div><div class="t">Sari Maharani · usr_91301</div><div class="s">Upgrade to Verified · submitted 19 hours ago</div></div><div class="ops"><button class="btn sm danger">Decline</button><button class="btn sm brand">Approve</button></div></div>
             <div class="qitem"><div class="av">AF</div><div><div class="t">Ahmad Fauzi · usr_91344</div><div class="s">Name on the ID card differs slightly from the bank account · submitted 14 hours ago</div></div><div class="ops"><button class="btn sm">Request again</button><button class="btn sm brand">Approve</button></div></div>
@@ -1347,6 +1348,7 @@
         <div class="pagehead">
           <div><h2>Disputes</h2><p>3 open · a 90 day claim window from the transaction</p></div>
           <div class="actions"><select class="input"><option>All statuses</option><option>Open</option><option>Awaiting merchant</option><option>Resolved</option></select></div>
+        <div class="note info mt4" data-reason-bar><div>Privileged actions need a written reason. It is stored in the audit log beside the actor and cannot be edited later.<input class="input mt3" id="dispute-reason" placeholder="Why this outcome" style="width:100%"></div></div>
         </div>
         <div class="grid g4">
           <div class="stat"><div class="k">Open</div><div class="v" data-live="r-dispute-stat0">3</div><div class="d">1 close to SLA</div></div>
@@ -1372,6 +1374,7 @@
         <div class="pagehead">
           <div><h2>Blocked Accounts</h2><p>Balances stay intact while an account is blocked · the system seizes nothing</p></div>
         </div>
+        <div class="note info mt4" data-reason-bar><div>Privileged actions need a written reason. It is stored in the audit log beside the actor and cannot be edited later.<input class="input mt3" id="block-reason" placeholder="Why this account is being unblocked" style="width:100%"></div></div>
         <div class="card">
           <div class="tablewrap"><table>
             <thead><tr><th>Account</th><th>Blocked</th><th>By</th><th>Reason</th><th class="r">Balance held</th><th>Appeal</th><th></th></tr></thead>

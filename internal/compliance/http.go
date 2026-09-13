@@ -21,7 +21,7 @@ func NewHandler(blocks *Blocks, audit *Audit, kyc *KYC, disputes *Disputes) *Han
 }
 
 func (h *Handler) SubmitKYC(w http.ResponseWriter, r *http.Request) {
-	userID, ok := operator(w, r)
+	userID, ok := signedIn(w, r)
 	if !ok {
 		return
 	}
@@ -75,7 +75,7 @@ func (h *Handler) ReviewKYC(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) OpenDispute(w http.ResponseWriter, r *http.Request) {
-	userID, ok := operator(w, r)
+	userID, ok := signedIn(w, r)
 	if !ok {
 		return
 	}
@@ -211,6 +211,16 @@ func (h *Handler) AuditFor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.WriteJSON(w, http.StatusOK, map[string]any{"data": entries})
+}
+
+func signedIn(w http.ResponseWriter, r *http.Request) (string, bool) {
+	userID := auth.UserID(r.Context())
+	if userID == "" {
+		httpx.WriteError(w, r, httpx.Errorf(http.StatusUnauthorized,
+			httpx.TypeUnauthorized, "A valid access token is required."))
+		return "", false
+	}
+	return userID, true
 }
 
 func operator(w http.ResponseWriter, r *http.Request) (string, bool) {

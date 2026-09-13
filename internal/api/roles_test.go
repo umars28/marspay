@@ -12,8 +12,10 @@ import (
 	"github.com/umars28/marspay/internal/auth"
 	"github.com/umars28/marspay/internal/compliance"
 	"github.com/umars28/marspay/internal/id"
+	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/risk"
 	"github.com/umars28/marspay/internal/testdb"
+	"github.com/umars28/marspay/internal/wallet"
 )
 
 func signIn(t *testing.T, pool *pgxpool.Pool, ctx context.Context, store *auth.Store, phone, role string) *auth.Tokens {
@@ -58,10 +60,12 @@ func roleRouter(t *testing.T) (http.Handler, *pgxpool.Pool, context.Context, *au
 	audit := compliance.NewAudit(pool)
 
 	router := NewRouter(Deps{
-		Audit:  audit,
-		Blocks: compliance.NewBlocks(pool, compliance.NewMemoryFlags(), audit),
-		Scores: risk.NewStore(pool),
-		Auth:   store,
+		Audit:    audit,
+		Blocks:   compliance.NewBlocks(pool, compliance.NewMemoryFlags(), audit),
+		KYC:      compliance.NewKYC(pool, audit),
+		Disputes: compliance.NewDisputes(pool, ledger.NewRepo(pool), wallet.NewMemory(), audit),
+		Scores:   risk.NewStore(pool),
+		Auth:     store,
 	})
 	return router, pool, ctx, store
 }
@@ -124,5 +128,22 @@ func TestNoTokenIsStillUnauthorisedRatherThanForbidden(t *testing.T) {
 	rec := callAs(t, router, http.MethodGet, "/internal/v1/audit", "", "")
 	if rec.Code != http.StatusUnauthorized {
 		t.Errorf("GET /internal/v1/audit with no token = %d, want 401", rec.Code)
+	}
+}
+
+func TestAConsumerCanStillUseTheConsumerHalfOfCompliance(t *testing.T) {
+	router, pool, ctx, store := roleRouter(t)
+	consumer := signIn(t, pool, ctx, store, "081277770003", auth.RoleConsumer)
+
+	rec := callAs(t, router, http.MethodPost, "/v1/me/kyc", consumer.AccessToken,
+		`{"id_number":"3175000000000001"}`)
+	if rec.Code == http.StatusForbidden {
+		t.Errorf("a consumer was refused its own KYC submission: %s", rec.Body.String())
+	}
+
+	rec = callAs(t, router, http.MethodPost, "/v1/disputes", consumer.AccessToken,
+		`{"payment_id":"pay_does_not_exist","reason":"never arrived"}`)
+	if rec.Code == http.StatusForbidden {
+		t.Errorf("a consumer was refused opening a dispute: %s", rec.Body.String())
 	}
 }

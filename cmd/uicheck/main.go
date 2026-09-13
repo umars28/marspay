@@ -142,6 +142,7 @@ func main() {
 	code, out, _ = call("POST", "/v1/payments", access, map[string]any{
 		"merchant_id": merchant, "method": "qris", "amount": 3200000, "currency": "IDR"})
 	check("POST /v1/payments", code, 201, out, "amount", "fee", "ledger_transaction_id")
+	lastPaymentID, _ = out["id"].(string)
 
 	code, out, _ = call("POST", "/v1/transfers", access, map[string]any{
 		"to": "081200000002", "amount": 5000000, "currency": "IDR"})
@@ -295,6 +296,8 @@ func checkOperator() {
 	code, out, _ = call("GET", "/internal/v1/search?q="+merchant, token, nil)
 	check("GET  /internal/v1/search", code, 200, out, "data")
 
+	checkOpsActions(token)
+
 	consumerToken := lastConsumerToken
 	if consumerToken != "" {
 		code, _, _ = call("GET", "/internal/v1/audit", consumerToken, nil)
@@ -308,3 +311,53 @@ func checkOperator() {
 }
 
 var lastConsumerToken string
+var lastPaymentID string
+
+func checkOpsActions(token string) {
+	fmt.Println()
+
+	code, out, _ := call("GET", "/internal/v1/kyc", token, nil)
+	check("GET  /internal/v1/kyc", code, 200, out, "data")
+
+	if queue, ok := out["data"].([]any); ok && len(queue) > 0 {
+		if first, ok := queue[0].(map[string]any); ok {
+			id, _ := first["id"].(string)
+			code, out, _ = call("POST", "/internal/v1/kyc/"+id+"/review", token,
+				map[string]any{"decision": "approved", "reason": "documents match"})
+			check("POST /internal/v1/kyc/{id}/review", code, 200, out, "status")
+
+			code, _, _ = call("POST", "/internal/v1/kyc/"+id+"/review", token,
+				map[string]any{"decision": "approved", "reason": ""})
+			if code != 422 {
+				fmt.Printf("FAIL a review without a reason was accepted: %d, want 422\n", code)
+				failures++
+			} else {
+				fmt.Println("ok   a review with no reason is refused                422")
+			}
+		}
+	} else {
+		fmt.Println("FAIL the KYC queue is empty, so the screen has nothing to show")
+		failures++
+	}
+
+	if lastPaymentID != "" {
+		code, out, _ = call("POST", "/v1/disputes", lastConsumerToken, map[string]any{
+			"payment_id": lastPaymentID, "reason": "goods never arrived"})
+		check("POST /v1/disputes (consumer)", code, 201, out, "id", "status")
+
+		if id, ok := out["id"].(string); ok {
+			code, out, _ = call("POST", "/internal/v1/disputes/"+id+"/resolve", token,
+				map[string]any{"outcome": "resolved_user", "reason": "merchant did not respond"})
+			check("POST /internal/v1/disputes/{id}/resolve", code, 200, out, "status")
+		}
+	}
+
+	code, out, _ = call("POST", "/internal/v1/blocks", token, map[string]any{
+		"subject_type": "user", "subject_id": "usr_demo_new",
+		"reason": "uicheck exercising the block path"})
+	check("POST /internal/v1/blocks", code, 201, out, "id", "subject_id")
+
+	code, out, _ = call("POST", "/internal/v1/blocks/user/usr_demo_new/unblock", token,
+		map[string]any{"reason": "uicheck finished"})
+	check("POST /internal/v1/blocks/{..}/unblock", code, 200, out, "status")
+}

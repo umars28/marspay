@@ -145,6 +145,21 @@ func main() {
 	}
 
 	if _, err := pool.Exec(ctx,
+		`INSERT INTO users (id, phone, full_name, pin_hash, kyc_tier, status)
+		 VALUES ('usr_demo_new', '081200000003', 'Demo Newcomer', $1, 'unverified', 'active')
+		 ON CONFLICT (id) DO NOTHING`, pinHash); err != nil {
+		fatal(err)
+	}
+
+	if _, err := pool.Exec(ctx,
+		`INSERT INTO kyc_submissions (id, user_id, target_tier, id_number_hash, match_score, status)
+		 VALUES ('kyc_demo_pending', 'usr_demo_new', 'verified',
+		         encode(sha256('3175xxxxxxxx0001'::bytea), 'hex'), 0.41, 'pending')
+		 ON CONFLICT (id) DO NOTHING`); err != nil {
+		fatal(err)
+	}
+
+	if _, err := pool.Exec(ctx,
 		`INSERT INTO promos (id, code, name, kind, value_bps, max_benefit_minor,
 		                     min_spend_minor, total_quota, per_user_quota,
 		                     starts_at, ends_at, status)

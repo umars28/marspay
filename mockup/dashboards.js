@@ -226,7 +226,21 @@
     'r-alerts-rows', 'r-rules-rows', 'r-dispute-rows', 'r-blocked-rows', 'r-merchant-rows',
     'r-dispute-stat0', 'r-dispute-stat1', 'r-dispute-stat2', 'r-dispute-stat3',
     'r-merchant-stat0', 'r-merchant-stat1', 'r-merchant-stat2', 'r-merchant-stat3',
+    'r-kyc-queue', 'r-kyc-stat0', 'r-kyc-stat1', 'r-kyc-stat2', 'r-kyc-stat3',
   ];
+
+  function reasonFrom(id) {
+    var el = document.querySelector('#' + id);
+    return el ? el.value.trim() : '';
+  }
+
+  function needReason(id) {
+    var el = document.querySelector('#' + id);
+    if (el) {
+      el.focus();
+      el.placeholder = 'A reason is required before this action is accepted';
+    }
+  }
 
   async function loadOps() {
     var float = await MP.request('GET', '/internal/v1/float', { role: 'operator' });
@@ -386,7 +400,10 @@
           cell(d.covered_by_holdback >= d.amount ? 'fully' :
             (d.covered_by_holdback > 0 ? 'partly' : 'no')),
           cell(badge(d.status)),
-          cell(''),
+          cell('<button class="btn sm brand" data-dispute="' + esc(d.id) +
+            '" data-outcome="resolved_user">Refund user</button> ' +
+            '<button class="btn sm" data-dispute="' + esc(d.id) +
+            '" data-outcome="resolved_merchant">For merchant</button>'),
         ]);
       });
       set('r-dispute-rows', disputeRows.length ? disputeRows.join('') :
@@ -403,11 +420,42 @@
           cell(esc(b.reason)),
           cell(MP.plain(b.balance_held), 'r num'),
           cell(esc(b.appeal_status || '—')),
-          cell(''),
+          cell(b.lifted_at ? '' :
+            '<button class="btn sm brand" data-unblock="' + esc(b.subject_type) + '/' +
+            esc(b.subject_id) + '">Unblock</button>'),
         ]);
       });
       set('r-blocked-rows', blockRows.length ? blockRows.join('') :
         noRows(7, 'Nothing is blocked'));
+    }
+
+    var kyc = await MP.request('GET', '/internal/v1/kyc', { role: 'operator' });
+    if (kyc.ok) {
+      var queue = kyc.data.data || [];
+      set('r-kyc-stat0', String(queue.length));
+      set('r-kyc-stat1', String(queue.filter(function (k) { return k.status === 'approved'; }).length));
+      set('r-kyc-stat2', String(queue.filter(function (k) { return k.status === 'rejected'; }).length));
+      set('r-kyc-stat3', String(queue.filter(function (k) { return k.overdue; }).length) + ' overdue');
+
+      var items = queue.map(function (k) {
+        var initials = k.user_id.replace(/[^a-z0-9]/gi, '').slice(-2).toUpperCase();
+        var detail = 'Upgrade to ' + k.target_tier;
+        if (k.match_score !== null && k.match_score !== undefined) {
+          detail += ' · selfie match ' + k.match_score;
+        }
+        if (k.overdue) detail += ' · <span class="badge fail flat">past SLA</span>';
+        return '<div class="qitem"><div class="av">' + esc(initials) + '</div>' +
+          '<div><div class="t">' + esc(k.user_id) + '</div>' +
+          '<div class="s">' + detail + ' · ' + esc(MP.clock(k.submitted_at)) + '</div></div>' +
+          '<div class="ops">' +
+          '<button class="btn sm danger" data-kyc="' + esc(k.id) + '" data-decision="rejected">Decline</button>' +
+          '<button class="btn sm" data-kyc="' + esc(k.id) + '" data-decision="resubmit">Ask again</button>' +
+          '<button class="btn sm brand" data-kyc="' + esc(k.id) + '" data-decision="approved">Approve</button>' +
+          '</div></div>';
+      });
+      set('r-kyc-queue', items.length ? items.join('') :
+        '<div class="qitem"><div><div class="t">The queue is empty</div>' +
+        '<div class="s">Nothing is waiting for review</div></div></div>');
     }
 
     var score = await MP.request('GET', '/internal/v1/merchants/merch_demo/score', { role: 'operator' });
@@ -494,7 +542,54 @@
     }
   }
 
+  async function act(button, path, body, reasonField) {
+    var reason = reasonFrom(reasonField);
+    if (!reason) {
+      needReason(reasonField);
+      return;
+    }
+
+    button.disabled = true;
+    body.reason = reason;
+    var result = await MP.request('POST', path, { role: 'operator', body: body });
+    button.disabled = false;
+
+    if (!result.ok) {
+      button.textContent = 'Refused';
+      button.title = MPLive.failure(result);
+      return;
+    }
+    await loadOps();
+  }
+
   document.addEventListener('click', function (e) {
+    var kyc = e.target.closest('[data-kyc]');
+    if (kyc && MPLive.isLive('operator')) {
+      e.preventDefault();
+      e.stopPropagation();
+      act(kyc, '/internal/v1/kyc/' + kyc.dataset.kyc + '/review',
+        { decision: kyc.dataset.decision }, 'kyc-reason');
+      return;
+    }
+
+    var dispute = e.target.closest('[data-dispute]');
+    if (dispute && MPLive.isLive('operator')) {
+      e.preventDefault();
+      e.stopPropagation();
+      act(dispute, '/internal/v1/disputes/' + dispute.dataset.dispute + '/resolve',
+        { outcome: dispute.dataset.outcome }, 'dispute-reason');
+      return;
+    }
+
+    var unblock = e.target.closest('[data-unblock]');
+    if (unblock && MPLive.isLive('operator')) {
+      e.preventDefault();
+      e.stopPropagation();
+      act(unblock, '/internal/v1/blocks/' + unblock.dataset.unblock + '/unblock',
+        {}, 'block-reason');
+      return;
+    }
+
     var go = e.target.closest('#ops-search-go');
     if (go && MPLive.isLive('operator')) {
       e.preventDefault();
