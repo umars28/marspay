@@ -178,6 +178,58 @@ func TestCreatePaymentHappyPath(t *testing.T) {
 	}
 }
 
+func TestASuccessfulPaymentLeavesExactlyOneOutboxMessage(t *testing.T) {
+	f, ctx := newFixture(t)
+
+	rec := f.post(t, id.ULID(), f.validBody(3_200_000))
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 (body %s)", rec.Code, rec.Body.String())
+	}
+	p := decodePayment(t, rec)
+
+	var topic, key, eventType string
+	var payload []byte
+	var publishedAt *string
+	err := f.pool.QueryRow(ctx,
+		`SELECT topic, partition_key, event_type, payload, published_at::text FROM outbox`).
+		Scan(&topic, &key, &eventType, &payload, &publishedAt)
+	if err != nil {
+		t.Fatalf("read outbox: %v", err)
+	}
+
+	if topic != "payment.events" {
+		t.Errorf("topic = %q, want payment.events", topic)
+	}
+	if key != f.merchantID {
+		t.Errorf("partition key = %q, want the merchant id %q", key, f.merchantID)
+	}
+	if eventType != "payment.succeeded" {
+		t.Errorf("event type = %q, want payment.succeeded", eventType)
+	}
+	if publishedAt != nil {
+		t.Error("the message is already marked published; the relay has not run yet")
+	}
+	if !bytes.Contains(payload, []byte(p.ID)) {
+		t.Errorf("payload does not mention the payment id %s", p.ID)
+	}
+}
+
+func TestAFailedPaymentLeavesNoOutboxMessage(t *testing.T) {
+	f, ctx := newFixture(t)
+
+	if rec := f.post(t, id.ULID(), f.validBody(20_000_000)); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, want 422", rec.Code)
+	}
+
+	var messages int
+	if err := f.pool.QueryRow(ctx, `SELECT count(*) FROM outbox`).Scan(&messages); err != nil {
+		t.Fatalf("count outbox: %v", err)
+	}
+	if messages != 0 {
+		t.Errorf("outbox has %d messages after a rejected payment, want 0", messages)
+	}
+}
+
 func TestReplayWithSameKeyReturnsTheOriginalPayment(t *testing.T) {
 	f, ctx := newFixture(t)
 

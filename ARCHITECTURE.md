@@ -134,7 +134,9 @@ rather than a single HTTP client.
 5. Balance is held atomically in Redis via a Lua script (check and decrement in one round trip).
 6. `ledger-svc` posts the entries in one Postgres transaction: debit payer, credit merchant
    payable, credit platform fee. The three sum to zero.
-7. `payment.succeeded` is published to Kafka, partitioned by `merchant_id`.
+7. `payment.succeeded` is written to the **outbox table in the same transaction**, keyed by
+   `merchant_id`. A separate relay publishes it to Kafka. See §6a for why it is not published
+   directly.
 8. Consumers proceed independently and at their own pace:
    - `payout-svc` computes holdback, checks float, selects a rail, sends the payout
    - `webhook-dispatcher` delivers to the merchant with retry and DLQ
@@ -158,6 +160,42 @@ ordering is intentional and is the reason the ledger is written before anything 
 Keying by `merchant_id` gives per-merchant ordering without locks. It also creates the hot
 partition problem when one merchant dominates volume; the mitigation is a composite key
 `merchant_id:shard_n` for merchants above a volume threshold.
+
+## 6a. Events go through an outbox, never straight to Kafka
+
+Committing the ledger and publishing to Kafka are two different systems. There is no
+transaction spanning both, so writing to each in turn is a dual write, and a dual write has a
+failure mode with no safe ordering:
+
+| Order | What a crash in between costs |
+|---|---|
+| commit ledger, then publish | money moved but nobody was told: no payout, no webhook, no notification |
+| publish, then commit ledger | everyone was told about a payment that does not exist |
+
+The second is worse, but neither is acceptable when the subject is money. So the event is
+written to an `outbox` table **inside the same transaction as the ledger entries**. One commit,
+two facts, no window.
+
+```
+payment-svc ── BEGIN ──┬── ledger_entries
+                       ├── payments
+                       └── outbox            ── COMMIT ──▶
+                                                            relay ──▶ Kafka
+```
+
+The relay sweeps unpublished rows and publishes them. Three properties matter:
+
+- **Ordering per key.** Rows carry a monotonic `id` and are claimed in that order. A relay takes
+  a `pg_try_advisory_xact_lock` on `hashtext(partition_key)`, so two relays never split one
+  merchant's stream, while different merchants still process in parallel.
+- **At-least-once, never at-most-once.** A publish that succeeds but whose mark fails is
+  republished on the next sweep. Duplicates are the price; consumers deduplicate on event id.
+  Losing the message is not on the menu.
+- **Failures are visible.** A failed publish increments `attempts` and records `last_error`,
+  leaving the row unpublished. Depth of the unpublished set is the alert.
+
+This is the piece that makes the Kafka topics in §6 safe to rely on. Without it, every promise
+about payouts and webhooks is conditional on the publish call not failing.
 
 ## 7. Payment rails are simulated, on purpose
 

@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/umars28/marspay/internal/id"
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/money"
+	"github.com/umars28/marspay/internal/outbox"
 	"github.com/umars28/marspay/internal/wallet"
 )
 
@@ -172,11 +174,7 @@ func (s *Service) commit(ctx context.Context, userID string, m MerchantRef, req 
 		return nil, fmt.Errorf("payment: insert: %w", err)
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return nil, ledger.TranslateCommitError(err)
-	}
-
-	return &Payment{
+	event := &Payment{
 		ID:                  paymentID,
 		Status:              "succeeded",
 		Amount:              int64(amount),
@@ -186,7 +184,30 @@ func (s *Service) commit(ctx context.Context, userID string, m MerchantRef, req 
 		Merchant:            m,
 		LedgerTransactionID: txID,
 		CreatedAt:           createdAt.UTC(),
-	}, nil
+	}
+
+	payload, err := json.Marshal(map[string]any{
+		"type": "payment.succeeded",
+		"data": event,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("payment: encode event: %w", err)
+	}
+
+	err = outbox.Write(ctx, tx, outbox.Message{
+		Topic:        outbox.TopicPaymentEvents,
+		PartitionKey: m.ID,
+		EventType:    "payment.succeeded",
+		Payload:      payload,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, ledger.TranslateCommitError(err)
+	}
+	return event, nil
 }
 
 func (s *Service) loadMerchant(ctx context.Context, merchantID string) (MerchantRef, error) {
