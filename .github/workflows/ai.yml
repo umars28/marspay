@@ -7,6 +7,10 @@ on:
     branches-ignore: [main]
     paths: ['specs/**', '.aiflow/02-design.md']
   workflow_dispatch:
+  repository_dispatch:
+    types: [ai-fix]
+  issues:
+    types: [labeled]
 
 jobs:
   review:
@@ -34,4 +38,18 @@ jobs:
       issues: write
       id-token: write
     uses: umars28/aiflow/.github/workflows/nightly.yml@main
+    secrets: inherit
+
+  fix:
+    if: >-
+      github.event_name == 'repository_dispatch' ||
+      (github.event_name == 'issues' && github.event.label.name == 'ai-review')
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+      id-token: write
+    uses: umars28/aiflow/.github/workflows/fix.yml@main
+    with:
+      issue: ${{ github.event.client_payload.issue || github.event.issue.number }}
     secrets: inherit
