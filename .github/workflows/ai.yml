@@ -3,8 +3,35 @@ name: AI
 on:
   pull_request:
     types: [opened, ready_for_review]
+  push:
+    branches-ignore: [main]
+    paths: ['specs/**', '.aiflow/02-design.md']
+  workflow_dispatch:
 
 jobs:
   review:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
     uses: umars28/aiflow/.github/workflows/review.yml@main
+    secrets: inherit
+
+  build:
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    uses: umars28/aiflow/.github/workflows/build.yml@main
+    secrets: inherit
+
+  nightly:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    uses: umars28/aiflow/.github/workflows/nightly.yml@main
     secrets: inherit
