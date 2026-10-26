@@ -414,9 +414,14 @@ for f in migrations/*.up.sql; do psql "$(./scripts/test-db.sh dsn)" -f "$f"; don
 
 MARSPAY_DATABASE_URL="$(./scripts/test-db.sh dsn)" \
 MARSPAY_REDIS_ADDR="$(./scripts/test-db.sh redis-addr)" \
+MARSPAY_KAFKA_BROKERS="$(./scripts/test-db.sh kafka-brokers)" \
 MARSPAY_ADDR=127.0.0.1:8099 \
   go run ./cmd/marspay
 ```
+
+`MARSPAY_KAFKA_BROKERS` turns on the outbox relay, which publishes payment events to Kafka in
+the background. Leave it out and the server still runs; events wait in the `outbox` table. The
+webhook dispatcher always runs. See [docs/stack.md §6](docs/stack.md) for both workers.
 
 `POST /v1/payments` is implemented. Authentication is a development stand-in: the bearer
 token is taken as the user id until the real auth service exists. It is named
