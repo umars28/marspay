@@ -24,6 +24,7 @@ import (
 	"github.com/umars28/marspay/internal/ledger"
 	"github.com/umars28/marspay/internal/loyalty"
 	"github.com/umars28/marspay/internal/merchant"
+	"github.com/umars28/marspay/internal/outbox"
 	"github.com/umars28/marspay/internal/payment"
 	"github.com/umars28/marspay/internal/risk"
 	"github.com/umars28/marspay/internal/txn"
@@ -122,6 +123,28 @@ func run() error {
 		Charges:     merchant.NewCharges(pool),
 	})
 
+	var publisher outbox.Publisher
+	if brokers := list(env("MARSPAY_KAFKA_BROKERS", "")); len(brokers) > 0 {
+		kafka, err := outbox.NewKafkaPublisher(brokers)
+		if err != nil {
+			return err
+		}
+		defer kafka.Close()
+		publisher = kafka
+	}
+
+	workerCtx, stopWorkers := context.WithCancel(ctx)
+	waitWorkers := startWorkers(workerCtx, pool, workerConfig{
+		outboxPublisher: publisher,
+		outboxInterval:  envDuration("MARSPAY_OUTBOX_INTERVAL", 500*time.Millisecond),
+		webhookInterval: envDuration("MARSPAY_WEBHOOK_INTERVAL", time.Second),
+		webhookBatch:    envInt("MARSPAY_WEBHOOK_BATCH", 50),
+	})
+	defer func() {
+		stopWorkers()
+		waitWorkers()
+	}()
+
 	srv := &http.Server{
 		Addr:              addr,
 		Handler:           router,
@@ -156,6 +179,16 @@ func env(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func list(v string) []string {
+	var out []string
+	for _, s := range strings.Split(v, ",") {
+		if s = strings.TrimSpace(s); s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 func envInt(key string, fallback int) int {
