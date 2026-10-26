@@ -102,7 +102,7 @@ entries; Redis holds a copy that can be thrown away and rebuilt.
 |---|---|---|
 | PostgreSQL | the ledger, every operation row, sessions, the audit log | no; this is the system |
 | Redis | balance cache, velocity counters, session lookups, promo quota | yes; every value is reconstructable, and the API fails closed rather than guessing |
-| Kafka | `payment.events` for consumers that are not built yet | yes; the outbox keeps the events until something publishes them |
+| Kafka | `payment.events`, published by the outbox relay, for consumers that are not built yet | yes; the outbox keeps the events until the relay publishes them |
 
 Redis holding the *reservation* is the one place this is subtle. The reservation is not the
 truth — the ledger is — but it is what makes the check fast enough to sit on the hot path. A
@@ -122,17 +122,28 @@ Two directions, deliberately different:
 `internal/state` sits across both: every status change writes a row in the same transaction as
 the change it describes, so a trail cannot exist for something that rolled back.
 
-## 6. What is wired but not running
+## 6. What runs in the background, and what still does not
 
-Stated plainly, because the code reads as though these are live and they are not:
+`cmd/marspay` starts two background workers next to the HTTP server (`internal/worker`). Each
+one drains back-to-back while there is work, waits its interval when idle, and backs off
+exponentially on errors, capped at 30 s. On `SIGTERM` the workers stop taking new work and
+finish the step already in flight (bounded at 30 s). They are stopped before the database pool
+closes.
 
-**The outbox relay does not run in the server.** `internal/outbox` has `Relay.Sweep`, it is
-tested against a real broker, and `cmd/marspay` never calls it. Events accumulate in the
-`outbox` table and nothing publishes them to Kafka. The Jobs & Queues screen shows that depth
-growing, which is the honest reading of the current system.
+| Worker | Runs when | Interval | What it proves |
+|---|---|---|---|
+| `outbox-relay` | `MARSPAY_KAFKA_BROKERS` is set | `MARSPAY_OUTBOX_INTERVAL`, default 500 ms | the outbox drains to `payment.events`; checked end to end against Redpanda with no duplicate offsets |
+| `webhook-dispatcher` | always | `MARSPAY_WEBHOOK_INTERVAL`, default 1 s, batch `MARSPAY_WEBHOOK_BATCH` (50) | queued deliveries reach the merchant endpoint and are retried on the existing schedule |
 
-**The webhook dispatcher does not run either.** `DispatchBatch` exists and is tested; nothing
-schedules it.
+Without `MARSPAY_KAFKA_BROKERS` the relay is off and says so at start-up. Events accumulate in
+the `outbox` table, which is safe because nothing is lost; the Jobs & Queues screen shows that
+depth growing.
+
+Still stated plainly, because the code reads as though these are live and they are not:
+
+**Nothing creates webhook events yet.** The dispatcher runs, but `Dispatcher.Enqueue` is only
+called from tests. A merchant will not receive a webhook until something produces one,
+naturally a consumer of `payment.events`.
 
 **No consumers exist.** `payout-svc`, `notification-svc` and `risk-scorer` in `ARCHITECTURE.md`
 are designs. Payouts are settled synchronously by `payout.Service.Settle` when something calls
